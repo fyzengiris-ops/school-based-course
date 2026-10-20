@@ -1,0 +1,25 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Dependencies / build
+node_modules/
+dist/
+build/
+.cache/
+
+# Logs / env
+*.log
+.env
+.env.*
+!.env.example
+
+# Local / temp
+*.tmp
+*.temp
+.local/
