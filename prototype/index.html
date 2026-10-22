@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>校本课 · 原型框架 V0.8.5</title>
-    <link rel="stylesheet" href="./css/style.css?v=085-jw-unit1c" />
-    <link rel="stylesheet" href="./css/teacher-lib.css?v=085-jw-unit1c" />
+    <link rel="stylesheet" href="./css/style.css?v=085-add2-learners-mode" />
+    <link rel="stylesheet" href="./css/teacher-lib.css?v=085-add2-learners-mode" />
   </head>
   <body data-terminal="pc">
     <!-- 原型控制条：PC / PAD 终端切换 -->
@@ -592,68 +592,102 @@
 
                 <!-- 教务 · 学习名单 -->
                 <div class="xb-card xb-card--auto xb-card--learners" data-jw-panel="learners" hidden>
-                  <nav class="jw-publish-crumb" aria-label="面包屑">
-                    <button type="button" class="jw-publish-crumb__link" id="jw-learners-back">课程管理</button>
-                    <span class="jw-publish-crumb__sep">›</span>
-                    <span class="jw-publish-crumb__current">学习名单</span>
-                    <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-learners" title="查看此处改动说明">改</button>
-                  </nav>
+                  <div class="jw-learners-head">
+                    <nav class="jw-publish-crumb" aria-label="面包屑">
+                      <button type="button" class="jw-publish-crumb__link" id="jw-learners-back">课程管理</button>
+                      <span class="jw-publish-crumb__sep">›</span>
+                      <span class="jw-publish-crumb__current">学习名单</span>
+                      <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-learners" title="查看此处改动说明">改</button>
+                    </nav>
 
-                  <div class="jw-learners-bar">
-                    <div class="jw-learners-filters">
-                      <label class="xb-field" id="jw-learners-class-field">
-                        <span class="xb-field__label">年级/班级:</span>
-                        <select class="xb-select" id="jw-learners-class" aria-label="年级班级">
-                          <option selected>全部</option>
-                          <option>一年级1班</option>
-                          <option>一年级2班</option>
-                          <option>三年级1班</option>
-                        </select>
-                      </label>
-                      <label class="xb-field">
-                        <span class="xb-field__label">学生:</span>
-                        <input
-                          class="xb-input"
-                          id="jw-learners-keyword"
-                          type="text"
-                          placeholder="乐号/姓名"
-                          aria-label="学生"
-                        />
-                      </label>
-                      <button type="button" class="xb-btn xb-btn--ghost" id="jw-learners-query">查询</button>
-                    </div>
-                    <div class="jw-learners-actions">
-                      <button type="button" class="xb-btn xb-btn--ghost" data-learners-act="批量导入">批量导入</button>
-                      <button type="button" class="xb-btn xb-btn--ghost" id="jw-learners-add-btn" data-learners-act="添加学生">添加学生</button>
-                      <button type="button" class="xb-btn xb-btn--ghost jw-learners-remove" data-learners-act="批量移除">
-                        批量移除
-                      </button>
-                      <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-export" title="查看此处改动说明">改</button>
-                      <button type="button" class="xb-btn xb-btn--primary" data-learners-act="导出">导出</button>
+                    <div class="jw-learners-mode-switch-wrap">
+                      <div class="jw-learners-mode-switch" role="tablist" aria-label="名单维护方式">
+                        <button
+                          type="button"
+                          class="jw-learners-mode-switch__btn is-active"
+                          role="tab"
+                          aria-selected="true"
+                          data-learners-mode="person"
+                        >
+                          按人员名单维护
+                        </button>
+                        <button
+                          type="button"
+                          class="jw-learners-mode-switch__btn"
+                          role="tab"
+                          aria-selected="false"
+                          data-learners-mode="device"
+                        >
+                          按设备维护
+                        </button>
+                      </div>
+                      <span class="proto-add-pin proto-add-pin--inline" data-add-pin="add-2" title="查看新增说明">新增2</span>
                     </div>
                   </div>
 
-                  <div class="xb-table-wrap">
-                    <table class="xb-table xb-table--learners">
-                      <thead id="jw-learners-thead">
-                        <tr>
-                          <th class="col-check">
-                            <input class="xb-check" type="checkbox" id="jw-learners-check-all" aria-label="全选" />
-                          </th>
-                          <th>乐号</th>
-                          <th>姓名</th>
-                          <th>性别</th>
-                          <th>班级</th>
-                          <th>添加时间</th>
-                          <th class="col-maction">操作</th>
-                        </tr>
-                      </thead>
-                      <tbody id="jw-learners-tbody"></tbody>
-                    </table>
+                  <div class="jw-learners-person-panel" data-learners-person-panel>
+                    <div class="jw-learners-bar">
+                      <div class="jw-learners-filters">
+                        <label class="xb-field" id="jw-learners-class-field">
+                          <span class="xb-field__label">年级/班级:</span>
+                          <select class="xb-select" id="jw-learners-class" aria-label="年级班级">
+                            <option selected>全部</option>
+                            <option>一年级1班</option>
+                            <option>一年级2班</option>
+                            <option>三年级1班</option>
+                          </select>
+                        </label>
+                        <label class="xb-field">
+                          <span class="xb-field__label">学生:</span>
+                          <input
+                            class="xb-input"
+                            id="jw-learners-keyword"
+                            type="text"
+                            placeholder="乐号/姓名"
+                            aria-label="学生"
+                          />
+                        </label>
+                        <button type="button" class="xb-btn xb-btn--ghost" id="jw-learners-query">查询</button>
+                      </div>
+                      <div class="jw-learners-actions">
+                        <button type="button" class="xb-btn xb-btn--ghost" data-learners-act="批量导入">批量导入</button>
+                        <button type="button" class="xb-btn xb-btn--ghost" id="jw-learners-add-btn" data-learners-act="添加学生">添加学生</button>
+                        <button type="button" class="xb-btn xb-btn--ghost jw-learners-remove" data-learners-act="批量移除">
+                          批量移除
+                        </button>
+                        <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-export" title="查看此处改动说明">改</button>
+                        <button type="button" class="xb-btn xb-btn--primary" data-learners-act="导出">导出</button>
+                      </div>
+                    </div>
+
+                    <div class="xb-table-wrap">
+                      <table class="xb-table xb-table--learners">
+                        <thead id="jw-learners-thead">
+                          <tr>
+                            <th class="col-check">
+                              <input class="xb-check" type="checkbox" id="jw-learners-check-all" aria-label="全选" />
+                            </th>
+                            <th>乐号</th>
+                            <th>姓名</th>
+                            <th>性别</th>
+                            <th>班级</th>
+                            <th>添加时间</th>
+                            <th class="col-maction">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody id="jw-learners-tbody"></tbody>
+                      </table>
+                    </div>
+
+                    <div class="xb-pager">
+                      <span id="jw-learners-record-count">共0条记录</span>
+                    </div>
                   </div>
 
-                  <div class="xb-pager">
-                    <span id="jw-learners-record-count">共0条记录</span>
+                  <div class="jw-learners-device-tip" data-learners-device-panel hidden>
+                    <p class="jw-learners-device-tip__text">
+                      学生登录本校已开通【校本课】的设备后，即可学习对应年级的资源
+                    </p>
                   </div>
                 </div>
 
@@ -694,11 +728,12 @@
                         <span class="jw-import-step__num">2</span>
                         <span class="jw-import-step__title">下载模板</span>
                       </div>
-                      <div class="jw-import-step__body">
-                        <button type="button" class="xb-btn xb-btn--ghost jw-import-dl" id="jw-import-download">
+                      <div class="jw-import-step__body jw-import-dl-row">
+                        <button type="button" class="xb-btn xb-btn--ghost jw-import-dl" id="jw-import-download" data-ref-shot="learners-import-tpl" data-ref-shot-hover="1" title="悬停可预览原模板图；点击下载">
                           <span class="jw-import-dl__icon" aria-hidden="true">⬇</span>
                           下载模板
                         </button>
+                        <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-ref-shot="learners-import-tpl" title="查看原下载模板截图">原</button>
                       </div>
                     </li>
                     <li class="jw-import-step">
@@ -752,10 +787,6 @@
                         <label class="jw-radio">
                           <input type="radio" name="jw-add-learner-mode" value="school" checked />
                           <span>选择本校学生添加</span>
-                        </label>
-                        <label class="jw-radio">
-                          <input type="radio" name="jw-add-learner-mode" value="layer" />
-                          <span>选择分层班学生添加</span>
                         </label>
                         <label class="jw-radio">
                           <input type="radio" name="jw-add-learner-mode" value="lehao" />
@@ -1156,7 +1187,7 @@
                         <option value="paper">试卷</option>
                         <option value="courseware">课件</option>
                       </select>
-                      <span class="proto-add-pin proto-add-pin--inline" title="本期新增">新增1</span>
+                      <span class="proto-add-pin proto-add-pin--inline" data-add-pin="add-1" title="查看新增说明">新增1</span>
                     </div>
 
                     <div class="xb-form-row">
@@ -1177,7 +1208,7 @@
                           <option value="video" selected>视频</option>
                           <option value="courseware">课件</option>
                         </select>
-                        <span class="proto-add-pin proto-add-pin--inline" title="本期新增">新增1</span>
+                        <span class="proto-add-pin proto-add-pin--inline" data-add-pin="add-1" title="查看新增说明">新增1</span>
                       </div>
 
                       <div id="xb-local-file-row" class="xb-form-row xb-form-row--top">
@@ -1188,7 +1219,7 @@
                             上传
                           </button>
                           <input type="file" id="xb-local-file-input" accept=".avi,.aac,.mp4,.rmvb,.wmv,.wma,.wav,.flv,video/*" hidden />
-                          <p class="xb-local-file__tip">
+                          <p class="xb-local-file__tip" id="xb-local-file-tip">
                             支持avi、aac、mp4、rmvb、wmv、wma、wav、flv等格式的文件，最多上传一个；文件大小不超过500M。
                           </p>
                           <div class="xb-local-file__item" id="xb-local-file-item" hidden>
@@ -1200,7 +1231,7 @@
                       </div>
 
                       <div id="xb-local-name-row" class="xb-form-row">
-                        <span class="xb-form-label"><i class="xb-required">*</i>单课名称:</span>
+                        <span class="xb-form-label" id="xb-local-name-label"><i class="xb-required">*</i>单课名称:</span>
                         <div class="xb-local-name">
                           <input
                             class="xb-input"
@@ -1464,6 +1495,18 @@
               </div>
             </div>
 
+            <div class="xb-modal xb-modal--confirm" id="jw-learners-mode-modal" hidden>
+              <div class="xb-modal__mask" data-close-learners-mode></div>
+              <div class="xb-confirm xb-confirm--simple" role="dialog" aria-modal="true" aria-labelledby="jw-learners-mode-title">
+                <p class="xb-confirm__title" id="jw-learners-mode-title">确认更换名单维护方式吗？</p>
+                <p class="xb-confirm__desc">更换后，已维护的数据将清空，需重新添加才能恢复</p>
+                <div class="xb-confirm__actions">
+                  <button type="button" class="xb-btn xb-btn--cancel" data-close-learners-mode>取消</button>
+                  <button type="button" class="xb-btn xb-btn--primary" id="jw-learners-mode-ok">确定</button>
+                </div>
+              </div>
+            </div>
+
             <div class="xb-modal xb-modal--student-detail" id="jw-student-detail-modal" hidden>
               <div class="xb-modal__mask" data-close-student-detail></div>
               <div class="jw-student-detail" role="dialog" aria-modal="true" aria-labelledby="jw-student-detail-title">
@@ -1546,11 +1589,11 @@
                   <div class="jw-add-course__label-row jw-add-course__type-row">
                     <span class="jw-add-course__label">资源类型：</span>
                     <select class="xb-select" id="jw-add-course-resource-type" aria-label="资源类型">
-                      <option value="video" selected>视频</option>
+                      <option value="video">视频</option>
                       <option value="paper">试卷</option>
-                      <option value="courseware">课件</option>
+                      <option value="courseware" selected>课件</option>
                     </select>
-                    <span class="proto-add-pin proto-add-pin--inline" title="本期新增">新增1</span>
+                    <span class="proto-add-pin proto-add-pin--inline" data-add-pin="add-1" title="查看新增说明">新增1</span>
                   </div>
                   <div class="jw-add-course__label-row">
                     <span class="jw-add-course__label" id="jw-add-course-pick-label"><span class="req">*</span>选择课程视频：</span>
@@ -2213,6 +2256,6 @@
       </section>
     </main>
 
-    <script src="./js/app.js?v=085-jw-unit1c"></script>
+    <script src="./js/app.js?v=085-jw-reject-edit"></script>
   </body>
 </html>

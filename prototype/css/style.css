@@ -256,7 +256,7 @@ button {
   background: #d48806;
 }
 
-/* 本期新增标记（仅展示，不联动改动说明） */
+/* 本期新增标记（悬浮展示业务逻辑说明） */
 .proto-add-pin {
   position: relative;
   z-index: 6;
@@ -280,12 +280,17 @@ button {
   box-shadow: 0 0 0 2px #fff;
   flex-shrink: 0;
   vertical-align: -3px;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: help;
   user-select: none;
 }
 
 .proto-add-pin--inline {
   margin-left: 6px;
+}
+
+.proto-add-pin:hover {
+  background: #096dd9;
 }
 
 .proto-diff-pin-tip {
@@ -312,6 +317,67 @@ button {
   font-weight: 700;
   line-height: 1.4;
   color: #333;
+}
+
+.proto-diff-pin-tip.is-add .proto-diff-pin-tip__title {
+  color: #096dd9;
+}
+
+.proto-diff-pin-tip__body {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.proto-diff-pin-tip__body > li {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #444;
+}
+
+.proto-diff-pin-tip__body > li:last-child {
+  margin-bottom: 0;
+}
+
+.proto-diff-pin-tip__body strong {
+  font-weight: 700;
+  color: #222;
+}
+
+.proto-diff-pin-tip.is-shot {
+  max-width: min(520px, calc(100vw - 24px));
+  padding: 10px;
+}
+
+.proto-diff-pin-tip.is-shot .proto-diff-pin-tip__title {
+  margin-bottom: 8px;
+}
+
+.proto-diff-pin-tip__shot {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  max-height: min(56vh, 360px);
+  object-fit: contain;
+  border: 1px solid #e8eef1;
+  border-radius: 6px;
+  background: #f7fafb;
+  cursor: zoom-in;
+}
+
+.proto-diff-pin-tip__shot-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #8a97a5;
+  text-align: center;
+}
+
+.jw-import-dl-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .proto-diff-pin--inline {

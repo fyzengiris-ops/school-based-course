@@ -1830,6 +1830,10 @@
               text: "左上角的 icon 和「空中课堂」，需要更换为校本课和对应的 icon。",
               kind: "rename",
             },
+            {
+              text: "审核不通过的数据，下拉选项里需要有【编辑】按钮；点击后弹出的弹窗与首次添加该条课程数据时点击【编辑】的弹窗一致，支持编辑视频名称、学段学科、单课分组。",
+              kind: "add",
+            },
           ],
         },
       ],
@@ -1853,6 +1857,10 @@
               children: [
                 { text: "右侧面板左上角的【点播库】文案去掉；", kind: "remove" },
                 { text: "审核通过的数据，原来的【打包】操作按钮去掉；", kind: "remove" },
+                {
+                  text: "审核不通过的数据，下拉选项里需要有【编辑】按钮；点击后弹出的弹窗与首次添加该条课程数据时点击【编辑】的弹窗一致，支持编辑视频名称、学段学科、单课分组。",
+                  kind: "add",
+                },
                 "其余能力和教务身份原来在点播库tab栏的能力全部保持一致。",
               ],
             },
@@ -2063,6 +2071,10 @@
           caption: "原学习名单【批量导入】页（橙框改名 / 后续页去掉）",
           extraShots: [
             {
+              src: "./assets/ref/pc-jiaowu-learners-import-template.png",
+              caption: "原下载模板",
+            },
+            {
               src: "./assets/ref/pc-jiaowu-import-restore-original.png",
               caption: "原再次导入已被移除学生时的恢复提示弹窗（红框去掉 / 橙框改名）",
             },
@@ -2093,8 +2105,8 @@
         },
         {
           id: "pc-jw-add-learner",
-          src: "./assets/ref/pc-jiaowu-add-learner-original.png",
-          caption: "原学习名单【添加学生】页（橙框改名 / 后续页去掉）",
+          src: "./assets/ref/pc-jiaowu-add-learner-original.png?v=add-stu",
+          caption: "原添加学生",
           extraShots: [
             {
               src: "./assets/ref/pc-jiaowu-add-learner-restore-original.png",
@@ -2115,6 +2127,14 @@
               kind: "rename",
             },
             {
+              text: "添加方式去掉【选择分层班学生添加】；",
+              kind: "remove",
+            },
+            {
+              text: "【选择本校学生添加】展示的本校学生数据，需为已开通校本课的学生名单，不能是全校学生名单；该名单由中台获取；",
+              kind: "rename",
+            },
+            {
               text: "若添加名单中含已被移除的学生，仍保留「学习名单是否恢复」校验弹窗：标题与正文中的【上课名单】改为【学习名单】，【购买】改为【导入】；去掉「或者取消勾选移除人员后继续购买」；",
               kind: "rename",
             },
@@ -2122,7 +2142,7 @@
               text: "线上原流程：【添加】→（若有移除人员则恢复弹窗）→ 结算页 →【提交订单】→ 支付成功页 → 返回名单；本项目去掉结算页与支付成功页，确认添加后直接回到学习名单并 toast「添加成功」；",
               kind: "remove",
             },
-            "其余能力与交互保持不变：添加方式（本校学生 / 分层班学生 / 输入乐号）、选择学员双栏、【添加】【取消】。",
+            "其余能力与交互保持不变：添加方式（本校学生 / 输入乐号）、选择学员双栏、【添加】【取消】。",
           ],
         },
         {
@@ -2142,12 +2162,12 @@
         },
         {
           id: "pc-jw-learn-data",
-          src: "./assets/ref/pc-jiaowu-learn-data-summary.png",
-          caption: "原学习数据-汇总",
+          src: "./assets/ref/pc-jiaowu-learn-data-summary-orig.png",
+          caption: "原学习数据汇总",
           extraShots: [
             {
               src: "./assets/ref/pc-jiaowu-learn-data-tip-avg-ratio.png",
-              caption: "原【生均学习时长比例】说明气泡（橙框改名）",
+              caption: "原【生均学习时长比例】说明气泡（字段已去掉）",
             },
             {
               src: "./assets/ref/pc-jiaowu-learn-data-tip-learn-rate.png",
@@ -2202,21 +2222,17 @@
               kind: "remove",
             },
             {
-              text: "班级维度字段与学校维度一致，仅在【学生数】前增加【班级】列；同样去掉原【总课时数】与【点播课】分类，【课时数】改为【总课时数】，【生均学习时长比例】后移，并保留【作业完成率】；",
+              text: "班级维度字段与学校维度一致，仅在【学生数】前增加【班级】列；同样去掉原【总课时数】与【点播课】分类，【课时数】改为【总课时数】，并保留【作业完成率】；",
               kind: "rename",
             },
             { text: "原【课时数】调整为【总课时数】；", kind: "rename" },
             {
-              text: "【生均学习时长比例】调整到【已上架课时数】后面；",
-              kind: "rename",
+              text: "去掉【生均学习时长比例】字段；",
+              kind: "remove",
             },
             {
               text: "在【学习完成率】后新增【作业完成率】；",
               kind: "add",
-            },
-            {
-              text: "【生均学习时长比例】说明调整为「各学生总课时/已上架课时总时长的平均值」；",
-              kind: "rename",
             },
             {
               text: "【学习完成率】说明调整为「视频观看时长达到90%的课时数/已上架课时数*100%」（去掉「点播」）；",
@@ -2576,34 +2592,6 @@
     }, 220);
   }
 
-  function isDiffPinTipZone(node) {
-    if (!node || !node.closest) return false;
-    return !!(node.closest("[data-diff-pin]") || node.closest("#proto-diff-pin-tip"));
-  }
-
-  function showDiffPinTip(pin) {
-    cancelHideDiffPinTip();
-    const found = findDiffPinItem(pin.dataset.diffPin || "");
-    if (!found) return;
-    const tip = ensureDiffPinTip();
-    const changes = renderChangeItems(found.item.changes);
-    tip.innerHTML = `<p class="proto-diff-pin-tip__title">改${found.index + 1} ${escapeAttr(
-      found.item.caption || ""
-    )}</p><ol class="proto-diff-card__list">${
-      changes || `<li>暂无改动说明</li>`
-    }</ol>`;
-    tip.hidden = false;
-    const pinRect = pin.getBoundingClientRect();
-    const tipRect = tip.getBoundingClientRect();
-    let left = pinRect.right + 8;
-    let top = pinRect.top;
-    if (left + tipRect.width > window.innerWidth - 8) left = pinRect.left - tipRect.width - 8;
-    if (top + tipRect.height > window.innerHeight - 8) top = Math.max(8, window.innerHeight - tipRect.height - 8);
-    if (left < 8) left = 8;
-    tip.style.left = `${left}px`;
-    tip.style.top = `${top}px`;
-  }
-
   function openDiffPin(pinId) {
     const found = findDiffPinItem(pinId);
     hideDiffPinTip();
@@ -2630,10 +2618,185 @@
     syncDiffPinLabels();
   }
 
+  /** 本期「新增」字段业务逻辑说明（悬停展示） */
+  const ADD_NOTES = {
+    "add-1": {
+      no: 1,
+      title: "资源类型",
+      items: [
+        "本期在添加资源时新增【资源类型】字段，下拉可切换选择：视频 / 试卷 / 课件。",
+        "默认选中的选项为【课件】。",
+        "<strong>选「视频」：</strong>完全复用点播课现有能力。可直接选择老师上传的视频资源（视频资源可能包含配套的课件或试卷）；也可由当前排课人自己新选视频（从资源库选择，或本地上传）。",
+        "<strong>选「试卷」：</strong>下方选择字段改为「选择试卷」。下方列表展示老师上传的试卷资源。排课人可点【添加】，进入个人试卷 / 个人收藏试卷列表；选中后点确定，试卷回显到老师上传的试卷资源列表，并为选中状态。",
+        "<strong>选「课件」：</strong>下方选择字段改为「选择课件」。下方列表展示老师上传的课件资源。排课人可点【添加】，先进入「从资源库选择 / 本地上传」中间页：若走资源库，需在中间页再点一次【添加】，打开个人课件 / 个人收藏课件列表，选中确定后先回显到中间页，再点中间页【确定】才回显到老师上传的课件资源列表并选中；若走本地上传，上传并完成必填后点【确定】，课件回显到老师上传的课件资源列表并选中。",
+      ],
+    },
+    "add-2": {
+      no: 2,
+      title: "名单维护方式",
+      items: [
+        "该字段有无，取决于该校在中台开通校本课时选择的开通方式：若校方只选「按设备使用」或只选「按人员使用」，则无该字段；若校方同时选择「按设备使用」和「按人员使用」，才有该字段。",
+        "当没有该字段，且校方选择的是「按设备使用」时：用户发布的课包，只要学生用自己的账号登录本校已支持的设备，即可查看对应的校本课资源。",
+        "当没有该字段，且校方选择的是「按人员使用」时：用户发布的课包，仅名单内学生账号登录平板后可查看对应校本课资源；其他学生账号登录平板时，不会看到校本课资源。",
+        "当存在该字段时，按用户在页面上选择的维护方式，分别按上述两种情况实现（典型场景：学校既有自习室，也有学生个人购买校本课）。",
+        "<strong>按人员名单维护：</strong>沿用现有人员名单能力，可筛选年级/班级与学生，支持批量导入、添加学生、批量移除、导出等。",
+        "<strong>按设备维护：</strong>不展示名单表格与操作区，仅展示说明文案：「学生登录本校已开通【校本课】的设备后，即可学习对应年级的资源」。",
+        "<strong>切换校验：</strong>当前名单无数据时可直接切换；若已有维护数据，弹出确认「确认更换名单维护方式吗？更换后，已维护的数据将清空，需重新添加才能恢复」；确定后清空当前数据再切换，取消则保持原方式。",
+      ],
+    },
+    "add-3": {
+      no: 3,
+      title: "课件查看率",
+      items: [
+        "学习数据汇总表（单课程 / 多课程，学校、班级等各查看维度）在相关学情指标后新增【课件查看率】。",
+        "<strong>计算方式：</strong>全部学生已查看课件数之和 ÷ 全部学生应查看课件数之和 × 100%。",
+        "<strong>指标含义：</strong>关注课件是否被使用。",
+      ],
+    },
+    "add-4": {
+      no: 4,
+      title: "课件内容查看率",
+      items: [
+        "在【课件查看率】后新增【课件内容查看率】；单课程 / 多课程、各汇总维度均展示。",
+        "<strong>计算方式：</strong>全部学生已查看的课件去重页数之和 ÷ 全部学生应查看课件总页数之和 × 100%。",
+        "<strong>指标含义：</strong>关注资源内容被查看了多少。",
+      ],
+    },
+    "add-5": {
+      no: 5,
+      title: "视频观看时长占比",
+      items: [
+        "学习数据汇总表（单课程 / 多课程，学校、班级等各查看维度）新增【视频观看时长占比】（由原「生均学习时长比例」调整而来）。",
+        "<strong>计算方式：</strong>全部学生各课时有效观看时长之和 ÷ 全部学生对应课时总时长之和。",
+        "<strong>指标含义：</strong>反应整体视频内容的观看比例，关注实际观看程度。",
+      ],
+    },
+  };
+
+  function findAddNote(id) {
+    return ADD_NOTES[id] || null;
+  }
+
+  function showAddPinTip(pin) {
+    cancelHideDiffPinTip();
+    const note = findAddNote(pin.dataset.addPin || "");
+    if (!note) return;
+    const tip = ensureDiffPinTip();
+    tip.classList.add("is-add");
+    tip.innerHTML = `<p class="proto-diff-pin-tip__title">新增${note.no} ${escapeAttr(
+      note.title || ""
+    )}</p><ul class="proto-diff-pin-tip__body">${(note.items || [])
+      .map((item) => `<li>${item}</li>`)
+      .join("")}</ul>`;
+    tip.hidden = false;
+    const pinRect = pin.getBoundingClientRect();
+    const tipRect = tip.getBoundingClientRect();
+    let left = pinRect.right + 8;
+    let top = pinRect.top;
+    if (left + tipRect.width > window.innerWidth - 8) left = pinRect.left - tipRect.width - 8;
+    if (top + tipRect.height > window.innerHeight - 8) top = Math.max(8, window.innerHeight - tipRect.height - 8);
+    if (left < 8) left = 8;
+    tip.style.left = `${left}px`;
+    tip.style.top = `${top}px`;
+  }
+
+  function showDiffPinTip(pin) {
+    cancelHideDiffPinTip();
+    const found = findDiffPinItem(pin.dataset.diffPin || "");
+    if (!found) return;
+    const tip = ensureDiffPinTip();
+    tip.classList.remove("is-add");
+    const changes = renderChangeItems(found.item.changes);
+    tip.innerHTML = `<p class="proto-diff-pin-tip__title">改${found.index + 1} ${escapeAttr(
+      found.item.caption || ""
+    )}</p><ol class="proto-diff-card__list">${
+      changes || `<li>暂无改动说明</li>`
+    }</ol>`;
+    tip.hidden = false;
+    const pinRect = pin.getBoundingClientRect();
+    const tipRect = tip.getBoundingClientRect();
+    let left = pinRect.right + 8;
+    let top = pinRect.top;
+    if (left + tipRect.width > window.innerWidth - 8) left = pinRect.left - tipRect.width - 8;
+    if (top + tipRect.height > window.innerHeight - 8) top = Math.max(8, window.innerHeight - tipRect.height - 8);
+    if (left < 8) left = 8;
+    tip.style.left = `${left}px`;
+    tip.style.top = `${top}px`;
+  }
+
+  /** 原图对照（非改动序号）：悬停预览 / 点击大图 */
+  const REF_SHOTS = {
+    "learners-import-tpl": {
+      src: "./assets/ref/pc-jiaowu-learners-import-template.png",
+      caption: "原下载模板",
+    },
+  };
+
+  function findRefShot(id) {
+    return REF_SHOTS[id] || null;
+  }
+
+  function openRefShot(id) {
+    const shot = findRefShot(id);
+    if (!shot) return;
+    hideDiffPinTip();
+    openLightbox(shot.src, shot.caption, [], [shot], 0);
+  }
+
+  function showRefShotTip(anchor) {
+    cancelHideDiffPinTip();
+    const shot = findRefShot(anchor.dataset.refShot || "");
+    if (!shot) return;
+    const tip = ensureDiffPinTip();
+    tip.classList.remove("is-add");
+    tip.classList.add("is-shot");
+    tip.innerHTML = `<p class="proto-diff-pin-tip__title">${escapeAttr(
+      shot.caption || "原图"
+    )}</p><img class="proto-diff-pin-tip__shot" src="${escapeAttr(
+      shot.src
+    )}" alt="${escapeAttr(shot.caption || "原图")}" data-ref-shot-open="${escapeAttr(
+      anchor.dataset.refShot || ""
+    )}" /><span class="proto-diff-pin-tip__shot-hint">点击图片查看大图</span>`;
+    tip.hidden = false;
+    const pinRect = anchor.getBoundingClientRect();
+    const tipRect = tip.getBoundingClientRect();
+    let left = pinRect.right + 8;
+    let top = pinRect.top;
+    if (left + tipRect.width > window.innerWidth - 8) left = pinRect.left - tipRect.width - 8;
+    if (top + tipRect.height > window.innerHeight - 8) top = Math.max(8, window.innerHeight - tipRect.height - 8);
+    if (left < 8) left = 8;
+    tip.style.left = `${left}px`;
+    tip.style.top = `${top}px`;
+  }
+
+  function isDiffPinTipZone(node) {
+    if (!node || !node.closest) return false;
+    return !!(
+      node.closest("[data-diff-pin]") ||
+      node.closest("[data-add-pin]") ||
+      node.closest("[data-ref-shot]") ||
+      node.closest("#proto-diff-pin-tip")
+    );
+  }
+
   function bindDiffNotes() {
     document.addEventListener(
       "click",
       (e) => {
+        const openFromTip = e.target.closest?.("[data-ref-shot-open]");
+        if (openFromTip) {
+          e.preventDefault();
+          e.stopPropagation();
+          openRefShot(openFromTip.dataset.refShotOpen || "");
+          return;
+        }
+        const refPin = e.target.closest?.("[data-ref-shot]");
+        if (refPin && !refPin.matches("#jw-import-download")) {
+          e.preventDefault();
+          e.stopPropagation();
+          openRefShot(refPin.dataset.refShot || "");
+          return;
+        }
         const pin = e.target.closest("[data-diff-pin]");
         if (!pin) return;
         e.preventDefault();
@@ -2643,6 +2806,16 @@
       true
     );
     document.addEventListener("mouseover", (e) => {
+      const addPin = e.target.closest?.("[data-add-pin]");
+      if (addPin) {
+        showAddPinTip(addPin);
+        return;
+      }
+      const refShot = e.target.closest?.("[data-ref-shot]");
+      if (refShot) {
+        showRefShotTip(refShot);
+        return;
+      }
       const pin = e.target.closest?.("[data-diff-pin]");
       if (pin) {
         showDiffPinTip(pin);
@@ -2651,7 +2824,11 @@
       if (e.target.closest?.("#proto-diff-pin-tip")) cancelHideDiffPinTip();
     });
     document.addEventListener("mouseout", (e) => {
-      const inZone = e.target.closest?.("[data-diff-pin]") || e.target.closest?.("#proto-diff-pin-tip");
+      const inZone =
+        e.target.closest?.("[data-diff-pin]") ||
+        e.target.closest?.("[data-add-pin]") ||
+        e.target.closest?.("[data-ref-shot]") ||
+        e.target.closest?.("#proto-diff-pin-tip");
       if (!inZone) return;
       if (isDiffPinTipZone(e.relatedTarget)) return;
       scheduleHideDiffPinTip();
@@ -2932,6 +3109,10 @@
         }
         if ($("#jw-learner-remove-modal")?.classList.contains("is-open")) {
           closeLearnerRemoveModal();
+          return;
+        }
+        if ($("#jw-learners-mode-modal")?.classList.contains("is-open")) {
+          closeLearnersModeConfirmModal();
           return;
         }
         if ($("#jw-student-detail-modal")?.classList.contains("is-open")) {
@@ -3263,13 +3444,91 @@
   let addDeviceMatchedSerial = null;
   let pendingLearnersMaintainMode = null;
 
-  // 学习名单仅保留按人员名单维护（已去掉人员/设备切换）
   function isLearnersDeviceMode() {
-    return false;
+    if (learnersCourseId == null) return false;
+    return learnersMaintainModeByCourse[learnersKey(learnersCourseId)] === "device";
   }
 
   function getLearnersMaintainMode() {
-    return "person";
+    return isLearnersDeviceMode() ? "device" : "person";
+  }
+
+  function getCurrentLearnersRosterCount() {
+    if (learnersCourseId == null) return 0;
+    return isLearnersDeviceMode()
+      ? getDevicesForCourse(learnersCourseId).length
+      : getLearnersForCourse(learnersCourseId).length;
+  }
+
+  function clearCurrentLearnersRosterData() {
+    if (learnersCourseId == null) return;
+    if (isLearnersDeviceMode()) {
+      getDevicesForCourse(learnersCourseId).length = 0;
+      getRemovedDevicesForCourse(learnersCourseId).length = 0;
+    } else {
+      getLearnersForCourse(learnersCourseId).length = 0;
+      getRemovedLearnersForCourse(learnersCourseId).length = 0;
+    }
+    syncCourseLearnerCount(learnersCourseId);
+  }
+
+  function applyLearnersMaintainMode(mode) {
+    if (learnersCourseId == null) return;
+    const next = mode === "device" ? "device" : "person";
+    learnersMaintainModeByCourse[learnersKey(learnersCourseId)] = next;
+    learnersListKeyword = "";
+    const keywordInput = $("#jw-learners-keyword");
+    if (keywordInput) keywordInput.value = "";
+    addDeviceMatchedSerial = null;
+    syncLearnersMaintainModeUI();
+    renderLearnersTable();
+    schedulePersist();
+  }
+
+  function openLearnersModeConfirmModal(mode) {
+    pendingLearnersMaintainMode = mode === "device" ? "device" : "person";
+    const modal = $("#jw-learners-mode-modal");
+    if (!modal) return;
+    modal.hidden = false;
+    modal.classList.add("is-open");
+  }
+
+  function closeLearnersModeConfirmModal() {
+    const modal = $("#jw-learners-mode-modal");
+    if (!modal) return;
+    pendingLearnersMaintainMode = null;
+    modal.classList.remove("is-open");
+    modal.hidden = true;
+    // 取消时把切换按钮状态回正
+    syncLearnersMaintainModeUI();
+  }
+
+  function confirmLearnersMaintainModeSwitch() {
+    if (learnersCourseId == null || !pendingLearnersMaintainMode) {
+      closeLearnersModeConfirmModal();
+      return;
+    }
+    const next = pendingLearnersMaintainMode;
+    clearCurrentLearnersRosterData();
+    pendingLearnersMaintainMode = null;
+    const modal = $("#jw-learners-mode-modal");
+    if (modal) {
+      modal.classList.remove("is-open");
+      modal.hidden = true;
+    }
+    applyLearnersMaintainMode(next);
+    showToast("已更换名单维护方式");
+  }
+
+  function setLearnersMaintainMode(mode) {
+    if (learnersCourseId == null) return;
+    const next = mode === "device" ? "device" : "person";
+    if (next === getLearnersMaintainMode()) return;
+    if (getCurrentLearnersRosterCount() === 0) {
+      applyLearnersMaintainMode(next);
+      return;
+    }
+    openLearnersModeConfirmModal(next);
   }
 
   function isLearnDataMulti() {
@@ -3364,10 +3623,26 @@
   function syncCourseLearnerCount(courseId) {
     const course = manageCourseList.find((item) => item.id === courseId);
     if (!course) return;
-    course.learners = getLearnersForCourse(courseId).length;
+    const deviceMode = learnersMaintainModeByCourse[learnersKey(courseId)] === "device";
+    course.learners = deviceMode
+      ? getDevicesForCourse(courseId).length
+      : getLearnersForCourse(courseId).length;
   }
 
   function syncLearnersMaintainModeUI() {
+    const mode = getLearnersMaintainMode();
+    const isDevice = mode === "device";
+    $$("[data-learners-mode]").forEach((btn) => {
+      const active = btn.dataset.learnersMode === mode;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    $$("[data-learners-person-panel]").forEach((el) => {
+      el.hidden = isDevice;
+    });
+    $$("[data-learners-device-panel]").forEach((el) => {
+      el.hidden = !isDevice;
+    });
     const keywordInput = $("#jw-learners-keyword");
     if (keywordInput) {
       keywordInput.placeholder = "乐号/姓名";
@@ -3614,8 +3889,13 @@
   function renderLearnersTable() {
     const tbody = $("#jw-learners-tbody");
     const countEl = $("#jw-learners-record-count");
-    if (!tbody) return;
     syncLearnersMaintainModeUI();
+    if (isLearnersDeviceMode()) {
+      if (tbody) tbody.innerHTML = "";
+      if (countEl) countEl.textContent = "共0条记录";
+      return;
+    }
+    if (!tbody) return;
     const list = getVisibleLearnersList();
     if (!list.length) {
       tbody.innerHTML = `<tr><td colspan="7"><div class="jw-learners-empty">暂无数据</div></td></tr>`;
@@ -3709,6 +3989,7 @@
         <span class="jw-th-with-tip">
           视频观看时长占比
           <button type="button" class="jw-tip-btn" data-tip="avg-ratio" aria-label="视频观看时长占比说明">?</button>
+          <span class="proto-add-pin proto-add-pin--inline" data-add-pin="add-5" title="查看新增说明">新增5</span>
         </span>
       </th>
       <th class="col-ld-rate">
@@ -3727,14 +4008,14 @@
         <span class="jw-th-with-tip">
           课件查看率
           <button type="button" class="jw-tip-btn" data-tip="cw-view-rate" aria-label="课件查看率说明">?</button>
-          <span class="proto-add-pin proto-add-pin--inline" title="本期新增">新增3</span>
+          <span class="proto-add-pin proto-add-pin--inline" data-add-pin="add-3" title="查看新增说明">新增3</span>
         </span>
       </th>
       <th class="col-ld-rate">
         <span class="jw-th-with-tip">
           课件内容查看率
           <button type="button" class="jw-tip-btn" data-tip="cw-content-rate" aria-label="课件内容查看率说明">?</button>
-          <span class="proto-add-pin proto-add-pin--inline" title="本期新增">新增4</span>
+          <span class="proto-add-pin proto-add-pin--inline" data-add-pin="add-4" title="查看新增说明">新增4</span>
         </span>
       </th>
       <th class="col-ld-action">操作</th>`;
@@ -4590,6 +4871,56 @@
 
   let importHasFile = true;
   const IMPORT_DEMO_FILE_PERSON = "student_append_tpl.xls";
+
+  /** 学习名单批量导入 · 下载模板（样式对齐线上：蓝底表头 + 红星必填 + 示例行） */
+  function downloadLearnersImportTemplate() {
+    const headerBg = "#00B0F0";
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:x="urn:schemas-microsoft-com:office:excel"
+xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8" />
+<!--[if gte mso 9]><xml>
+ <x:ExcelWorkbook>
+  <x:ExcelWorksheets>
+   <x:ExcelWorksheet>
+    <x:Name>学习名单</x:Name>
+    <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+   </x:ExcelWorksheet>
+  </x:ExcelWorksheets>
+ </x:ExcelWorkbook>
+</xml><![endif]-->
+<style>
+td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-number-format:"\\@"; }
+.hdr { background: ${headerBg}; text-align: center; font-weight: bold; white-space: nowrap; }
+.req { color: #FF0000; }
+</style>
+</head>
+<body>
+<table border="1" cellspacing="0" cellpadding="4">
+ <tr>
+  <td class="hdr"><span class="req">*</span>学生乐号 (必填)</td>
+  <td class="hdr"><span class="req">*</span>学生姓名 (必填)</td>
+ </tr>
+ <tr>
+  <td>7277620</td>
+  <td>文祥云</td>
+ </tr>
+</table>
+</body>
+</html>`;
+    // Excel 对 UTF-8 中文需 BOM
+    const blob = new Blob(["\uFEFF" + html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "学习名单导入模板.xls";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast("模板已下载");
+  }
   const IMPORT_DEMO_FILE_DEVICE = "device_append_tpl.xls";
 
   function syncImportUploadState() {
@@ -5252,6 +5583,15 @@
       learnersCourseId = null;
       setJiaowuNav("manage");
     });
+    $$("[data-learners-mode]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setLearnersMaintainMode(btn.dataset.learnersMode);
+      });
+    });
+    $$("[data-close-learners-mode]").forEach((el) => {
+      el.addEventListener("click", closeLearnersModeConfirmModal);
+    });
+    $("#jw-learners-mode-ok")?.addEventListener("click", confirmLearnersMaintainModeSwitch);
     $("#jw-learners-query")?.addEventListener("click", () => {
       learnersListKeyword = ($("#jw-learners-keyword")?.value || "").trim();
       renderLearnersTable();
@@ -5314,7 +5654,7 @@
       renderLearnersTable();
     });
     $("#jw-import-download")?.addEventListener("click", () => {
-      showToast("已下载模板（原型示意）");
+      downloadLearnersImportTemplate();
     });
     $("#jw-import-upload")?.addEventListener("click", () => {
       if (importHasFile) return;
@@ -5371,6 +5711,7 @@
                   ? ""
                   : `<button type="button" class="xb-op-menu__item" data-op-item="提交" data-submit-row="${row.id}">提交</button>`
               }
+                <button type="button" class="xb-op-menu__item" data-op-item="编辑" data-edit-row="${row.id}">编辑</button>
                 <button type="button" class="xb-op-menu__item" data-op-item="移动" data-move-row="${row.id}">移动</button>
                 <button type="button" class="xb-op-menu__item" data-op-item="审核记录" data-audit-row="${row.id}">审核记录</button>
                 <button type="button" class="xb-op-menu__item" data-op-item="删除" data-del-row="${row.id}">删除</button>`
@@ -5583,6 +5924,7 @@
                     ? ""
                     : `<button type="button" class="xb-op-menu__item" data-op-item="提交" data-submit-row="${row.id}">提交</button>`
                 }
+                <button type="button" class="xb-op-menu__item" data-op-item="编辑" data-edit-row="${row.id}">编辑</button>
                 <button type="button" class="xb-op-menu__item" data-op-item="移动" data-move-row="${row.id}">移动</button>
                 <button type="button" class="xb-op-menu__item" data-op-item="审核记录" data-audit-row="${row.id}">审核记录</button>
                 <button type="button" class="xb-op-menu__item" data-op-item="删除" data-del-row="${row.id}">删除</button>
@@ -6155,7 +6497,7 @@
   const addCourseSelected = new Set();
   let dragLessonKey = null;
   let addModalSource = "courseList"; // courseList | jwAddCourse
-  let jwAddCourseResourceType = "video";
+  let jwAddCourseResourceType = "courseware";
 
   function mockVideoDuration(name) {
     const n = String(name || "").length;
@@ -6361,7 +6703,7 @@
     if (!modal) return;
     addCourseUnitId = unitId;
     addCourseSelected.clear();
-    jwAddCourseResourceType = "video";
+    jwAddCourseResourceType = "courseware";
     syncJwAddCourseTypeUI();
     const search = $("#jw-add-course-search");
     if (search) search.value = "";
@@ -6489,13 +6831,9 @@
     $("#jw-add-course-search")?.addEventListener("input", renderAddCoursePicker);
     $("#jw-add-course-search-btn")?.addEventListener("click", renderAddCoursePicker);
     $("#jw-add-course-open-pick")?.addEventListener("click", () => {
-      // 试卷/课件：直接打开选择弹窗，不经过资源库/本地上传中间页
+      // 试卷：直接进入试卷列表；课件/视频：先进入资源库/本地上传中间页
       if (jwAddCourseResourceType === "paper") {
         openHwModalForJwPick();
-        return;
-      }
-      if (jwAddCourseResourceType === "courseware") {
-        openCwModalForJwPick();
         return;
       }
       openAddModal("jwAddCourse");
@@ -7059,6 +7397,32 @@
     return addResourceType !== "video";
   }
 
+  function syncLocalFileAcceptUI() {
+    const input = $("#xb-local-file-input");
+    const tip = $("#xb-local-file-tip");
+    const nameLabel = $("#xb-local-name-label");
+    const nameInput = $("#xb-local-name");
+    const isCw = addResourceType === "courseware";
+    if (input) {
+      input.accept = isCw
+        ? ".ppt,.pptx,.pdf,.doc,.docx,.xls,.xlsx,application/pdf"
+        : ".avi,.aac,.mp4,.rmvb,.wmv,.wma,.wav,.flv,video/*";
+    }
+    if (tip) {
+      tip.textContent = isCw
+        ? "支持ppt、pptx、pdf、doc、docx、xls、xlsx等格式的文件，最多上传一个；文件大小不超过100M。"
+        : "支持avi、aac、mp4、rmvb、wmv、wma、wav、flv等格式的文件，最多上传一个；文件大小不超过500M。";
+    }
+    if (nameLabel) {
+      nameLabel.innerHTML = isCw
+        ? `<i class="xb-required">*</i>课件名称:`
+        : `<i class="xb-required">*</i>单课名称:`;
+    }
+    if (nameInput) {
+      nameInput.placeholder = isCw ? "请输入课件名称" : "请输入单课名称";
+    }
+  }
+
   function syncResourceTypeUI() {
     const typeRow = $("#xb-resource-type-row");
     const typeSelect = $("#xb-resource-type");
@@ -7073,24 +7437,28 @@
     const localHwRow = $("#xb-local-hw-row");
     const localCwRow = $("#xb-local-cw-row");
     const fromJw = addModalSource === "jwAddCourse";
-    const isResourceOnly = addResourceType !== "video";
+    const isPaper = addResourceType === "paper";
+    const isCourseware = addResourceType === "courseware";
+    const isVideo = !isPaper && !isCourseware;
     // 教务端已在外层选好资源类型，内层弹窗与教师端一致但不重复展示类型选择
     if (typeRow) typeRow.hidden = fromJw;
     if (localTypeRow) localTypeRow.hidden = fromJw;
     if (typeSelect) typeSelect.value = addResourceType;
     if (localTypeSelect) localTypeSelect.value = addResourceType;
     if (title) {
-      title.textContent = fromJw && !isResourceOnly ? "添加视频课" : "新增";
+      title.textContent = fromJw && isVideo ? "添加视频课" : "新增";
     }
     if (label) label.innerHTML = `<i class="xb-required">*</i>${resourceFieldLabel(addResourceType)}:`;
     if (localLabel) {
       localLabel.innerHTML = `<i class="xb-required">*</i>${resourceFieldLabel(addResourceType)}:`;
     }
-    if (localFileRow) localFileRow.hidden = isResourceOnly;
-    if (localNameRow) localNameRow.hidden = isResourceOnly;
-    if (localResourcePick) localResourcePick.hidden = !isResourceOnly;
-    if (localHwRow) localHwRow.hidden = isResourceOnly;
-    if (localCwRow) localCwRow.hidden = isResourceOnly;
+    // 视频/课件本地上传：本机选文件；试卷本地上传仍走资源列表（本地 tab 本身也不支持试卷）
+    if (localFileRow) localFileRow.hidden = isPaper;
+    if (localNameRow) localNameRow.hidden = isPaper;
+    if (localResourcePick) localResourcePick.hidden = !isPaper;
+    if (localHwRow) localHwRow.hidden = !isVideo;
+    if (localCwRow) localCwRow.hidden = !isVideo;
+    syncLocalFileAcceptUI();
   }
 
   function setResourceType(type) {
@@ -7165,9 +7533,38 @@
     return [...ids].sort((a, b) => a - b);
   }
 
+  function ensureJwLocalCourseware(name, subject) {
+    const lessonName = String(name || "").trim() || "未命名课件";
+    let idx = CW_ITEMS.findIndex((item) => item.name === lessonName);
+    if (idx < 0) {
+      CW_ITEMS.push({
+        subject: subject || "小学语文",
+        name: lessonName,
+        author: "排课人",
+        docType: "文档",
+        cite: 0,
+      });
+      idx = CW_ITEMS.length - 1;
+    }
+    return idx;
+  }
+
   function confirmAddCoursesForJw() {
     let addedIndexes = [];
-    if (addResourceType === "paper" || addResourceType === "courseware") {
+    if (addTab === "local" && addResourceType === "courseware") {
+      if (!localUpload.fileName) {
+        window.alert("请先上传课件文件");
+        return;
+      }
+      const nameInput = $("#xb-local-name");
+      const lessonName = (nameInput?.value || "").trim();
+      if (!lessonName) {
+        window.alert("请输入课件名称");
+        return;
+      }
+      const subject = $("#xb-local-subject")?.value || "小学语文";
+      addedIndexes.push(ensureJwLocalCourseware(lessonName, subject));
+    } else if (addResourceType === "paper" || addResourceType === "courseware") {
       addedIndexes = confirmAddCoursesForJwResourceOnly();
     } else if (addTab === "local") {
       if (!localUpload.fileName) {
@@ -7244,6 +7641,47 @@
     return stageSubject.slice(-2);
   }
 
+  function confirmLocalCoursewareUpload() {
+    if (!localUpload.fileName) {
+      window.alert("请先上传课件文件");
+      return;
+    }
+    const nameInput = $("#xb-local-name");
+    const lessonName = (nameInput?.value || "").trim();
+    if (!lessonName) {
+      window.alert("请输入课件名称");
+      return;
+    }
+    const stageSubject = $("#xb-local-subject")?.value || "小学语文";
+    const groupName = $("#xb-local-group")?.value || "";
+    const stamp = nowText();
+    courseList.unshift({
+      id: courseListSeq++,
+      subject: subjectToShort(stageSubject),
+      stageSubject,
+      videoName: "",
+      resourceType: "courseware",
+      groupName,
+      maker: "zfy",
+      homeworks: [],
+      coursewares: [
+        {
+          key: `cw-local-file-${Date.now()}`,
+          cwIndex: -1,
+          name: lessonName,
+        },
+      ],
+      audit: "无",
+      createdAt: stamp,
+      updatedAt: stamp,
+      status: "making",
+      action: "提交",
+      auditRecords: [],
+    });
+    refreshCourseViews();
+    closeAddModal();
+  }
+
   function confirmLocalUpload() {
     if (!localUpload.fileName) {
       window.alert("请先上传视频文件");
@@ -7292,6 +7730,10 @@
   function confirmAddCourses() {
     if (addModalSource === "jwAddCourse") {
       confirmAddCoursesForJw();
+      return;
+    }
+    if (addTab === "local" && addResourceType === "courseware") {
+      confirmLocalCoursewareUpload();
       return;
     }
     if (addResourceType === "paper" || addResourceType === "courseware") {
@@ -7481,13 +7923,8 @@
     });
 
     $("#xb-local-upload")?.addEventListener("click", () => {
-      // 原型：模拟本地上传成功，回显截图效果
-      setLocalFile("小分辨率的视频.mp4");
-      const nameInput = $("#xb-local-name");
-      if (nameInput && !nameInput.value.trim()) {
-        nameInput.value = "自适应视频";
-        updateLocalNameCount();
-      }
+      // 唤起系统文件选择框（本机选文件）
+      $("#xb-local-file-input")?.click();
     });
     $("#xb-local-file-input")?.addEventListener("change", (e) => {
       const file = e.target.files && e.target.files[0];
@@ -7495,7 +7932,8 @@
       setLocalFile(file.name);
       const nameInput = $("#xb-local-name");
       if (nameInput && !nameInput.value.trim()) {
-        nameInput.value = file.name.replace(/\.[^.]+$/, "") || "自适应视频";
+        const fallback = addResourceType === "courseware" ? "未命名课件" : "自适应视频";
+        nameInput.value = file.name.replace(/\.[^.]+$/, "") || fallback;
         updateLocalNameCount();
       }
       e.target.value = "";
