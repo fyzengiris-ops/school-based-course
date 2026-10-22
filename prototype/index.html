@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>校本课 · 原型框架 V0.8.5</title>
-    <link rel="stylesheet" href="./css/style.css?v=085-lightbox-nav" />
-    <link rel="stylesheet" href="./css/teacher-lib.css?v=085-learn-tip-copy" />
+    <link rel="stylesheet" href="./css/style.css?v=085-pad-c-resume" />
+    <link rel="stylesheet" href="./css/teacher-lib.css?v=085-no-unit-plan" />
   </head>
   <body data-terminal="pc">
     <!-- 原型控制条：PC / PAD 终端切换 -->
@@ -103,7 +103,7 @@
               title="本期新增入口"
             >
               <span class="module-chip__icon" aria-hidden="true">▶</span>
-              <span class="module-chip__name">自习室/校本课</span>
+              <span class="module-chip__name">校本课</span>
             </button>
           </div>
 
@@ -127,7 +127,7 @@
               title="本期新增入口"
             >
               <span class="module-chip__icon" aria-hidden="true">▶</span>
-              <span class="module-chip__name">自习室/校本课</span>
+              <span class="module-chip__name">校本课</span>
             </button>
           </div>
 
@@ -165,7 +165,7 @@
                   <circle cx="23.2" cy="11.2" r="2.4" fill="#fff" opacity="0.9" />
                   <path d="M22.4 11.2h1.6M23.2 10.4v1.6" stroke="#1eb8a8" stroke-width="1.2" stroke-linecap="round" />
                 </svg>
-                <span class="xb-brand__name">自习室/校本课</span>
+                <span class="xb-brand__name">校本课</span>
               </button>
               <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-teacher-lib" title="查看此处改动说明">改</button>
               </div>
@@ -291,7 +291,7 @@
                   <circle cx="23.2" cy="11.2" r="2.4" fill="#fff" opacity="0.9" />
                   <path d="M22.4 11.2h1.6M23.2 10.4v1.6" stroke="#1eb8a8" stroke-width="1.2" stroke-linecap="round" />
                 </svg>
-                <span class="xb-brand__name">自习室/校本课</span>
+                <span class="xb-brand__name">校本课</span>
               </button>
               <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-lib" title="查看此处改动说明">改</button>
               </div>
@@ -592,38 +592,16 @@
 
                 <!-- 教务 · 学习名单 -->
                 <div class="xb-card xb-card--auto xb-card--learners" data-jw-panel="learners" hidden>
-                  <div class="jw-learners-head">
-                    <nav class="jw-publish-crumb" aria-label="面包屑">
-                      <button type="button" class="jw-publish-crumb__link" id="jw-learners-back">课程管理</button>
-                      <span class="jw-publish-crumb__sep">›</span>
-                      <span class="jw-publish-crumb__current">学习名单</span>
-                      <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-learners" title="查看此处改动说明">改</button>
-                    </nav>
-                    <div class="jw-learners-mode-switch" role="tablist" aria-label="名单维护方式">
-                      <button
-                        type="button"
-                        class="jw-learners-mode-switch__btn is-active"
-                        role="tab"
-                        aria-selected="true"
-                        data-learners-mode="person"
-                      >
-                        按人员名单维护
-                      </button>
-                      <button
-                        type="button"
-                        class="jw-learners-mode-switch__btn"
-                        role="tab"
-                        aria-selected="false"
-                        data-learners-mode="device"
-                      >
-                        按设备维护
-                      </button>
-                    </div>
-                  </div>
+                  <nav class="jw-publish-crumb" aria-label="面包屑">
+                    <button type="button" class="jw-publish-crumb__link" id="jw-learners-back">课程管理</button>
+                    <span class="jw-publish-crumb__sep">›</span>
+                    <span class="jw-publish-crumb__current">学习名单</span>
+                    <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-learners" title="查看此处改动说明">改</button>
+                  </nav>
 
                   <div class="jw-learners-bar">
                     <div class="jw-learners-filters">
-                      <label class="xb-field" id="jw-learners-class-field" data-learners-person-only>
+                      <label class="xb-field" id="jw-learners-class-field">
                         <span class="xb-field__label">年级/班级:</span>
                         <select class="xb-select" id="jw-learners-class" aria-label="年级班级">
                           <option selected>全部</option>
@@ -633,7 +611,7 @@
                         </select>
                       </label>
                       <label class="xb-field">
-                        <span class="xb-field__label" id="jw-learners-keyword-label">学生:</span>
+                        <span class="xb-field__label">学生:</span>
                         <input
                           class="xb-input"
                           id="jw-learners-keyword"
@@ -658,7 +636,7 @@
                   <div class="xb-table-wrap">
                     <table class="xb-table xb-table--learners">
                       <thead id="jw-learners-thead">
-                        <tr data-learners-thead="person">
+                        <tr>
                           <th class="col-check">
                             <input class="xb-check" type="checkbox" id="jw-learners-check-all" aria-label="全选" />
                           </th>
@@ -666,14 +644,6 @@
                           <th>姓名</th>
                           <th>性别</th>
                           <th>班级</th>
-                          <th>添加时间</th>
-                          <th class="col-maction">操作</th>
-                        </tr>
-                        <tr data-learners-thead="device" hidden>
-                          <th class="col-check">
-                            <input class="xb-check" type="checkbox" id="jw-learners-check-all-device" aria-label="全选" />
-                          </th>
-                          <th>序列号</th>
                           <th>添加时间</th>
                           <th class="col-maction">操作</th>
                         </tr>
@@ -845,21 +815,6 @@
                       </div>
                     </div>
 
-                    <div class="jw-add-learner-pane" data-add-learner-pane="device" hidden>
-                      <div class="jw-add-learner-row">
-                        <label class="jw-add-learner-label" for="jw-add-device-serial"><span class="req">*</span>序列号：</label>
-                        <input
-                          class="jw-publish-input jw-add-learner-lehao-input"
-                          id="jw-add-device-serial"
-                          type="text"
-                          placeholder="请输入序列号"
-                        />
-                      </div>
-                      <div class="jw-add-learner-row">
-                        <label class="jw-add-learner-label">设备：</label>
-                        <span class="jw-add-learner-lehao-hint" id="jw-add-device-echo">请输入正确的序列号</span>
-                      </div>
-                    </div>
                   </div>
 
                   <div class="jw-add-learner-foot">
@@ -1201,6 +1156,7 @@
                         <option value="paper">试卷</option>
                         <option value="courseware">课件</option>
                       </select>
+                      <span class="proto-add-pin proto-add-pin--inline" title="本期新增">新增1</span>
                     </div>
 
                     <div class="xb-form-row">
@@ -1219,9 +1175,9 @@
                         <span class="xb-form-label">资源类型:</span>
                         <select class="xb-select" id="xb-local-resource-type" aria-label="资源类型">
                           <option value="video" selected>视频</option>
-                          <option value="paper">试卷</option>
                           <option value="courseware">课件</option>
                         </select>
+                        <span class="proto-add-pin proto-add-pin--inline" title="本期新增">新增1</span>
                       </div>
 
                       <div id="xb-local-file-row" class="xb-form-row xb-form-row--top">
@@ -1508,18 +1464,6 @@
               </div>
             </div>
 
-            <div class="xb-modal xb-modal--confirm" id="jw-learners-mode-modal" hidden>
-              <div class="xb-modal__mask" data-close-learners-mode></div>
-              <div class="xb-confirm xb-confirm--simple" role="dialog" aria-modal="true" aria-labelledby="jw-learners-mode-title">
-                <p class="xb-confirm__title" id="jw-learners-mode-title">确认更换名单维护方式吗？</p>
-                <p class="xb-confirm__desc">更换后，已维护的数据将清空，需重新添加才能恢复</p>
-                <div class="xb-confirm__actions">
-                  <button type="button" class="xb-btn xb-btn--cancel" data-close-learners-mode>取消</button>
-                  <button type="button" class="xb-btn xb-btn--primary" id="jw-learners-mode-ok">确定</button>
-                </div>
-              </div>
-            </div>
-
             <div class="xb-modal xb-modal--student-detail" id="jw-student-detail-modal" hidden>
               <div class="xb-modal__mask" data-close-student-detail></div>
               <div class="jw-student-detail" role="dialog" aria-modal="true" aria-labelledby="jw-student-detail-title">
@@ -1606,6 +1550,7 @@
                       <option value="paper">试卷</option>
                       <option value="courseware">课件</option>
                     </select>
+                    <span class="proto-add-pin proto-add-pin--inline" title="本期新增">新增1</span>
                   </div>
                   <div class="jw-add-course__label-row">
                     <span class="jw-add-course__label" id="jw-add-course-pick-label"><span class="req">*</span>选择课程视频：</span>
@@ -1907,8 +1852,13 @@
                   </main>
                 </div>
 
-                <!-- 校本课 · 课程详情（对齐点播课学习页，去掉课程有效时间） -->
+                <!-- 校本课 · 课程详情 · 方案A（现状保留） -->
                 <div class="xb-pad-course-page" id="pad-xb-course" hidden>
+                  <div class="xb-pad-scheme-switch" role="group" aria-label="学习页方案切换">
+                    <button type="button" class="xb-pad-scheme-switch__btn is-active" data-pad-scheme="a">方案A</button>
+                    <button type="button" class="xb-pad-scheme-switch__btn" data-pad-scheme="b">方案B</button>
+                    <button type="button" class="xb-pad-scheme-switch__btn" data-pad-scheme="c">方案C</button>
+                  </div>
                   <div class="xb-pad-course-page__main">
                     <div class="xb-pad-course-player">
                       <button type="button" class="xb-pad-course-player__back" id="pad-xb-course-back" aria-label="返回">
@@ -1997,6 +1947,166 @@
                       <span aria-hidden="true">+</span>
                     </button>
                   </aside>
+                </div>
+
+                <!-- 校本课 · 课程详情 · 方案B（目录优先重构） -->
+                <div class="xb-pad-course-b" id="pad-xb-course-b" hidden>
+                  <header class="xb-pad-course-b__top">
+                    <button type="button" class="xb-pad-course-b__back" id="pad-xb-course-b-back" aria-label="返回">
+                      <span aria-hidden="true">‹</span>
+                    </button>
+                    <div class="xb-pad-course-b__top-main">
+                      <h2 class="xb-pad-course-b__title" id="pad-xb-course-b-title">自适应学习2</h2>
+                      <p class="xb-pad-course-b__meta" id="pad-xb-course-b-meta">
+                        <span>适合年级：一年级</span>
+                        <span class="xb-pad-course-info__sep">|</span>
+                        <span>学习方式：按课时顺序解锁（按视频进度解锁）</span>
+                      </p>
+                    </div>
+                    <button type="button" class="xb-pad-course-info__cache" id="pad-xb-course-b-cache">
+                      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                        <path
+                          d="M12 4v10m0 0l3.5-3.5M12 14l-3.5-3.5M5 18h14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                      <span>缓存</span>
+                    </button>
+                    <div class="xb-pad-scheme-switch xb-pad-scheme-switch--inline" role="group" aria-label="学习页方案切换">
+                      <button type="button" class="xb-pad-scheme-switch__btn" data-pad-scheme="a">方案A</button>
+                      <button type="button" class="xb-pad-scheme-switch__btn is-active" data-pad-scheme="b">方案B</button>
+                      <button type="button" class="xb-pad-scheme-switch__btn" data-pad-scheme="c">方案C</button>
+                    </div>
+                  </header>
+
+                  <div class="xb-pad-course-b__body">
+                    <div class="xb-pad-course-b__main" id="pad-xb-course-b-main">
+                      <div class="xb-pad-course-b__browse" id="pad-xb-course-b-browse">
+                        <div class="xb-pad-course-b__resume" id="pad-xb-course-b-resume">
+                          <span class="xb-pad-course-b__resume-text" id="pad-xb-course-b-last">最近学习到：第1节</span>
+                          <button type="button" class="xb-pad-course-b__resume-btn" id="pad-xb-course-b-continue">继续上次</button>
+                        </div>
+
+                        <section class="xb-pad-course-b__catalog">
+                          <h3 class="xb-pad-course-b__catalog-title">目录</h3>
+                          <div class="xb-pad-course-b__catalog-list" id="pad-xb-course-b-catalog"></div>
+                        </section>
+                      </div>
+
+                      <div class="xb-pad-course-b__player-full" id="pad-xb-course-b-player" hidden>
+                        <div class="xb-pad-course-b__player-screen">
+                          <p class="xb-pad-course-b__player-hint" id="pad-xb-course-b-player-title">视频播放</p>
+                          <p class="xb-pad-course-b__player-sub" id="pad-xb-course-b-player-sub"></p>
+                          <button type="button" class="xb-pad-course-b__player-cta" id="pad-xb-course-b-play">播放中（原型示意）</button>
+                        </div>
+                        <div class="xb-pad-course-b__player-bar">
+                          <button type="button" class="xb-pad-course-b__player-bar-btn" id="pad-xb-course-b-exit-play">返回目录</button>
+                          <button type="button" class="xb-pad-course-b__player-bar-btn is-primary" id="pad-xb-course-b-episodes">选集</button>
+                        </div>
+                        <div class="xb-pad-course-b__episode-sheet" id="pad-xb-course-b-episode-sheet" hidden>
+                          <div class="xb-pad-course-b__episode-sheet-head">
+                            <strong>选集</strong>
+                            <button type="button" class="xb-pad-course-b__episode-sheet-close" id="pad-xb-course-b-episode-close" aria-label="关闭">×</button>
+                          </div>
+                          <div class="xb-pad-course-b__episode-sheet-body" id="pad-xb-course-b-episode-list"></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <aside class="xb-pad-course-b__notes">
+                      <h3 class="xb-pad-course-b__notes-title">笔记</h3>
+                      <div class="xb-pad-course-b__notes-body">
+                        <p class="xb-pad-course-side__empty">暂无笔记，请点击右下方添加</p>
+                      </div>
+                      <button type="button" class="xb-pad-course-side__fab" id="pad-xb-course-b-add-note" aria-label="添加笔记">
+                        <span aria-hidden="true">+</span>
+                      </button>
+                    </aside>
+                  </div>
+                </div>
+
+                <!-- 校本课 · 课程详情 · 方案C（由方案B全量复制，待微调） -->
+                <div class="xb-pad-course-c" id="pad-xb-course-c" hidden>
+                  <header class="xb-pad-course-c__top">
+                    <button type="button" class="xb-pad-course-c__back" id="pad-xb-course-c-back" aria-label="返回">
+                      <span aria-hidden="true">‹</span>
+                    </button>
+                    <div class="xb-pad-course-c__top-main">
+                      <h2 class="xb-pad-course-c__title" id="pad-xb-course-c-title">自适应学习2</h2>
+                      <p class="xb-pad-course-c__meta" id="pad-xb-course-c-meta">
+                        <span>适合年级：一年级</span>
+                        <span class="xb-pad-course-info__sep">|</span>
+                        <span>学习方式：按课时顺序解锁（按视频进度解锁）</span>
+                      </p>
+                    </div>
+                    <button type="button" class="xb-pad-course-info__cache" id="pad-xb-course-c-cache">
+                      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                        <path
+                          d="M12 4v10m0 0l3.5-3.5M12 14l-3.5-3.5M5 18h14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                      <span>缓存</span>
+                    </button>
+                    <div class="xb-pad-scheme-switch xb-pad-scheme-switch--inline" role="group" aria-label="学习页方案切换">
+                      <button type="button" class="xb-pad-scheme-switch__btn" data-pad-scheme="a">方案A</button>
+                      <button type="button" class="xb-pad-scheme-switch__btn" data-pad-scheme="b">方案B</button>
+                      <button type="button" class="xb-pad-scheme-switch__btn is-active" data-pad-scheme="c">方案C</button>
+                    </div>
+                  </header>
+
+                  <div class="xb-pad-course-c__body">
+                    <div class="xb-pad-course-c__main" id="pad-xb-course-c-main">
+                      <div class="xb-pad-course-c__browse" id="pad-xb-course-c-browse">
+                        <div class="xb-pad-course-c__resume" id="pad-xb-course-c-resume">
+                          <span class="xb-pad-course-c__resume-text" id="pad-xb-course-c-last">最近学习到：第1节</span>
+                          <button type="button" class="xb-pad-course-c__resume-btn" id="pad-xb-course-c-continue">继续上次</button>
+                        </div>
+
+                        <section class="xb-pad-course-c__catalog">
+                          <h3 class="xb-pad-course-c__catalog-title">目录</h3>
+                          <div class="xb-pad-course-c__catalog-list" id="pad-xb-course-c-catalog"></div>
+                        </section>
+                      </div>
+
+                      <div class="xb-pad-course-c__player-full" id="pad-xb-course-c-player" hidden>
+                        <div class="xb-pad-course-c__player-screen">
+                          <p class="xb-pad-course-c__player-hint" id="pad-xb-course-c-player-title">视频播放</p>
+                          <p class="xb-pad-course-c__player-sub" id="pad-xb-course-c-player-sub"></p>
+                          <button type="button" class="xb-pad-course-c__player-cta" id="pad-xb-course-c-play">播放中（原型示意）</button>
+                        </div>
+                        <div class="xb-pad-course-c__player-bar">
+                          <button type="button" class="xb-pad-course-c__player-bar-btn" id="pad-xb-course-c-exit-play">返回目录</button>
+                          <button type="button" class="xb-pad-course-c__player-bar-btn is-primary" id="pad-xb-course-c-episodes">选集</button>
+                        </div>
+                        <div class="xb-pad-course-c__episode-sheet" id="pad-xb-course-c-episode-sheet" hidden>
+                          <div class="xb-pad-course-c__episode-sheet-head">
+                            <strong>选集</strong>
+                            <button type="button" class="xb-pad-course-c__episode-sheet-close" id="pad-xb-course-c-episode-close" aria-label="关闭">×</button>
+                          </div>
+                          <div class="xb-pad-course-c__episode-sheet-body" id="pad-xb-course-c-episode-list"></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <aside class="xb-pad-course-c__notes">
+                      <h3 class="xb-pad-course-c__notes-title">笔记</h3>
+                      <div class="xb-pad-course-c__notes-body">
+                        <p class="xb-pad-course-side__empty">暂无笔记，请点击右下方添加</p>
+                      </div>
+                      <button type="button" class="xb-pad-course-side__fab" id="pad-xb-course-c-add-note" aria-label="添加笔记">
+                        <span aria-hidden="true">+</span>
+                      </button>
+                    </aside>
+                  </div>
                 </div>
 
                 <!-- 校本课 · 课件预览（原图） -->
@@ -2103,6 +2213,6 @@
       </section>
     </main>
 
-    <script src="./js/app.js?v=085-cw-view-rates"></script>
+    <script src="./js/app.js?v=085-pad-c-stamp2"></script>
   </body>
 </html>

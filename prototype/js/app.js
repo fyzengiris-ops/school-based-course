@@ -79,6 +79,8 @@
         padPage: state.padPage,
         padXbSubject,
         padXbCourseId,
+        padXbCourseScheme,
+        padXbBFocusId,
         padXbHwStep,
         padXbHwStatus,
         jwNav: state.jwNav,
@@ -240,6 +242,38 @@
   let padXbHwStatus = "unsubmitted"; // unsubmitted | pending | graded
   let padXbDetailFrom = "report"; // report | hw
   let padXbFocusLesson = "l1";
+  let padXbCourseScheme = "b"; // a = 现状 | b/c = 目录优先（C 由 B 全量复制）
+  let padXbBFocusId = null;
+  let padXbBPlayMode = false; // 方案B/C：左侧整页视频播放
+
+  function isPadXbCatalogScheme(scheme = padXbCourseScheme) {
+    return scheme === "b" || scheme === "c";
+  }
+
+  function padXbSchemeLayoutKey(scheme = padXbCourseScheme) {
+    return scheme === "c" ? "c" : "b";
+  }
+
+  function padXbSchemeEl(suffix, scheme = padXbCourseScheme) {
+    const key = padXbSchemeLayoutKey(scheme);
+    return $(`#pad-xb-course-${key}-${suffix}`);
+  }
+
+  function padXbSchemeRoot(scheme = padXbCourseScheme) {
+    const key = padXbSchemeLayoutKey(scheme);
+    return $(`#pad-xb-course-${key}`);
+  }
+
+  function padXbUiPrefix(scheme = padXbCourseScheme) {
+    return `xb-pad-course-${padXbSchemeLayoutKey(scheme)}`;
+  }
+
+  function padXbAdaptUiHtml(html, scheme = padXbCourseScheme) {
+    if (padXbSchemeLayoutKey(scheme) === "c") {
+      return String(html || "").replace(/xb-pad-course-b/g, "xb-pad-course-c");
+    }
+    return html;
+  }
 
   const PAD_XB_SUBJECTS = ["语文", "数学", "英语", "科学", "综合"];
 
@@ -342,6 +376,8 @@
 
   function hidePadXbCoursePage() {
     $("#pad-xb-course")?.setAttribute("hidden", "");
+    $("#pad-xb-course-b")?.setAttribute("hidden", "");
+    $("#pad-xb-course-c")?.setAttribute("hidden", "");
     $("#pad-xb-ware")?.setAttribute("hidden", "");
     $("#pad-xb-hw")?.setAttribute("hidden", "");
     $("#pad-xb-hw-grade")?.setAttribute("hidden", "");
@@ -349,6 +385,26 @@
     $("#pad-xb-hw-detail")?.setAttribute("hidden", "");
     $("#pad-xb-hw-status")?.setAttribute("hidden", "");
     setPadPortrait(false);
+  }
+
+  function syncPadSchemeSwitchUI() {
+    $$("[data-pad-scheme]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.padScheme === padXbCourseScheme);
+    });
+  }
+
+  function setPadXbCourseScheme(scheme, options = {}) {
+    const next = scheme === "a" ? "a" : scheme === "c" ? "c" : "b";
+    if (padXbCourseScheme === next && !options.force) {
+      syncPadSchemeSwitchUI();
+      return;
+    }
+    padXbCourseScheme = next;
+    syncPadSchemeSwitchUI();
+    schedulePersist();
+    if (options.reopen !== false && padXbCourseId && state.padPage === "course-detail") {
+      openPadXbCourse(padXbCourseId, { tab: options.tab });
+    }
   }
 
   function hidePadXbOverlayPages() {
@@ -587,6 +643,484 @@
     { src: "./assets/pad/ref-hw-submitted.png", alt: "题目提交后", next: false, prev: false, done: true },
   ];
 
+  /**
+   * 方案B目录：
+   * - video + attach[]：视频课时，其下挂配套试卷/课件
+   * - paper / ware（顶层）：独立小节（本小节只有试卷或只有课件）
+   */
+  const PAD_XB_B_UNITS = [
+    {
+      title: "第1章 默认单元",
+      items: [
+        {
+          id: "b-v1",
+          type: "video",
+          status: "done",
+          statusLabel: "已学完",
+          title: "第1节 wmv：儿童歌曲 - 小龙人",
+          meta: "总时长:1分7秒 | 老师01 | 点播",
+          attach: [
+            {
+              id: "b-p1",
+              type: "paper",
+              title: "2026-10-14 【验证公式图片压缩】数学试卷04",
+              actionLabel: "查看报告",
+              actionKind: "report",
+              card: {
+                status: "已批改",
+                statusTone: "success",
+                title: "2026-10-14 【验证公式图片压缩】...",
+                time: "提交时间: 2026年10月16日 10:59",
+                mark: "4分",
+                action: "查看报告",
+                actionKind: "report",
+              },
+            },
+            {
+              id: "b-w1",
+              type: "ware",
+              title: "《第一组 感受自然》试卷(学生用卷)(2)",
+              actionLabel: "去学习",
+              status: "done",
+              statusLabel: "已查看",
+            },
+          ],
+        },
+        {
+          id: "b-v2",
+          type: "video",
+          status: "learning",
+          statusLabel: "学习中",
+          title: "第2节 wmv：儿童歌曲 - 小龙人",
+          metaHtml: "上次已看至:<em>0分3秒</em>/1分7秒 | 累计时长:0分3秒",
+          attach: [
+            {
+              id: "b-p2",
+              type: "paper",
+              title: "2026-10-14 【验证公式图片压缩】数学试卷04",
+              actionLabel: "去批改",
+              actionKind: "grade",
+              card: {
+                status: "待批改",
+                statusTone: "muted",
+                title: "2026-10-14 【验证公式图片压缩】...",
+                time: "提交时间: 2026年10月16日 11:01",
+                mark: "3分",
+                action: "去批改",
+                actionKind: "grade",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      title: "第2章 仅试卷示例",
+      items: [
+        {
+          id: "b-p3",
+          type: "paper",
+          standalone: true,
+          statusLabel: "待学习",
+          title: "第1节 验证错题挑题重组题干完整性",
+          actionLabel: "去提交",
+          actionKind: "answer",
+          card: {
+            status: "未提交",
+            statusTone: "danger",
+            title: "验证错题挑题重组题干完整性",
+            time: "提交时间: --",
+            percent: "--%",
+            action: "答题",
+            actionKind: "answer",
+          },
+        },
+        {
+          id: "b-p4",
+          type: "paper",
+          standalone: true,
+          statusLabel: "已完成",
+          title: "第2节 一年级语文基础巩固测练卷",
+          actionLabel: "查看报告",
+          actionKind: "report",
+          card: {
+            status: "已批改",
+            statusTone: "success",
+            title: "一年级语文基础巩固测练卷",
+            time: "提交时间: 2026年10月18日 09:20",
+            mark: "33分",
+            action: "查看报告",
+            actionKind: "report",
+          },
+        },
+      ],
+    },
+    {
+      title: "第3章 仅课件示例",
+      items: [
+        {
+          id: "b-w2",
+          type: "ware",
+          standalone: true,
+          status: "todo",
+          statusLabel: "待学习",
+          title: "第1节 《识字一》课件（学生用）",
+          actionLabel: "去学习",
+        },
+        {
+          id: "b-w3",
+          type: "ware",
+          standalone: true,
+          status: "todo",
+          statusLabel: "待学习",
+          title: "第2节 《感受自然》拓展阅读课件",
+          actionLabel: "去学习",
+        },
+      ],
+    },
+  ];
+
+  function walkPadXbBItems(visitor) {
+    for (const unit of PAD_XB_B_UNITS) {
+      for (const item of unit.items || []) {
+        if (visitor(item, null) === false) return;
+        for (const child of item.attach || []) {
+          if (visitor(child, item) === false) return;
+        }
+      }
+    }
+  }
+
+  function findPadXbBItem(itemId) {
+    let found = null;
+    walkPadXbBItems((item, parent) => {
+      if (item.id === itemId) {
+        found = { ...item, parentId: parent?.id || null, isAttach: !!parent };
+        return false;
+      }
+      return undefined;
+    });
+    return found;
+  }
+
+  function findPadXbBResumeVideo() {
+    let learning = null;
+    let done = null;
+    let first = null;
+    walkPadXbBItems((item) => {
+      if (item.type !== "video") return;
+      if (!first) first = item;
+      if (!learning && item.status === "learning") learning = item;
+      if (!done && item.status === "done") done = item;
+    });
+    return learning || done || first;
+  }
+
+  function isPadXbSchemeC() {
+    return padXbCourseScheme === "c";
+  }
+
+  function getPadXbPaperActionKind(item) {
+    const data = item?.card || {};
+    if (data.actions?.some((act) => act.kind === "report")) return "report";
+    return data.actionKind || item?.actionKind || "answer";
+  }
+
+  function renderPadXbBPaperActions(item) {
+    if (isPadXbSchemeC()) return "";
+    const data = item.card || {};
+    // 可查看报告时只保留一个「查看报告」按钮
+    if (data.actions?.length) {
+      const hasReport = data.actions.some((act) => act.kind === "report");
+      if (hasReport) {
+        return `<button type="button" class="xb-pad-course-b__item-action is-btn" data-pad-hw-action="report">查看报告</button>`;
+      }
+      return `<div class="xb-pad-course-b__paper-actions">${data.actions
+        .map(
+          (act) =>
+            `<button type="button" class="xb-pad-course-b__item-action is-btn" data-pad-hw-action="${escapeAttr(
+              act.kind
+            )}">${escapeAttr(act.label)}</button>`
+        )
+        .join("")}</div>`;
+    }
+    const kind = data.actionKind || item.actionKind || "answer";
+    const label =
+      kind === "report"
+        ? "查看报告"
+        : data.action || item.actionLabel || "去提交";
+    return `<button type="button" class="xb-pad-course-b__item-action is-btn" data-pad-hw-action="${escapeAttr(
+      kind
+    )}">${escapeAttr(label)}</button>`;
+  }
+
+  /** 方案C：名称后印章式状态 */
+  function renderPadXbCState(_typeLabel, status, statusLabel, tone) {
+    if (!statusLabel) return "";
+    const kind = tone
+      ? tone
+      : status === "learning"
+        ? "learning"
+        : status === "todo"
+          ? "todo"
+          : status === "done"
+            ? "done"
+            : "done";
+    return `<span class="xb-pad-course-b__chip is-${escapeAttr(kind)}" aria-label="${escapeAttr(
+      statusLabel
+    )}"><span class="xb-pad-course-b__chip-inner">${escapeAttr(statusLabel)}</span></span>`;
+  }
+
+  function renderPadXbCPaperMeta(item) {
+    const data = item.card || {};
+    const chip = renderPadXbCState(
+      "试卷",
+      null,
+      data.status || item.statusLabel || "",
+      data.statusTone || "danger"
+    );
+    const score = data.mark
+      ? `<span class="xb-pad-course-b__score-chip"><span class="xb-pad-course-b__chip-inner">${escapeAttr(
+          data.mark
+        )}</span></span>`
+      : "";
+    return `${chip}${score}`;
+  }
+
+  function renderPadXbCWareState(item) {
+    const status = item.status || (item.statusLabel === "已查看" || item.statusLabel === "已学完" ? "done" : "todo");
+    const label = item.statusLabel || (status === "done" ? "已查看" : "待学习");
+    return renderPadXbCState("课件", status, label);
+  }
+
+  /** 试卷信息直接呈现在目录行（不再中转） */
+  function renderPadXbBPaperRow(item, variant) {
+    const data = item.card || {};
+    const current = item.id === padXbBFocusId ? " is-current" : "";
+    const mark =
+      !isPadXbSchemeC() && data.mark
+        ? `<span class="xb-pad-course-b__paper-mark">${escapeAttr(data.mark)}</span>`
+        : "";
+    const actionKind = getPadXbPaperActionKind(item);
+    const cAttrs = isPadXbSchemeC()
+      ? ` data-pad-b-open-paper="${escapeAttr(actionKind)}" role="button" tabindex="0"`
+      : "";
+    const nameMeta = isPadXbSchemeC() ? renderPadXbCPaperMeta(item) : "";
+    const right = isPadXbSchemeC() ? "" : `${mark}${renderPadXbBPaperActions(item)}`;
+    return `<div class="xb-pad-course-b__item xb-pad-course-b__item--${variant} xb-pad-course-b__paper${current}" data-pad-b-item="${escapeAttr(
+      item.id
+    )}"${cAttrs}>
+      ${renderPadXbBTypeIcon("paper")}
+      <div class="xb-pad-course-b__item-main">
+        <div class="xb-pad-course-b__item-row">
+          <span class="xb-pad-course-b__item-name">${escapeAttr(item.title || data.title || "")}</span>
+          ${nameMeta}
+        </div>
+        ${
+          data.time
+            ? `<div class="xb-pad-course-b__item-sub">${escapeAttr(data.time)}</div>`
+            : ""
+        }
+      </div>
+      ${right}
+    </div>`;
+  }
+
+  function renderPadXbBStatusBadge(status, statusLabel) {
+    if (!statusLabel) return "";
+    const badgeClass =
+      status === "learning"
+        ? "xb-pad-course-lesson__badge xb-pad-course-lesson__badge--learning"
+        : status === "todo"
+          ? "xb-pad-course-lesson__badge xb-pad-course-lesson__badge--todo"
+          : status === "done"
+            ? "xb-pad-course-lesson__badge xb-pad-course-lesson__badge--done"
+            : "xb-pad-course-lesson__badge";
+    return `<span class="${badgeClass}">${escapeAttr(statusLabel)}</span>`;
+  }
+
+  function renderPadXbBTypeIcon(type) {
+    if (type === "paper") {
+      return `<span class="xb-pad-course-b__ico xb-pad-course-b__ico--paper" aria-hidden="true" title="试卷">
+        <svg viewBox="0 0 20 20" width="18" height="18" fill="none">
+          <rect x="4" y="2.5" width="12" height="15" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M7 7h6M7 10.5h6M7 14h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </span>`;
+    }
+    if (type === "ware") {
+      return `<span class="xb-pad-course-b__ico xb-pad-course-b__ico--ware" aria-hidden="true" title="课件">
+        <svg viewBox="0 0 20 20" width="18" height="18" fill="none">
+          <path d="M5 2.5h7.2L15.5 5.8V17a1.2 1.2 0 0 1-1.2 1.2H5A1.2 1.2 0 0 1 3.8 17V3.7A1.2 1.2 0 0 1 5 2.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+          <path d="M12.1 2.6V5.5h2.9" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+          <text x="9.6" y="13.4" text-anchor="middle" fill="currentColor" font-size="4.8" font-weight="700" font-family="Arial,Helvetica,sans-serif">PPT</text>
+        </svg>
+      </span>`;
+    }
+    return `<span class="xb-pad-course-b__ico xb-pad-course-b__ico--video" aria-hidden="true" title="视频">
+      <svg viewBox="0 0 20 20" width="18" height="18" fill="none">
+        <rect x="2.5" y="4.5" width="15" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M8.5 8v4.5l4-2.25L8.5 8z" fill="currentColor"/>
+      </svg>
+    </span>`;
+  }
+
+  /** 视频课时：整卡外框；上视频标题，下分隔后放配套资源 */
+  function renderPadXbBVideoBlock(item) {
+    const hasAttach = (item.attach || []).length > 0;
+    const videoCurrent = item.id === padXbBFocusId && padXbBPlayMode ? " is-current" : "";
+    const sub = item.metaHtml || escapeAttr(item.meta || "");
+    const attachHtml = (item.attach || []).map((child) => renderPadXbBAttachRow(child)).join("");
+    const statusNearName = isPadXbSchemeC()
+      ? renderPadXbCState(null, item.status, item.statusLabel)
+      : renderPadXbBStatusBadge(item.status, item.statusLabel);
+    return `<div class="xb-pad-course-b__lesson${hasAttach ? " has-attach" : ""}${videoCurrent}">
+      <button type="button" class="xb-pad-course-b__item xb-pad-course-b__item--lesson${videoCurrent}" data-pad-b-open-video="${escapeAttr(
+        item.id
+      )}">
+        ${renderPadXbBTypeIcon("video")}
+        <div class="xb-pad-course-b__item-main">
+          <div class="xb-pad-course-b__item-row">
+            ${isPadXbSchemeC() ? "" : statusNearName}
+            <span class="xb-pad-course-b__item-name">${escapeAttr(item.title || "")}</span>
+            ${isPadXbSchemeC() ? statusNearName : ""}
+          </div>
+          ${sub ? `<div class="xb-pad-course-b__item-sub">${sub}</div>` : ""}
+        </div>
+      </button>
+      ${attachHtml ? `<div class="xb-pad-course-b__attach">${attachHtml}</div>` : ""}
+    </div>`;
+  }
+
+  /** 视频配套：试卷展示状态信息；课件点击直达预览 */
+  function renderPadXbBAttachRow(item) {
+    if (item.type === "paper") return renderPadXbBPaperRow(item, "attach");
+    const nameMeta = isPadXbSchemeC() ? renderPadXbCWareState(item) : "";
+    const right = isPadXbSchemeC()
+      ? ""
+      : `<span class="xb-pad-course-b__item-action is-btn">去学习</span>`;
+    return `<button type="button" class="xb-pad-course-b__item xb-pad-course-b__item--attach" data-pad-b-open-ware="${escapeAttr(
+      item.id
+    )}">
+      ${renderPadXbBTypeIcon("ware")}
+      <div class="xb-pad-course-b__item-main">
+        <div class="xb-pad-course-b__item-row">
+          <span class="xb-pad-course-b__item-name">${escapeAttr(item.title || "")}</span>
+          ${nameMeta}
+        </div>
+      </div>
+      ${right}
+    </button>`;
+  }
+
+  /** 独立试卷/课件课时 */
+  function renderPadXbBStandaloneItem(item) {
+    if (item.type === "paper") return renderPadXbBPaperRow(item, "standalone");
+    const nameMeta = isPadXbSchemeC() ? renderPadXbCWareState(item) : "";
+    const right = isPadXbSchemeC()
+      ? ""
+      : `<span class="xb-pad-course-b__item-action is-btn">${escapeAttr(item.actionLabel || "去学习")}</span>`;
+    return `<button type="button" class="xb-pad-course-b__item xb-pad-course-b__item--standalone" data-pad-b-open-ware="${escapeAttr(
+      item.id
+    )}">
+      ${renderPadXbBTypeIcon("ware")}
+      <div class="xb-pad-course-b__item-main">
+        <div class="xb-pad-course-b__item-row">
+          <span class="xb-pad-course-b__item-name">${escapeAttr(item.title || "")}</span>
+          ${nameMeta}
+        </div>
+      </div>
+      ${right}
+    </button>`;
+  }
+
+  function renderPadXbBTopItem(item) {
+    if (item.type === "video") return renderPadXbBVideoBlock(item);
+    return renderPadXbBStandaloneItem(item);
+  }
+
+  function renderPadXbBCatalogHtml() {
+    const html = PAD_XB_B_UNITS.map(
+      (unit) =>
+        `<div class="xb-pad-course-b__unit">${escapeAttr(unit.title)}</div>${(unit.items || [])
+          .map(renderPadXbBTopItem)
+          .join("")}`
+    ).join("");
+    return padXbAdaptUiHtml(html);
+  }
+
+  function renderPadXbBCatalog() {
+    const html = renderPadXbBCatalogHtml();
+    const listEl = padXbSchemeEl("catalog");
+    if (listEl) listEl.innerHTML = html;
+    const episodeList = padXbSchemeEl("episode-list");
+    if (episodeList) episodeList.innerHTML = html;
+  }
+
+  function setPadXbBEpisodeSheet(open) {
+    const sheet = padXbSchemeEl("episode-sheet");
+    if (!sheet) return;
+    sheet.hidden = !open;
+  }
+
+  function exitPadXbBVideoPlay() {
+    padXbBPlayMode = false;
+    setPadXbBEpisodeSheet(false);
+    const browse = padXbSchemeEl("browse");
+    const player = padXbSchemeEl("player");
+    if (browse) browse.hidden = false;
+    if (player) player.hidden = true;
+    padXbSchemeEl("main")?.classList.remove("is-playing");
+    renderPadXbBCatalog();
+    schedulePersist();
+  }
+
+  function enterPadXbBVideoPlay(itemId) {
+    const item = findPadXbBItem(itemId);
+    if (!item || item.type !== "video") return;
+    padXbBFocusId = item.id;
+    padXbBPlayMode = true;
+    setPadXbBEpisodeSheet(false);
+    const browse = padXbSchemeEl("browse");
+    const player = padXbSchemeEl("player");
+    const titleEl = padXbSchemeEl("player-title");
+    const subEl = padXbSchemeEl("player-sub");
+    if (browse) browse.hidden = true;
+    if (player) player.hidden = false;
+    padXbSchemeEl("main")?.classList.add("is-playing");
+    if (titleEl) titleEl.textContent = item.title || "视频播放";
+    if (subEl) subEl.innerHTML = item.metaHtml || escapeAttr(item.meta || "");
+    renderPadXbBCatalog();
+    schedulePersist();
+  }
+
+  function renderPadXbCoursePageB(course) {
+    const title = course?.title || "自适应学习2";
+    const grade = course?.grade || "一年级";
+    const learnMode = course?.learnMode || "按课时顺序解锁（按视频进度解锁）";
+    const lastLesson = course?.lastLesson || "第1节wmv: 儿童歌曲 - 小龙人";
+    const titleEl = padXbSchemeEl("title");
+    const metaEl = padXbSchemeEl("meta");
+    const lastEl = padXbSchemeEl("last");
+    if (titleEl) titleEl.textContent = title;
+    if (metaEl) {
+      metaEl.innerHTML = `<span>适合年级：${escapeAttr(grade)}</span><span class="xb-pad-course-info__sep">|</span><span>学习方式：${escapeAttr(
+        learnMode
+      )}</span>`;
+    }
+    if (lastEl) lastEl.textContent = `最近学习到：${lastLesson}`;
+    if (padXbBFocusId && !findPadXbBItem(padXbBFocusId)) padXbBFocusId = null;
+    padXbBPlayMode = false;
+    setPadXbBEpisodeSheet(false);
+    const browse = padXbSchemeEl("browse");
+    const player = padXbSchemeEl("player");
+    if (browse) browse.hidden = false;
+    if (player) player.hidden = true;
+    padXbSchemeEl("main")?.classList.remove("is-playing");
+    renderPadXbBCatalog();
+    syncPadSchemeSwitchUI();
+  }
+
   const PAD_XB_HW_CARD = {
     unsubmitted: {
       status: "未提交",
@@ -766,10 +1300,19 @@
     setPadPortrait(false);
     const inner = $("#pad-inner");
     inner?.classList.add("is-active");
-    renderPadXbCoursePage(course);
-    renderPadXbHwCard();
-    setPadCourseTab(options.tab || "notes");
-    $("#pad-xb-course")?.removeAttribute("hidden");
+    $("#pad-xb-course")?.setAttribute("hidden", "");
+    $("#pad-xb-course-b")?.setAttribute("hidden", "");
+    $("#pad-xb-course-c")?.setAttribute("hidden", "");
+    syncPadSchemeSwitchUI();
+    if (isPadXbCatalogScheme()) {
+      renderPadXbCoursePageB(course);
+      padXbSchemeRoot()?.removeAttribute("hidden");
+    } else {
+      renderPadXbCoursePage(course);
+      renderPadXbHwCard();
+      setPadCourseTab(options.tab || "notes");
+      $("#pad-xb-course")?.removeAttribute("hidden");
+    }
     schedulePersist();
   }
 
@@ -781,7 +1324,7 @@
 
   function backPadXbCourseware() {
     if (padXbCourseId) {
-      openPadXbCourse(padXbCourseId, { tab: "ware" });
+      openPadXbCourse(padXbCourseId, { tab: isPadXbCatalogScheme() ? "notes" : "ware" });
       return;
     }
     openPadModule("xiaoben");
@@ -873,8 +1416,11 @@
     if (nextStatus) padXbHwStatus = nextStatus;
     renderPadXbHwCard();
     renderPadXbCourseCatalog();
+    if (isPadXbCatalogScheme()) {
+      renderPadXbBCatalog();
+    }
     if (padXbCourseId) {
-      openPadXbCourse(padXbCourseId, { tab: "hw" });
+      openPadXbCourse(padXbCourseId, { tab: isPadXbCatalogScheme() ? "notes" : "hw" });
       return;
     }
     openPadModule("xiaoben");
@@ -1049,6 +1595,8 @@
     $("#pad-inner-placeholder")?.setAttribute("hidden", "");
     $("#pad-xb-home")?.setAttribute("hidden", "");
     $("#pad-xb-course")?.setAttribute("hidden", "");
+    $("#pad-xb-course-b")?.setAttribute("hidden", "");
+    $("#pad-xb-course-c")?.setAttribute("hidden", "");
     hidePadXbOverlayPages();
     const inner = $("#pad-inner");
     inner?.classList.add("is-active");
@@ -1199,6 +1747,10 @@
   }
 
   function backPadXbCourseToList() {
+    if (isPadXbCatalogScheme() && padXbBPlayMode) {
+      exitPadXbBVideoPlay();
+      return;
+    }
     openPadModule("xiaoben");
   }
 
@@ -2211,19 +2763,54 @@
     });
 
     $("#pad-xb-course-back")?.addEventListener("click", backPadXbCourseToList);
+    $$("#pad-xb-course-b-back, #pad-xb-course-c-back").forEach((el) => {
+      el.addEventListener("click", backPadXbCourseToList);
+    });
     $("#pad-xb-course-continue")?.addEventListener("click", () => {
       showToast("继续学习（原型示意）");
     });
     $("#pad-xb-course-cache")?.addEventListener("click", () => {
       showToast("缓存课程（原型示意）");
     });
+    $$("#pad-xb-course-b-cache, #pad-xb-course-c-cache").forEach((el) => {
+      el.addEventListener("click", () => showToast("缓存课程（原型示意）"));
+    });
     $("#pad-xb-course-add-note")?.addEventListener("click", () => {
       showToast("添加笔记（原型示意）");
+    });
+    $$("#pad-xb-course-b-add-note, #pad-xb-course-c-add-note").forEach((el) => {
+      el.addEventListener("click", () => showToast("添加笔记（原型示意）"));
+    });
+    $$("#pad-xb-course-b-continue, #pad-xb-course-c-continue").forEach((el) => {
+      el.addEventListener("click", () => {
+        const resume = findPadXbBResumeVideo();
+        if (resume) enterPadXbBVideoPlay(resume.id);
+        else showToast("暂无可继续的视频");
+      });
+    });
+    $$("#pad-xb-course-b-exit-play, #pad-xb-course-c-exit-play").forEach((el) => {
+      el.addEventListener("click", () => exitPadXbBVideoPlay());
+    });
+    $$("#pad-xb-course-b-episodes, #pad-xb-course-c-episodes").forEach((el) => {
+      el.addEventListener("click", () => {
+        const sheet = padXbSchemeEl("episode-sheet");
+        setPadXbBEpisodeSheet(!!sheet?.hidden);
+        if (sheet && !sheet.hidden) renderPadXbBCatalog();
+      });
+    });
+    $$("#pad-xb-course-b-episode-close, #pad-xb-course-c-episode-close").forEach((el) => {
+      el.addEventListener("click", () => setPadXbBEpisodeSheet(false));
     });
     $$("[data-pad-course-tab]").forEach((tab) => {
       tab.addEventListener("click", () => {
         setPadCourseTab(tab.dataset.padCourseTab || "notes");
       });
+    });
+    document.addEventListener("click", (e) => {
+      const schemeBtn = e.target.closest("[data-pad-scheme]");
+      if (!schemeBtn) return;
+      if (!schemeBtn.closest("#pad-xb-course, #pad-xb-course-b, #pad-xb-course-c")) return;
+      setPadXbCourseScheme(schemeBtn.dataset.padScheme || "b", { force: true, reopen: true });
     });
 
     $("#pad-xb-course")?.addEventListener("click", (e) => {
@@ -2242,6 +2829,41 @@
       if (!actionBtn) return;
       showToast(`${actionBtn.dataset.padResourceAction || "操作"}（原型示意）`);
     });
+
+    const handlePadXbCatalogSchemeClick = (e) => {
+      if (e.target.closest("#pad-xb-course-b-play, #pad-xb-course-c-play")) {
+        showToast("视频播放中（原型示意）");
+        return;
+      }
+      const hwAction = e.target.closest("[data-pad-hw-action]");
+      if (hwAction) {
+        e.preventDefault();
+        e.stopPropagation();
+        handlePadXbHwCardAction(hwAction.dataset.padHwAction || "answer");
+        return;
+      }
+      const openPaper = e.target.closest("[data-pad-b-open-paper]");
+      if (openPaper) {
+        const paperId = openPaper.dataset.padBItem;
+        if (paperId) padXbBFocusId = paperId;
+        handlePadXbHwCardAction(openPaper.dataset.padBOpenPaper || "answer");
+        return;
+      }
+      const openWare = e.target.closest("[data-pad-b-open-ware], [data-pad-open-ware]");
+      if (openWare) {
+        const wareId = openWare.dataset.padBOpenWare;
+        if (wareId) padXbBFocusId = wareId;
+        openPadXbCourseware();
+        return;
+      }
+      const openVideo = e.target.closest("[data-pad-b-open-video]");
+      if (openVideo) {
+        enterPadXbBVideoPlay(openVideo.dataset.padBOpenVideo || "");
+        return;
+      }
+    };
+    $("#pad-xb-course-b")?.addEventListener("click", handlePadXbCatalogSchemeClick);
+    $("#pad-xb-course-c")?.addEventListener("click", handlePadXbCatalogSchemeClick);
 
     $("#pad-xb-ware")?.addEventListener("click", handlePadXbWareClick);
     $("#pad-xb-ware")?.addEventListener("mousemove", handlePadXbWareMove);
@@ -2306,10 +2928,6 @@
         }
         if ($("#jw-learner-remove-modal")?.classList.contains("is-open")) {
           closeLearnerRemoveModal();
-          return;
-        }
-        if ($("#jw-learners-mode-modal")?.classList.contains("is-open")) {
-          closeLearnersModeConfirmModal();
           return;
         }
         if ($("#jw-student-detail-modal")?.classList.contains("is-open")) {
@@ -2641,91 +3259,13 @@
   let addDeviceMatchedSerial = null;
   let pendingLearnersMaintainMode = null;
 
+  // 学习名单仅保留按人员名单维护（已去掉人员/设备切换）
   function isLearnersDeviceMode() {
-    if (learnersCourseId == null) return false;
-    return learnersMaintainModeByCourse[learnersKey(learnersCourseId)] === "device";
+    return false;
   }
 
   function getLearnersMaintainMode() {
-    return isLearnersDeviceMode() ? "device" : "person";
-  }
-
-  function getCurrentLearnersRosterCount() {
-    if (learnersCourseId == null) return 0;
-    return isLearnersDeviceMode()
-      ? getDevicesForCourse(learnersCourseId).length
-      : getLearnersForCourse(learnersCourseId).length;
-  }
-
-  function clearCurrentLearnersRosterData() {
-    if (learnersCourseId == null) return;
-    if (isLearnersDeviceMode()) {
-      getDevicesForCourse(learnersCourseId).length = 0;
-      getRemovedDevicesForCourse(learnersCourseId).length = 0;
-    } else {
-      getLearnersForCourse(learnersCourseId).length = 0;
-      getRemovedLearnersForCourse(learnersCourseId).length = 0;
-    }
-    syncCourseLearnerCount(learnersCourseId);
-  }
-
-  function applyLearnersMaintainMode(mode) {
-    if (learnersCourseId == null) return;
-    const next = mode === "device" ? "device" : "person";
-    learnersMaintainModeByCourse[learnersKey(learnersCourseId)] = next;
-    learnersListKeyword = "";
-    const keywordInput = $("#jw-learners-keyword");
-    if (keywordInput) keywordInput.value = "";
-    addDeviceMatchedSerial = null;
-    syncLearnersMaintainModeUI();
-    renderLearnersTable();
-    schedulePersist();
-  }
-
-  function openLearnersModeConfirmModal(mode) {
-    pendingLearnersMaintainMode = mode === "device" ? "device" : "person";
-    const modal = $("#jw-learners-mode-modal");
-    if (!modal) return;
-    modal.hidden = false;
-    modal.classList.add("is-open");
-  }
-
-  function closeLearnersModeConfirmModal() {
-    const modal = $("#jw-learners-mode-modal");
-    if (!modal) return;
-    pendingLearnersMaintainMode = null;
-    modal.classList.remove("is-open");
-    modal.hidden = true;
-    // 取消时把切换按钮状态回正
-    syncLearnersMaintainModeUI();
-  }
-
-  function confirmLearnersMaintainModeSwitch() {
-    if (learnersCourseId == null || !pendingLearnersMaintainMode) {
-      closeLearnersModeConfirmModal();
-      return;
-    }
-    const next = pendingLearnersMaintainMode;
-    clearCurrentLearnersRosterData();
-    pendingLearnersMaintainMode = null;
-    const modal = $("#jw-learners-mode-modal");
-    if (modal) {
-      modal.classList.remove("is-open");
-      modal.hidden = true;
-    }
-    applyLearnersMaintainMode(next);
-    showToast("已更换名单维护方式");
-  }
-
-  function setLearnersMaintainMode(mode) {
-    if (learnersCourseId == null) return;
-    const next = mode === "device" ? "device" : "person";
-    if (next === getLearnersMaintainMode()) return;
-    if (getCurrentLearnersRosterCount() === 0) {
-      applyLearnersMaintainMode(next);
-      return;
-    }
-    openLearnersModeConfirmModal(next);
+    return "person";
   }
 
   function isLearnDataMulti() {
@@ -2820,44 +3360,26 @@
   function syncCourseLearnerCount(courseId) {
     const course = manageCourseList.find((item) => item.id === courseId);
     if (!course) return;
-    const deviceMode = learnersMaintainModeByCourse[learnersKey(courseId)] === "device";
-    course.learners = deviceMode
-      ? getDevicesForCourse(courseId).length
-      : getLearnersForCourse(courseId).length;
+    course.learners = getLearnersForCourse(courseId).length;
   }
 
   function syncLearnersMaintainModeUI() {
-    const mode = getLearnersMaintainMode();
-    const isDevice = mode === "device";
-    $$("[data-learners-mode]").forEach((btn) => {
-      const active = btn.dataset.learnersMode === mode;
-      btn.classList.toggle("is-active", active);
-      btn.setAttribute("aria-selected", active ? "true" : "false");
-    });
-    $$("[data-learners-person-only]").forEach((el) => {
-      el.hidden = isDevice;
-    });
-    $$("[data-learners-thead]").forEach((row) => {
-      row.hidden = row.dataset.learnersThead !== mode;
-    });
-    const keywordLabel = $("#jw-learners-keyword-label");
     const keywordInput = $("#jw-learners-keyword");
-    if (keywordLabel) keywordLabel.textContent = isDevice ? "序列号:" : "学生:";
     if (keywordInput) {
-      keywordInput.placeholder = isDevice ? "请输入序列号" : "乐号/姓名";
-      keywordInput.setAttribute("aria-label", isDevice ? "序列号" : "学生");
+      keywordInput.placeholder = "乐号/姓名";
+      keywordInput.setAttribute("aria-label", "学生");
     }
     const addBtn = $("#jw-learners-add-btn");
     if (addBtn) {
-      addBtn.textContent = isDevice ? "添加设备" : "添加学生";
-      addBtn.dataset.learnersAct = isDevice ? "添加设备" : "添加学生";
+      addBtn.textContent = "添加学生";
+      addBtn.dataset.learnersAct = "添加学生";
     }
     const step3 = $("#jw-import-step3-title");
-    if (step3) step3.textContent = isDevice ? "上传设备名单" : "上传学生名单";
+    if (step3) step3.textContent = "上传学生名单";
     const crumb = $("#jw-add-learner-crumb");
-    if (crumb) crumb.textContent = isDevice ? "添加设备" : "添加学生";
+    if (crumb) crumb.textContent = "添加学生";
     const modeRow = $("#jw-add-learner-mode-row");
-    if (modeRow) modeRow.hidden = isDevice;
+    if (modeRow) modeRow.hidden = false;
   }
 
   function ensureDemoRemovedLearner(courseId) {
@@ -2921,8 +3443,7 @@
   }
 
   function finishImportSuccess() {
-    if (isLearnersDeviceMode()) applyDemoImportedDevices();
-    else applyDemoImportedLearners();
+    applyDemoImportedLearners();
     setJiaowuNav("learners");
     renderLearnersTable();
     showToast("导入成功");
@@ -3091,24 +3612,9 @@
     const countEl = $("#jw-learners-record-count");
     if (!tbody) return;
     syncLearnersMaintainModeUI();
-    const isDevice = isLearnersDeviceMode();
     const list = getVisibleLearnersList();
-    const colSpan = isDevice ? 4 : 7;
     if (!list.length) {
-      tbody.innerHTML = `<tr><td colspan="${colSpan}"><div class="jw-learners-empty">暂无数据</div></td></tr>`;
-    } else if (isDevice) {
-      tbody.innerHTML = list
-        .map(
-          (row) => `<tr data-learner-id="${escapeAttr(String(row.id))}">
-            <td class="col-check"><input class="xb-check" type="checkbox" aria-label="选择设备" /></td>
-            <td>${escapeAttr(row.serial || "--")}</td>
-            <td>${escapeAttr(row.addedAt || "--")}</td>
-            <td class="col-maction">
-              <button type="button" class="jw-link--remove" data-learner-remove="${escapeAttr(String(row.id))}">移除</button>
-            </td>
-          </tr>`
-        )
-        .join("");
+      tbody.innerHTML = `<tr><td colspan="7"><div class="jw-learners-empty">暂无数据</div></td></tr>`;
     } else {
       tbody.innerHTML = list
         .map(
@@ -3127,13 +3633,11 @@
         .join("");
     }
     if (countEl) countEl.textContent = `共${list.length}条记录`;
-    ["#jw-learners-check-all", "#jw-learners-check-all-device"].forEach((sel) => {
-      const checkAll = $(sel);
-      if (checkAll) {
-        checkAll.checked = false;
-        checkAll.indeterminate = false;
-      }
-    });
+    const checkAll = $("#jw-learners-check-all");
+    if (checkAll) {
+      checkAll.checked = false;
+      checkAll.indeterminate = false;
+    }
   }
 
   function openLearnersPage(row) {
@@ -3219,12 +3723,14 @@
         <span class="jw-th-with-tip">
           课件查看率
           <button type="button" class="jw-tip-btn" data-tip="cw-view-rate" aria-label="课件查看率说明">?</button>
+          <span class="proto-add-pin proto-add-pin--inline" title="本期新增">新增3</span>
         </span>
       </th>
       <th class="col-ld-rate">
         <span class="jw-th-with-tip">
           课件内容查看率
           <button type="button" class="jw-tip-btn" data-tip="cw-content-rate" aria-label="课件内容查看率说明">?</button>
+          <span class="proto-add-pin proto-add-pin--inline" title="本期新增">新增4</span>
         </span>
       </th>
       <th class="col-ld-action">操作</th>`;
@@ -4470,18 +4976,6 @@
     const nameEl = $("#jw-add-learner-course-name");
     if (nameEl) nameEl.textContent = row?.title || "未命名课程";
     syncLearnersMaintainModeUI();
-    const modeRow = $("#jw-add-learner-mode-row");
-    if (isLearnersDeviceMode()) {
-      if (modeRow) modeRow.hidden = true;
-      resetAddDeviceForm();
-      $$("[data-add-learner-pane]").forEach((pane) => {
-        pane.hidden = pane.dataset.addLearnerPane !== "device";
-      });
-      setJiaowuNav("learners-add");
-      schedulePersist();
-      return;
-    }
-    if (modeRow) modeRow.hidden = false;
     ensureDemoRemovedForAdd(learnersCourseId);
     setAddLearnerMode("school");
     addLearnerSchoolKeyword = "";
@@ -4489,9 +4983,6 @@
     if (search) search.value = "";
     const lehaoInput = $("#jw-add-learner-lehao");
     if (lehaoInput) lehaoInput.value = "";
-    // 人员模式不展示设备面板
-    const devicePane = $('[data-add-learner-pane="device"]');
-    if (devicePane) devicePane.hidden = true;
     syncAddLearnerLehaoName();
     refreshAddLearnerSchoolUI();
     refreshAddLearnerLayerUI();
@@ -4757,15 +5248,6 @@
       learnersCourseId = null;
       setJiaowuNav("manage");
     });
-    $$("[data-learners-mode]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        setLearnersMaintainMode(btn.dataset.learnersMode);
-      });
-    });
-    $$("[data-close-learners-mode]").forEach((el) => {
-      el.addEventListener("click", closeLearnersModeConfirmModal);
-    });
-    $("#jw-learners-mode-ok")?.addEventListener("click", confirmLearnersMaintainModeSwitch);
     $("#jw-learners-query")?.addEventListener("click", () => {
       learnersListKeyword = ($("#jw-learners-keyword")?.value || "").trim();
       renderLearnersTable();
@@ -4799,20 +5281,11 @@
       });
     });
     bindAddLearnerPage();
-    const syncLearnersCheckAll = (checked) => {
+    $("#jw-learners-check-all")?.addEventListener("change", () => {
+      const checked = !!$("#jw-learners-check-all")?.checked;
       $$("#jw-learners-tbody .xb-check").forEach((c) => {
         c.checked = checked;
       });
-      const personAll = $("#jw-learners-check-all");
-      const deviceAll = $("#jw-learners-check-all-device");
-      if (personAll) personAll.checked = checked;
-      if (deviceAll) deviceAll.checked = checked;
-    };
-    $("#jw-learners-check-all")?.addEventListener("change", () => {
-      syncLearnersCheckAll(!!$("#jw-learners-check-all")?.checked);
-    });
-    $("#jw-learners-check-all-device")?.addEventListener("change", () => {
-      syncLearnersCheckAll(!!$("#jw-learners-check-all-device")?.checked);
     });
     $("#jw-learners-tbody")?.addEventListener("click", (e) => {
       const removeBtn = e.target.closest("[data-learner-remove]");
@@ -5595,21 +6068,6 @@
                 ? `<button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-unit" title="查看此处改动说明">改</button>`
                 : ""
             }
-            <div class="jw-unit__plan">
-              <span class="jw-unit__plan-label">设置单元学习计划</span>
-              <button type="button" class="jw-tip-btn" data-tip="plan" aria-label="学习计划说明">?</button>
-              <span class="xb-date-range jw-unit__date" role="group" aria-label="学习计划日期">
-                <input class="xb-date-range__input" type="text" placeholder="开始日期" readonly />
-                <span class="xb-date-range__sep" aria-hidden="true">→</span>
-                <input class="xb-date-range__input" type="text" placeholder="结束日期" readonly />
-                <span class="xb-date-range__icon" aria-hidden="true">
-                  <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
-                    <rect x="2" y="3.5" width="12" height="10.5" rx="1.2" stroke="currentColor" stroke-width="1.2" />
-                    <path d="M5 2v3M11 2v3M2 7h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-                  </svg>
-                </span>
-              </span>
-            </div>
             <div class="jw-unit__actions">
               <button type="button" class="jw-unit__link" data-unit-del="${unit.id}">
                 <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
@@ -5778,6 +6236,19 @@
     ["#xb-add-modal", "#xb-pick-modal", "#xb-hw-modal", "#xb-cw-modal"].forEach((sel) => {
       $(sel)?.classList.toggle("is-above-jw", !!on);
     });
+  }
+
+  /** 教务「添加课程」栈内再开配套作业/课件时，压在添加视频课弹窗之上 */
+  function shouldAttachModalAboveJw() {
+    return (
+      addModalSource === "jwAddCourse" ||
+      !!$("#xb-add-modal")?.classList.contains("is-above-jw")
+    );
+  }
+
+  function applyAttachModalStack(modal) {
+    if (!modal) return;
+    modal.classList.toggle("is-above-jw", shouldAttachModalAboveJw());
   }
 
   function jwAddCoursePickLabel(type) {
@@ -6014,6 +6485,15 @@
     $("#jw-add-course-search")?.addEventListener("input", renderAddCoursePicker);
     $("#jw-add-course-search-btn")?.addEventListener("click", renderAddCoursePicker);
     $("#jw-add-course-open-pick")?.addEventListener("click", () => {
+      // 试卷/课件：直接打开选择弹窗，不经过资源库/本地上传中间页
+      if (jwAddCourseResourceType === "paper") {
+        openHwModalForJwPick();
+        return;
+      }
+      if (jwAddCourseResourceType === "courseware") {
+        openCwModalForJwPick();
+        return;
+      }
       openAddModal("jwAddCourse");
     });
     $("#jw-add-course-group-toggle")?.addEventListener("click", () => {
@@ -6194,7 +6674,6 @@
     </ol>`,
     progress:
       "选择“锁定”后，则不允许拖动课程进度条；选择“不锁定”，视频学习累计时长仍需要达到总时长的90%才算学完视频。",
-    plan: "可为单元设置学习起止日期，用于安排学习计划。",
     "avg-ratio": `<div>计算方式：全部学生各课时有效观看时长之和 ÷ 全部学生对应课时总时长之和</div><div>指标含义：反应整体视频内容的观看比例，关注实际观看程度</div>`,
     "learn-rate": `<div>计算方式：视频观看时长达到90%的课时数/已上架课时数*100%</div><div>指标含义：关注完成达标情况</div>`,
     "hw-rate": "已完成作业数/作业总数*100%",
@@ -6744,6 +7223,8 @@
       panel.hidden = panel.dataset.addPanel !== addTab;
     });
     if (addTab === "local") {
+      // 本地上传不支持试卷，仅保留视频/课件
+      if (addResourceType === "paper") setResourceType("video");
       syncLocalGroupOptions();
       syncResourceTypeUI();
       renderLocalAttaches();
@@ -7070,6 +7551,7 @@
     if (pickState.confirmed.length) {
       pickState.selected = new Set(pickState.confirmed);
     }
+    applyAttachModalStack(modal);
     modal.hidden = false;
     modal.classList.add("is-open");
     renderPickList();
@@ -7485,6 +7967,7 @@
     const existed = hwByCourse[courseId] || [];
     hwState.selected = new Set(existed.length ? existed : [0]);
     renderHwTable();
+    applyAttachModalStack(modal);
     modal.hidden = false;
     modal.classList.add("is-open");
   }
@@ -7498,6 +7981,22 @@
     hwState.listRowId = rowId;
     hwState.selected = resolveHwSelectedIds(row.homeworks);
     renderHwTable();
+    modal.classList.remove("is-above-jw");
+    modal.hidden = false;
+    modal.classList.add("is-open");
+  }
+
+  function openHwModalForJwPick() {
+    const modal = $("#xb-hw-modal");
+    if (!modal) return;
+    hwState.mode = "jwPick";
+    hwState.courseId = null;
+    hwState.listRowId = null;
+    hwState.selected = new Set(
+      addCourseSelected.size ? [...addCourseSelected] : HW_PAPERS.length ? [0] : []
+    );
+    renderHwTable();
+    modal.classList.add("is-above-jw");
     modal.hidden = false;
     modal.classList.add("is-open");
   }
@@ -7508,7 +8007,19 @@
     hwState.mode = "add";
     hwState.listRowId = null;
     modal.classList.remove("is-open");
+    modal.classList.remove("is-above-jw");
     modal.hidden = true;
+  }
+
+  function applyJwPickSelection(selectedSet) {
+    addCourseSelected.clear();
+    [...selectedSet]
+      .sort((a, b) => a - b)
+      .forEach((id) => {
+        if (addCourseSelected.size >= ADD_COURSE_MAX) return;
+        addCourseSelected.add(id);
+      });
+    renderAddCoursePicker();
   }
 
   function confirmHw() {
@@ -7524,6 +8035,12 @@
       }
       closeHwModal();
       refreshCourseViews();
+      return;
+    }
+    if (hwState.mode === "jwPick") {
+      applyJwPickSelection(hwState.selected);
+      closeHwModal();
+      showToast(addCourseSelected.size ? "已选择试卷" : "未选择试卷");
       return;
     }
     const courseId = hwState.courseId;
@@ -7633,6 +8150,7 @@
     const existed = cwByCourse[courseId] || [];
     cwState.selected = new Set(existed.length ? existed : [0]);
     renderCwTable();
+    applyAttachModalStack(modal);
     modal.hidden = false;
     modal.classList.add("is-open");
   }
@@ -7646,6 +8164,22 @@
     cwState.listRowId = rowId;
     cwState.selected = resolveCwSelectedIds(row.coursewares);
     renderCwTable();
+    modal.classList.remove("is-above-jw");
+    modal.hidden = false;
+    modal.classList.add("is-open");
+  }
+
+  function openCwModalForJwPick() {
+    const modal = $("#xb-cw-modal");
+    if (!modal) return;
+    cwState.mode = "jwPick";
+    cwState.courseId = null;
+    cwState.listRowId = null;
+    cwState.selected = new Set(
+      addCourseSelected.size ? [...addCourseSelected] : CW_ITEMS.length ? [0] : []
+    );
+    renderCwTable();
+    modal.classList.add("is-above-jw");
     modal.hidden = false;
     modal.classList.add("is-open");
   }
@@ -7656,6 +8190,7 @@
     cwState.mode = "add";
     cwState.listRowId = null;
     modal.classList.remove("is-open");
+    modal.classList.remove("is-above-jw");
     modal.hidden = true;
   }
 
@@ -7672,6 +8207,12 @@
       }
       closeCwModal();
       refreshCourseViews();
+      return;
+    }
+    if (cwState.mode === "jwPick") {
+      applyJwPickSelection(cwState.selected);
+      closeCwModal();
+      showToast(addCourseSelected.size ? "已选择课件" : "未选择课件");
       return;
     }
     const courseId = cwState.courseId;
@@ -8612,6 +9153,10 @@
       padXbSubject = saved.padXbSubject;
     }
     if (saved.padXbCourseId) padXbCourseId = saved.padXbCourseId;
+    if (saved.padXbCourseScheme === "a" || saved.padXbCourseScheme === "b" || saved.padXbCourseScheme === "c") {
+      padXbCourseScheme = saved.padXbCourseScheme;
+    }
+    if (saved.padXbBFocusId) padXbBFocusId = saved.padXbBFocusId;
     if (Number.isFinite(Number(saved.padXbHwStep))) {
       padXbHwStep = Math.max(0, Math.min(Number(saved.padXbHwStep), PAD_XB_HW_STEPS.length - 1));
     }

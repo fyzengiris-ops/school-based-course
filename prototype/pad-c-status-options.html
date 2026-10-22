@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>方案C · 状态标签设计方案对照</title>
+    <style>
+      :root {
+        --bg: #f3f5f7;
+        --card: #fff;
+        --text: #222;
+        --muted: #6b7680;
+        --line: #e6ebef;
+        --teal: #1fb07e;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 28px 20px 48px;
+        font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 22px;
+      }
+      .intro {
+        margin: 0 0 24px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .scheme {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 18px 18px 16px;
+        margin-bottom: 16px;
+      }
+      .scheme-head {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 6px;
+      }
+      .scheme-id {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--teal);
+      }
+      .scheme-title {
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .scheme-desc {
+        margin: 0 0 14px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+      .demo-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 14px;
+        padding: 12px 14px;
+        background: #fafbfc;
+        border: 1px dashed #e0e6eb;
+        border-radius: 10px;
+        margin-bottom: 8px;
+      }
+      .demo-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #222;
+      }
+      .demo-note {
+        margin: 8px 0 0;
+        font-size: 12px;
+        color: #8a9399;
+      }
+
+      /* ========== 方案1：极简色条标签 ========== */
+      .s1 {
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 8px 0 6px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 650;
+        background: #f3f5f7;
+        color: #666;
+      }
+      .s1::before {
+        content: "";
+        width: 3px;
+        height: 12px;
+        border-radius: 2px;
+        margin-right: 6px;
+        background: currentColor;
+      }
+      .s1.learning { color: #1aa87a; background: #e9f8f1; }
+      .s1.todo { color: #d4890b; background: #fff5e6; }
+      .s1.danger { color: #e04b4b; background: #ffecec; }
+      .s1.muted { color: #5a7f90; background: #eaf2f6; }
+      .s1.success { color: #1aa87a; background: #e9f8f1; }
+      .s1.done { color: #7a858f; background: #eef1f3; }
+
+      /* ========== 方案2：软胶囊 + 圆点呼吸感 ========== */
+      .s2 {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 24px;
+        padding: 0 11px 0 9px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 650;
+        border: 1px solid transparent;
+      }
+      .s2 i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);
+      }
+      .s2.learning { color: #14966c; background: #ecfaf4; border-color: #bfe9d5; }
+      .s2.todo { color: #c98710; background: #fff8ec; border-color: #f0d7a8; }
+      .s2.danger { color: #dc4545; background: #fff1f1; border-color: #f3bcbc; }
+      .s2.muted { color: #4f7a8c; background: #f1f7fa; border-color: #c5d8e2; }
+      .s2.success { color: #14966c; background: #ecfaf4; border-color: #bfe9d5; }
+      .s2.done { color: #6d7882; background: #f4f6f7; border-color: #d5dde2; }
+
+      /* ========== 方案3：旗标折角 ========== */
+      .s3 {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        height: 24px;
+        padding: 0 14px 0 10px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        color: #fff;
+        clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%);
+      }
+      .s3.learning { background: #1fb07e; }
+      .s3.todo { background: #e2a13a; }
+      .s3.danger { background: #e45757; }
+      .s3.muted { background: #5f8ea3; }
+      .s3.success { background: #1fb07e; }
+      .s3.done { background: #8b969f; }
+
+      /* ========== 方案4：线框描边标签 ========== */
+      .s4 {
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 9px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: 650;
+        background: #fff;
+        border: 1.5px solid currentColor;
+        letter-spacing: 0.04em;
+      }
+      .s4.learning { color: #1aa87a; }
+      .s4.todo { color: #d4890b; }
+      .s4.danger { color: #e04b4b; }
+      .s4.muted { color: #5a7f90; }
+      .s4.success { color: #1aa87a; }
+      .s4.done { color: #7a858f; }
+
+      /* ========== 方案5：双色拼接 ========== */
+      .s5 {
+        display: inline-flex;
+        align-items: stretch;
+        height: 24px;
+        border-radius: 6px;
+        overflow: hidden;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid transparent;
+      }
+      .s5 .k {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 7px;
+        color: #fff;
+      }
+      .s5 .v {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 9px;
+        background: #fff;
+      }
+      .s5.learning { border-color: #1fb07e; }
+      .s5.learning .k { background: #1fb07e; }
+      .s5.learning .v { color: #1aa87a; }
+      .s5.todo { border-color: #e2a13a; }
+      .s5.todo .k { background: #e2a13a; }
+      .s5.todo .v { color: #c98710; }
+      .s5.danger { border-color: #e45757; }
+      .s5.danger .k { background: #e45757; }
+      .s5.danger .v { color: #dc4545; }
+      .s5.muted { border-color: #5f8ea3; }
+      .s5.muted .k { background: #5f8ea3; }
+      .s5.muted .v { color: #4f7a8c; }
+      .s5.success { border-color: #1fb07e; }
+      .s5.success .k { background: #1fb07e; }
+      .s5.success .v { color: #1aa87a; }
+      .s5.done { border-color: #8b969f; }
+      .s5.done .k { background: #8b969f; }
+      .s5.done .v { color: #6d7882; }
+
+      /* ========== 方案6：轻量文字强调（几乎无底） ========== */
+      .s6 {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .s6::before {
+        content: "·";
+        font-size: 18px;
+        line-height: 1;
+        transform: translateY(-1px);
+      }
+      .s6.learning { color: #1aa87a; }
+      .s6.todo { color: #d4890b; }
+      .s6.danger { color: #e04b4b; }
+      .s6.muted { color: #5a7f90; }
+      .s6.success { color: #1aa87a; }
+      .s6.done { color: #7a858f; }
+
+      .score {
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 7px;
+        margin-left: 2px;
+        border: 1px dashed #ef9a9a;
+        border-radius: 5px;
+        color: #e45757;
+        font-family: "KaiTi", "STKaiti", serif;
+        font-size: 13px;
+        font-weight: 700;
+        transform: rotate(-6deg);
+        background: #fff7f6;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>方案C · 状态标签设计方案</h1>
+    <p class="intro">
+      以下 6 套都放在「名称后面」。请直接告诉我选哪一套（或两套混搭），我再落到原型方案 C。
+    </p>
+
+    <section class="scheme">
+      <div class="scheme-head">
+        <span class="scheme-id">方案 1</span>
+        <span class="scheme-title">色条标签</span>
+      </div>
+      <p class="scheme-desc">左侧一根状态色条 + 浅色底。克制、偏产品后台，辨识快、不抢标题。</p>
+      <div class="demo-row">
+        <span class="demo-name">第2节 wmv：儿童歌曲 - 小龙人</span>
+        <span class="s1 learning">学习中</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-name">数学试卷04</span>
+        <span class="s1 danger">未提交</span>
+        <span class="s1 muted">待批改</span>
+        <span class="score">3分</span>
+        <span class="s1 success">已批改</span>
+        <span class="score">33分</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-name">《识字一》课件</span>
+        <span class="s1 todo">待学习</span>
+        <span class="s1 done">已查看</span>
+      </div>
+    </section>
+
+    <section class="scheme">
+      <div class="scheme-head">
+        <span class="scheme-id">方案 2</span>
+        <span class="scheme-title">软胶囊圆点</span>
+      </div>
+      <p class="scheme-desc">圆角胶囊 + 状态色圆点光晕。常见于学习类 App，亲和、清晰。</p>
+      <div class="demo-row">
+        <span class="demo-name">第2节 wmv：儿童歌曲 - 小龙人</span>
+        <span class="s2 learning"><i></i>学习中</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-name">数学试卷04</span>
+        <span class="s2 danger"><i></i>未提交</span>
+        <span class="s2 muted"><i></i>待批改</span>
+        <span class="score">3分</span>
+        <span class="s2 success"><i></i>已批改</span>
+        <span class="score">33分</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-name">《识字一》课件</span>
+        <span class="s2 todo"><i></i>待学习</span>
+        <span class="s2 done"><i></i>已查看</span>
+      </div>
+    </section>
+
+    <section class="scheme">
+      <div class="scheme-head">
+        <span class="scheme-id">方案 3</span>
+        <span class="scheme-title">旗标折角</span>
+      </div>
+      <p class="scheme-desc">实心旗标、右侧斜切。更有「标记感」，适合强调进行中/待处理。</p>
+      <div class="demo-row">
+        <span class="demo-name">第2节 wmv：儿童歌曲 - 小龙人</span>
+        <span class="s3 learning">学习中</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-name">数学试卷04</span>
+        <span class="s3 danger">未提交</span>
+        <span class="s3 muted">待批改</span>
+        <span class="score">3分</span>
+        <span class="s3 success">已批改</span>
+        <span class="score">33分</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-name">《识字一》课件</span>
+        <span class="s3 todo">待学习</span>
+        <span class="s3 done">已查看</span>
+      </div>
+    </section>
+
+    <section class="scheme">
+      <div class="scheme-head">
+        <span class="scheme-id">方案 4</span>
+        <span class="scheme-title">线框描边</span>
+      </div>
+      <p class="scheme-desc">白底 + 彩色描边，几乎不占视觉重量，偏精致、偏编辑感。</p>
+      <div class="demo-row">
+        <span class="demo-name">第2节 wmv：儿童歌曲 - 小龙人</span>
+        <span class="s4 learning">学习中</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-name">数学试卷04</span>
+        <span class="s4 danger">未提交</span>
+        <span class="s4 muted">待批改</span>
+        <span class="score">3分</span>
+        <span class="s4 success">已批改</span>
+        <span class="score">33分</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-name">《识字一》课件</span>
+        <span class="s4 todo">待学习</span>
+        <span class="s4 done">已查看</span>
+      </div>
+    </section>
+
+    <section class="scheme">
+      <div class="scheme-head">
+        <span class="scheme-id">方案 5</span>
+        <span class="scheme-title">双色拼接</span>
+      </div>
+      <p class="scheme-desc">左色块「类型/状态词」+ 右白底说明区（或只放状态）。信息块感强，适合对照阅读。</p>
+      <div class="demo-row">
+        <span class="demo-name">第2节 wmv：儿童歌曲 - 小龙人</span>
+        <span class="s5 learning"><span class="k">视频</span><span class="v">学习中</span></span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-name">数学试卷04</span>
+        <span class="s5 danger"><span class="k">试卷</span><span class="v">未提交</span></span>
+        <span class="s5 muted"><span class="k">试卷</span><span class="v">待批改</span></span>
+        <span class="score">3分</span>
+        <span class="s5 success"><span class="k">试卷</span><span class="v">已批改</span></span>
+        <span class="score">33分</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-name">《识字一》课件</span>
+        <span class="s5 todo"><span class="k">课件</span><span class="v">待学习</span></span>
+        <span class="s5 done"><span class="k">课件</span><span class="v">已查看</span></span>
+      </div>
+      <p class="demo-note">也可简化成左侧不写「视频/试卷/课件」，只保留状态色块。</p>
+    </section>
+
+    <section class="scheme">
+      <div class="scheme-head">
+        <span class="scheme-id">方案 6</span>
+        <span class="scheme-title">轻量文字强调</span>
+      </div>
+      <p class="scheme-desc">几乎无底色，名称后直接跟彩色状态词。最轻，目录会最干净。</p>
+      <div class="demo-row">
+        <span class="demo-name">第2节 wmv：儿童歌曲 - 小龙人</span>
+        <span class="s6 learning">学习中</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-name">数学试卷04</span>
+        <span class="s6 danger">未提交</span>
+        <span class="s6 muted">待批改</span>
+        <span class="score">3分</span>
+        <span class="s6 success">已批改</span>
+        <span class="score">33分</span>
+      </div>
+      <div class="demo-row">
+        <span class="demo-name">《识字一》课件</span>
+        <span class="s6 todo">待学习</span>
+        <span class="s6 done">已查看</span>
+      </div>
+    </section>
+  </body>
+</html>
