@@ -1945,9 +1945,13 @@
         },
         {
           id: "pc-jw-unit",
-          src: "./assets/ref/pc-jiaowu-schedule-unit.png",
-          caption: "原排课-单元",
+          src: "./assets/ref/pc-jiaowu-schedule-unit1.png?v=20261022",
+          caption: "原排课-单元1",
           changes: [
+            {
+              text: "去掉【设置单元学习计划】字段；",
+              kind: "remove",
+            },
             {
               text: "去掉批量导入功能，原因是原批量导入功能主要是导入课程名称。",
               kind: "remove",
