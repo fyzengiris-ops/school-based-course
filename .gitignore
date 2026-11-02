@@ -9,12 +9,14 @@ Desktop.ini
 
 # Dependencies / build
 node_modules/
-dist/
 build/
 .cache/
 
 # CloudBase / local deploy artifacts
 .cloudbase/
+
+# dist 需入库：CNB 自定义部署命令固定为 tcb hosting deploy ./dist，
+# 流水线不跑 build 时也能直接上传（改完 prototype 后请 npm run build 再提交）
 
 # Logs / env
 *.log

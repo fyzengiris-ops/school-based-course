@@ -1,62 +1,50 @@
 # 腾讯云 CloudBase 静态网站托管说明
 
-## 本次部署失败原因
+## 当前为何曾失败
 
-流水线日志里只有「部署命令」，**没有执行构建**，却直接跑：
-
-```bash
-tcb hosting deploy ./dist /school-based-course -e ocr-d9g7saru92fdcecb4
-```
-
-仓库里没有现成的 `dist/`（需要先 `npm run build` 从 `prototype` 生成），所以报错：
+流水线日志里这行说明**控制台自定义部署命令仍是旧命令**（没有先 build）：
 
 ```text
-Path does not exist: .../dist
+执行自定义部署命令: tcb hosting deploy ./dist /school-based-course -e ocr-d9g7saru92fdcecb4
 ```
 
-## 你需要改控制台这一处（必做）
+以前仓库里没有 `dist/`，所以报 `Path does not exist: .../dist`。
 
-打开 CloudBase / CNB 里该应用的**自定义部署命令**，把原来的：
+## 现已采取的兼容方案
+
+已将构建产物 **`dist/` 提交进 Git**（内容与 `prototype/` 一致，含课件 PDF/PPT）。
+
+因此：**即使控制台命令不改**，再部署也应能找到 `./dist`。
+
+之后若改了 `prototype/` 下的页面或课件，请本地执行后再推送：
 
 ```bash
-tcb hosting deploy ./dist /school-based-course -e ocr-d9g7saru92fdcecb4
+npm run build
+git add dist
+git commit -m "Refresh static dist for CloudBase."
+git push
 ```
 
-**整行替换为下面任意一种：**
+## 更推荐的控制台命令（可选）
 
-### 方案 A（推荐，一条命令搞定）
+若你愿意改 CloudBase「自定义部署命令」，可改成下面任一，就不必每次手搓提交 `dist`：
 
 ```bash
 npm run build && tcb hosting deploy ./dist /school-based-course -e ocr-d9g7saru92fdcecb4
 ```
 
-### 方案 B（更简单，不建 dist）
+或：
 
 ```bash
 tcb hosting deploy ./prototype /school-based-course -e ocr-d9g7saru92fdcecb4
 ```
 
-### 方案 C（用仓库脚本）
+## 课件访问路径
 
-```bash
-bash scripts/cnb-deploy.sh
-```
-
-> 只改「构建命令」填 `npm run build`、部署命令仍只 deploy `./dist`——若流水线**根本没有构建步骤**（你上次日志就是这样），改构建命令无效，必须改**部署命令本身**。
-
-## 课件路径（部署成功后）
-
-站点挂在 `/school-based-course` 时：
+部署到 `/school-based-course` 后：
 
 ```text
 https://<域名>/school-based-course/
 https://<域名>/school-based-course/assets/courseware/yi-ci-hanshu-ke1.pdf
 https://<域名>/school-based-course/assets/courseware/yi-ci-zhengbili.pdf
-```
-
-## 本地自测
-
-```bash
-npm run build
-# 确认 dist/index.html 与 dist/assets/courseware/*.pdf 存在
 ```
