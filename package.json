@@ -1,0 +1,8 @@
+{
+  "name": "school-based-course",
+  "private": true,
+  "description": "校本课静态原型（CloudBase / 静态托管）",
+  "scripts": {
+    "build": "node scripts/build-static.js"
+  }
+}

@@ -13,6 +13,9 @@ dist/
 build/
 .cache/
 
+# CloudBase / local deploy artifacts
+.cloudbase/
+
 # Logs / env
 *.log
 .env
