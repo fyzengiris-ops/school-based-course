@@ -4,14 +4,15 @@
 (function () {
   const state = {
     terminal: "pc", // pc | pad
-    role: "jiaowu", // teacher | jiaowu
-    pcPage: "module", // home | module
+    role: "teacher", // teacher | jiaowu
+    pcPage: "home", // home | module
     padPage: "home", // home | xiaoben | jingxuan | course-detail | course-ware | course-hw | course-hw-grade | course-hw-report | course-hw-detail | course-hw-status
-    jwNav: "manage", // manage | lib | publish | learners | learners-import | learners-add | learn-data
+    jwNav: "lib", // manage | lib | publish | learners | learners-import | learners-add | learn-data
     publishStep: 1, // 1 | 2
+    protoMode: "proto", // flow | proto
   };
 
-  const PROTO_STORE_KEY = "xb-proto-v085";
+  const PROTO_STORE_KEY = "xb-proto-v085-pad-math";
   let persistTimer = null;
   let persistReady = false;
 
@@ -77,7 +78,9 @@
         role: state.role,
         pcPage: state.pcPage,
         padPage: state.padPage,
+        protoMode: state.protoMode,
         padXbSubject,
+        padXbGrade,
         padXbCourseId,
         padXbCourseScheme,
         padXbBFocusId,
@@ -168,8 +171,10 @@
     const menu = $(".role-menu");
     const backdrop = $(".backdrop");
     if (!menu) return;
-    if (anchorEl && anchorEl.closest("[data-role-switch]")) {
-      const trigger = anchorEl.closest("[data-role-switch]");
+    const trigger =
+      anchorEl?.closest?.("[data-role-switch], .pc-role-hotspot") ||
+      (anchorEl?.classList?.contains("pc-role-hotspot") ? anchorEl : null);
+    if (trigger) {
       const rect = trigger.getBoundingClientRect();
       menu.classList.add("role-menu--fixed");
       menu.style.position = "fixed";
@@ -216,7 +221,7 @@
       $("#pc-teacher-lib")?.classList.add("is-active");
     } else {
       $("#pc-jiaowu-lib")?.classList.add("is-active");
-      setJiaowuNav(state.jwNav || "manage");
+      setJiaowuNav(state.jwNav || "lib");
       if (state.jwNav === "publish") {
         setPublishStep(state.publishStep || 1);
         applyScheduleModeUI();
@@ -236,7 +241,9 @@
     schedulePersist();
   }
 
-  let padXbSubject = "语文";
+  let padXbSubject = "数学";
+  let padXbGrade = "七年级";
+  const PAD_XB_GRADES = ["七年级", "八年级", "九年级"];
   let padXbCourseId = null;
   let padXbHwStep = 0;
   let padXbHwStatus = "unsubmitted"; // unsubmitted | pending | graded
@@ -282,6 +289,7 @@
       {
         id: "yu-1",
         title: "一年级语文基础巩固训练营",
+        grade: "七年级",
         tag: "school",
         tagLabel: "校本",
         cover: "./assets/pad/covers/cover-school-1.svg",
@@ -292,6 +300,7 @@
       {
         id: "yu-2",
         title: "校本阅读拓展 · 四季与自然",
+        grade: "七年级",
         tag: "mix",
         tagLabel: "混排",
         cover: "./assets/pad/covers/cover-mix-1.svg",
@@ -302,6 +311,7 @@
       {
         id: "yu-3",
         title: "古诗词诵读专项",
+        grade: "八年级",
         tag: "school",
         tagLabel: "校本",
         cover: "./assets/pad/covers/cover-school-3.svg",
@@ -310,33 +320,91 @@
         total: 5,
         expired: true,
       },
+      {
+        id: "yu-4",
+        title: "议论文写作进阶课",
+        grade: "九年级",
+        tag: "school",
+        tagLabel: "校本",
+        cover: "./assets/pad/covers/cover-school-1.svg",
+        validTo: "2027-10-15",
+        learned: 1,
+        total: 6,
+      },
     ],
     数学: [
       {
         id: "shu-1",
-        title: "三年级数学计算专项",
+        title: "一次函数",
+        grade: "七年级",
         tag: "school",
         tagLabel: "校本",
         cover: "./assets/pad/covers/cover-school-2.svg",
         validTo: "2027-10-15",
         learned: 1,
-        total: 6,
+        total: 9,
       },
       {
         id: "shu-2",
-        title: "图形与空间校本课",
-        tag: "mix",
-        tagLabel: "混排",
+        title: "有理数及其运算",
+        grade: "七年级",
+        tag: "school",
+        tagLabel: "校本",
         cover: "./assets/pad/covers/cover-mix-1.svg",
-        validTo: "2027-08-20",
+        validTo: "2027-10-15",
         learned: 0,
-        total: 4,
+        total: 8,
+      },
+      {
+        id: "shu-3",
+        title: "整式的加减",
+        grade: "七年级",
+        tag: "school",
+        tagLabel: "校本",
+        cover: "./assets/pad/covers/cover-school-2.svg",
+        validTo: "2027-10-15",
+        learned: 2,
+        total: 10,
+      },
+      {
+        id: "shu-4",
+        title: "一元一次方程",
+        grade: "七年级",
+        tag: "school",
+        tagLabel: "校本",
+        cover: "./assets/pad/covers/cover-school-3.svg",
+        validTo: "2027-10-15",
+        learned: 0,
+        total: 6,
+      },
+      {
+        id: "shu-5",
+        title: "几何图形初步",
+        grade: "七年级",
+        tag: "school",
+        tagLabel: "校本",
+        cover: "./assets/pad/covers/cover-school-1.svg",
+        validTo: "2027-10-15",
+        learned: 3,
+        total: 12,
+      },
+      {
+        id: "shu-6",
+        title: "相交线与平行线",
+        grade: "七年级",
+        tag: "school",
+        tagLabel: "校本",
+        cover: "./assets/pad/covers/cover-mix-1.svg",
+        validTo: "2027-10-15",
+        learned: 0,
+        total: 8,
       },
     ],
     英语: [
       {
         id: "en-1",
         title: "二年级英语口语校本营",
+        grade: "七年级",
         tag: "school",
         tagLabel: "校本",
         cover: "./assets/pad/covers/cover-school-1.svg",
@@ -347,6 +415,7 @@
       {
         id: "en-2",
         title: "Unit 词汇巩固课",
+        grade: "八年级",
         tag: "live",
         tagLabel: "直播",
         cover: "./assets/pad/covers/cover-live-1.svg",
@@ -359,12 +428,24 @@
       {
         id: "sci-1",
         title: "四年级科学探究校本课",
+        grade: "七年级",
         tag: "school",
         tagLabel: "校本",
         cover: "./assets/pad/covers/cover-school-2.svg",
         validTo: "2027-10-15",
         learned: 0,
         total: 7,
+      },
+      {
+        id: "sci-2",
+        title: "物理力学入门课",
+        grade: "九年级",
+        tag: "school",
+        tagLabel: "校本",
+        cover: "./assets/pad/covers/cover-school-3.svg",
+        validTo: "2027-10-15",
+        learned: 0,
+        total: 5,
       },
     ],
     综合: [],
@@ -461,10 +542,19 @@
     ).join("");
   }
 
+  function syncPadXbGradeSelect() {
+    const select = $("#pad-xb-grade");
+    if (!select) return;
+    if (!PAD_XB_GRADES.includes(padXbGrade)) padXbGrade = "七年级";
+    select.value = padXbGrade;
+  }
+
   function renderPadXbCourses() {
     const grid = $("#pad-xb-course-grid");
     const empty = $("#pad-xb-empty");
-    const list = PAD_XB_COURSES[padXbSubject] || [];
+    const list = (PAD_XB_COURSES[padXbSubject] || []).filter(
+      (course) => (course.grade || "七年级") === padXbGrade
+    );
     if (!grid) return;
     if (!list.length) {
       grid.innerHTML = "";
@@ -481,7 +571,7 @@
         const cover =
           course.cover || "./assets/pad/covers/cover-school-1.svg";
         const pin =
-          padXbSubject === PAD_XB_SUBJECTS[0] && index === 0
+          padXbSubject === PAD_XB_SUBJECTS[0] && padXbGrade === "七年级" && index === 0
             ? `<span class="proto-diff-pin proto-diff-pin--cover" data-diff-pin="pad-course-list" role="button" tabindex="0" title="查看此处改动说明">改</span>`
             : "";
         return `<button type="button" class="xb-pad-course" data-pad-xb-course="${escapeAttr(
@@ -506,6 +596,7 @@
   }
 
   function renderPadXbHome() {
+    syncPadXbGradeSelect();
     renderPadXbSubjects();
     renderPadXbCourses();
   }
@@ -563,7 +654,7 @@
       status: "done",
       statusLabel: "已学完",
       title: "第1节 wmv：儿童歌曲 - 小龙人",
-      meta: "总时长:1分7秒 | 老师01 | 点播",
+      meta: "总时长:1分7秒",
       papers: [
         {
           title: "2026-10-14 【验证公式图片压缩】数学试卷04",
@@ -590,7 +681,7 @@
       status: "learning",
       statusLabel: "学习中",
       title: "第2节 wmv：儿童歌曲 - 小龙人",
-      metaHtml: "上次已看至:<em>0分3秒</em>/1分7秒 | 累计时长:0分3秒 | 老师01 | 点播",
+      metaHtml: "上次已看至:<em>0分3秒</em>/1分7秒 | 累计时长:0分3秒",
       papers: [
         {
           title: "2026-10-14 【验证公式图片压缩】数学试卷04",
@@ -614,7 +705,7 @@
       status: "todo",
       statusLabel: "待学习",
       title: "第3节 预习报告第3题",
-      meta: "总时长:4秒 | 老师01 | 点播",
+      meta: "总时长:4秒",
       papers: [
         {
           title: "验证错题挑题重组题干完整性",
@@ -650,26 +741,92 @@
    */
   const PAD_XB_B_UNITS = [
     {
-      title: "第1章 默认单元",
+      title: "第1章 一次函数基础知识学习",
+      items: [
+        {
+          id: "b-w1",
+          type: "ware",
+          standalone: true,
+          status: "done",
+          statusLabel: "已查看",
+          title: "第1节 一次函数与正比例函数——基础知识梳理",
+          actionLabel: "去学习",
+          previewUrl: "./assets/courseware/yi-ci-zhengbili.pdf",
+          fileUrl: "./assets/courseware/yi-ci-zhengbili.pptx",
+        },
+        {
+          id: "b-w2",
+          type: "ware",
+          standalone: true,
+          status: "todo",
+          statusLabel: "待学习",
+          title: "第2节 一次函数的图象与绘制方法",
+          actionLabel: "去学习",
+        },
+      ],
+    },
+    {
+      title: "第2章 一次函数专项巩固练习",
+      items: [
+        {
+          id: "b-p1",
+          type: "paper",
+          standalone: true,
+          statusLabel: "待学习",
+          title: "第1节 一次函数基础概念与性质——达标测试",
+          actionLabel: "答题",
+          actionKind: "answer",
+          card: {
+            status: "未提交",
+            statusTone: "danger",
+            title: "一次函数基础概念与性质——达标测试",
+            time: "提交时间: --",
+            percent: "--%",
+            action: "答题",
+            actionKind: "answer",
+          },
+        },
+        {
+          id: "b-p2",
+          type: "paper",
+          standalone: true,
+          statusLabel: "待学习",
+          title: "第2节 一次函数图象与系数关系——专项练习",
+          actionLabel: "答题",
+          actionKind: "answer",
+          card: {
+            status: "未提交",
+            statusTone: "danger",
+            title: "一次函数图象与系数关系——专项练习",
+            time: "提交时间: --",
+            percent: "--%",
+            action: "答题",
+            actionKind: "answer",
+          },
+        },
+      ],
+    },
+    {
+      title: "第3章 一次函数综合应用与提升",
       items: [
         {
           id: "b-v1",
           type: "video",
           status: "done",
           statusLabel: "已学完",
-          title: "第1节 wmv：儿童歌曲 - 小龙人",
-          meta: "总时长:1分7秒 | 老师01 | 点播",
+          title: "第1节 一次函数解析式的典型例题精讲",
+          meta: "总时长:22分50秒",
           attach: [
             {
-              id: "b-p1",
+              id: "b-p3",
               type: "paper",
-              title: "2026-10-14 【验证公式图片压缩】数学试卷04",
+              title: "一次函数解析式综合应用——能力提升测试",
               actionLabel: "查看报告",
               actionKind: "report",
               card: {
                 status: "已批改",
                 statusTone: "success",
-                title: "2026-10-14 【验证公式图片压缩】...",
+                title: "一次函数解析式综合应用——能力提升测试",
                 time: "提交时间: 2026年10月16日 10:59",
                 mark: "4分",
                 action: "查看报告",
@@ -677,9 +834,9 @@
               },
             },
             {
-              id: "b-w1",
+              id: "b-w3",
               type: "ware",
-              title: "《第一组 感受自然》试卷(学生用卷)(2)",
+              title: "一次函数解析式的求解方法与解题技巧",
               actionLabel: "去学习",
               status: "done",
               statusLabel: "已查看",
@@ -691,90 +848,33 @@
           type: "video",
           status: "learning",
           statusLabel: "学习中",
-          title: "第2节 wmv：儿童歌曲 - 小龙人",
-          metaHtml: "上次已看至:<em>0分3秒</em>/1分7秒 | 累计时长:0分3秒",
+          title: "第2节 一次函数在实际生活中的应用",
+          metaHtml: "上次已看至:<em>3分12秒</em>/15分38秒 | 累计时长:3分12秒",
           attach: [
             {
-              id: "b-p2",
+              id: "b-p4",
               type: "paper",
-              title: "2026-10-14 【验证公式图片压缩】数学试卷04",
+              title: "一次函数实际应用——专项巩固练习",
               actionLabel: "去批改",
               actionKind: "grade",
               card: {
                 status: "待批改",
                 statusTone: "muted",
-                title: "2026-10-14 【验证公式图片压缩】...",
+                title: "一次函数实际应用——专项巩固练习",
                 time: "提交时间: 2026年10月16日 11:01",
-                mark: "3分",
                 action: "去批改",
                 actionKind: "grade",
               },
             },
+            {
+              id: "b-w4",
+              type: "ware",
+              title: "一次函数实际应用题——建模方法与例题解析",
+              actionLabel: "去学习",
+              status: "todo",
+              statusLabel: "待学习",
+            },
           ],
-        },
-      ],
-    },
-    {
-      title: "第2章 仅试卷示例",
-      items: [
-        {
-          id: "b-p3",
-          type: "paper",
-          standalone: true,
-          statusLabel: "待学习",
-          title: "第1节 验证错题挑题重组题干完整性",
-          actionLabel: "去提交",
-          actionKind: "answer",
-          card: {
-            status: "未提交",
-            statusTone: "danger",
-            title: "验证错题挑题重组题干完整性",
-            time: "提交时间: --",
-            percent: "--%",
-            action: "答题",
-            actionKind: "answer",
-          },
-        },
-        {
-          id: "b-p4",
-          type: "paper",
-          standalone: true,
-          statusLabel: "已完成",
-          title: "第2节 一年级语文基础巩固测练卷",
-          actionLabel: "查看报告",
-          actionKind: "report",
-          card: {
-            status: "已批改",
-            statusTone: "success",
-            title: "一年级语文基础巩固测练卷",
-            time: "提交时间: 2026年10月18日 09:20",
-            mark: "33分",
-            action: "查看报告",
-            actionKind: "report",
-          },
-        },
-      ],
-    },
-    {
-      title: "第3章 仅课件示例",
-      items: [
-        {
-          id: "b-w2",
-          type: "ware",
-          standalone: true,
-          status: "todo",
-          statusLabel: "待学习",
-          title: "第1节 《识字一》课件（学生用）",
-          actionLabel: "去学习",
-        },
-        {
-          id: "b-w3",
-          type: "ware",
-          standalone: true,
-          status: "todo",
-          statusLabel: "待学习",
-          title: "第2节 《感受自然》拓展阅读课件",
-          actionLabel: "去学习",
         },
       ],
     },
@@ -907,12 +1007,14 @@
       : "";
     const nameMeta = isPadXbSchemeC() ? renderPadXbCPaperMeta(item) : "";
     const right = isPadXbSchemeC() ? "" : `${mark}${renderPadXbBPaperActions(item)}`;
+    const isStandalone = variant === "standalone";
     return `<div class="xb-pad-course-b__item xb-pad-course-b__item--${variant} xb-pad-course-b__paper${current}" data-pad-b-item="${escapeAttr(
       item.id
     )}"${cAttrs}>
-      ${renderPadXbBTypeIcon("paper")}
+      ${renderPadXbBTypeIcon("paper", { prominent: isStandalone })}
       <div class="xb-pad-course-b__item-main">
         <div class="xb-pad-course-b__item-row">
+          ${isStandalone ? renderPadXbBTypeTag("paper") : ""}
           <span class="xb-pad-course-b__item-name">${escapeAttr(item.title || data.title || "")}</span>
           ${nameMeta}
         </div>
@@ -939,9 +1041,26 @@
     return `<span class="${badgeClass}">${escapeAttr(statusLabel)}</span>`;
   }
 
-  function renderPadXbBTypeIcon(type) {
+  function renderPadXbBTypeTag(type) {
     if (type === "paper") {
-      return `<span class="xb-pad-course-b__ico xb-pad-course-b__ico--paper" aria-hidden="true" title="试卷">
+      return `<span class="xb-pad-course-b__type-tag xb-pad-course-b__type-tag--paper">试卷</span>`;
+    }
+    if (type === "ware") {
+      return `<span class="xb-pad-course-b__type-tag xb-pad-course-b__type-tag--ware">课件</span>`;
+    }
+    if (type === "video") {
+      return `<span class="xb-pad-course-b__type-tag xb-pad-course-b__type-tag--video">视频</span>`;
+    }
+    return "";
+  }
+
+  function renderPadXbBTypeIcon(type, options = {}) {
+    const prominent = !!options.prominent;
+    const wrapClass = `xb-pad-course-b__ico xb-pad-course-b__ico--${type}${
+      prominent ? " is-prominent" : ""
+    }`;
+    if (type === "paper") {
+      return `<span class="${wrapClass}" aria-hidden="true" title="试卷">
         <svg viewBox="0 0 20 20" width="18" height="18" fill="none">
           <rect x="4" y="2.5" width="12" height="15" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
           <path d="M7 7h6M7 10.5h6M7 14h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
@@ -949,7 +1068,7 @@
       </span>`;
     }
     if (type === "ware") {
-      return `<span class="xb-pad-course-b__ico xb-pad-course-b__ico--ware" aria-hidden="true" title="课件">
+      return `<span class="${wrapClass}" aria-hidden="true" title="课件">
         <svg viewBox="0 0 20 20" width="18" height="18" fill="none">
           <path d="M5 2.5h7.2L15.5 5.8V17a1.2 1.2 0 0 1-1.2 1.2H5A1.2 1.2 0 0 1 3.8 17V3.7A1.2 1.2 0 0 1 5 2.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
           <path d="M12.1 2.6V5.5h2.9" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
@@ -957,7 +1076,7 @@
         </svg>
       </span>`;
     }
-    return `<span class="xb-pad-course-b__ico xb-pad-course-b__ico--video" aria-hidden="true" title="视频">
+    return `<span class="${wrapClass}" aria-hidden="true" title="视频">
       <svg viewBox="0 0 20 20" width="18" height="18" fill="none">
         <rect x="2.5" y="4.5" width="15" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/>
         <path d="M8.5 8v4.5l4-2.25L8.5 8z" fill="currentColor"/>
@@ -1023,9 +1142,10 @@
     return `<button type="button" class="xb-pad-course-b__item xb-pad-course-b__item--standalone" data-pad-b-open-ware="${escapeAttr(
       item.id
     )}">
-      ${renderPadXbBTypeIcon("ware")}
+      ${renderPadXbBTypeIcon("ware", { prominent: true })}
       <div class="xb-pad-course-b__item-main">
         <div class="xb-pad-course-b__item-row">
+          ${renderPadXbBTypeTag("ware")}
           <span class="xb-pad-course-b__item-name">${escapeAttr(item.title || "")}</span>
           ${nameMeta}
         </div>
@@ -1098,7 +1218,7 @@
     const title = course?.title || "自适应学习2";
     const grade = course?.grade || "一年级";
     const learnMode = course?.learnMode || "按课时顺序解锁（按视频进度解锁）";
-    const lastLesson = course?.lastLesson || "第1节wmv: 儿童歌曲 - 小龙人";
+    const lastLesson = course?.lastLesson || "第2节 一次函数在实际生活中的应用";
     const titleEl = padXbSchemeEl("title");
     const metaEl = padXbSchemeEl("meta");
     const lastEl = padXbSchemeEl("last");
@@ -1260,7 +1380,7 @@
     const title = course?.title || "自适应学习2";
     const grade = course?.grade || "一年级";
     const learnMode = course?.learnMode || "按课时顺序解锁（按视频进度解锁）";
-    const lastLesson = course?.lastLesson || "第1节wmv: 儿童歌曲 - 小龙人";
+    const lastLesson = course?.lastLesson || "第2节 一次函数在实际生活中的应用";
     const titleEl = $("#pad-xb-course-title");
     const metaEl = $("#pad-xb-course-meta");
     const lastEl = $("#pad-xb-course-last");
@@ -1316,8 +1436,43 @@
     schedulePersist();
   }
 
+  function resolvePadXbWarePreviewUrl(wareId) {
+    const hit = findPadXbBItem(wareId || padXbBFocusId);
+    if (hit?.previewUrl) return hit.previewUrl;
+    if (hit?.id === "b-w1") return "./assets/courseware/yi-ci-zhengbili.pdf";
+    return "";
+  }
+
+  function syncPadXbWarePage(wareId) {
+    const page = $("#pad-xb-ware");
+    if (!page) return;
+    const previewUrl = resolvePadXbWarePreviewUrl(wareId);
+    const img = page.querySelector(".xb-pad-ware-page__img");
+    const frame = page.querySelector(".xb-pad-ware-page__frame");
+    const hit = findPadXbBItem(wareId || padXbBFocusId);
+    const title = hit?.title || "课件预览";
+    if (previewUrl && frame) {
+      frame.hidden = false;
+      frame.src = previewUrl;
+      frame.title = title;
+      if (img) img.hidden = true;
+      page.classList.add("is-pdf");
+      return;
+    }
+    if (frame) {
+      frame.hidden = true;
+      frame.removeAttribute("src");
+    }
+    if (img) {
+      img.hidden = false;
+      img.alt = title;
+    }
+    page.classList.remove("is-pdf");
+  }
+
   function openPadXbCourseware() {
     if (!preparePadXbInnerPage("course-ware", false)) return;
+    syncPadXbWarePage(padXbBFocusId);
     $("#pad-xb-ware")?.removeAttribute("hidden");
     schedulePersist();
   }
@@ -1547,7 +1702,11 @@
       return;
     }
     if (hit === "finish") {
-      returnPadXbHwTab("graded");
+      padXbHwStatus = "graded";
+      renderPadXbHwCard();
+      renderPadXbCourseCatalog();
+      if (isPadXbCatalogScheme()) renderPadXbBCatalog();
+      openPadXbHwReport();
     }
   }
 
@@ -1831,7 +1990,7 @@
               kind: "rename",
             },
             {
-              text: "审核不通过的数据，下拉选项里需要有【编辑】按钮；点击后弹出的弹窗与首次添加该条课程数据时点击【编辑】的弹窗一致，支持编辑视频名称、学段学科、单课分组。",
+              text: "审核不通过的数据，下拉选项里需要有【编辑】按钮；点击后弹出的弹窗与首次添加该条课程数据时点击【编辑】的弹窗一致，支持编辑视频名称、学段学科、资源分组。",
               kind: "add",
             },
           ],
@@ -1858,7 +2017,7 @@
                 { text: "右侧面板左上角的【点播库】文案去掉；", kind: "remove" },
                 { text: "审核通过的数据，原来的【打包】操作按钮去掉；", kind: "remove" },
                 {
-                  text: "审核不通过的数据，下拉选项里需要有【编辑】按钮；点击后弹出的弹窗与首次添加该条课程数据时点击【编辑】的弹窗一致，支持编辑视频名称、学段学科、单课分组。",
+                  text: "审核不通过的数据，下拉选项里需要有【编辑】按钮；点击后弹出的弹窗与首次添加该条课程数据时点击【编辑】的弹窗一致，支持编辑视频名称、学段学科、资源分组。",
                   kind: "add",
                 },
                 "其余能力和教务身份原来在点播库tab栏的能力全部保持一致。",
@@ -1981,7 +2140,7 @@
               text: "去掉【开播时间】及相关提示「在该时间前学员无法观看视频」；",
               kind: "remove",
             },
-            "其余保留：标题【添加课程】、【选择课程视频】双栏选择区、【取消】【确定】。",
+            "其余保留：标题【添加课时】、【选择课程视频】双栏选择区、【取消】【确定】。",
           ],
         },
         {
@@ -2639,9 +2798,11 @@
         "当没有该字段，且校方选择的是「按设备使用」时：用户发布的课包，只要学生用自己的账号登录本校已支持的设备，即可查看对应的校本课资源。",
         "当没有该字段，且校方选择的是「按人员使用」时：用户发布的课包，仅名单内学生账号登录平板后可查看对应校本课资源；其他学生账号登录平板时，不会看到校本课资源。",
         "当存在该字段时，按用户在页面上选择的维护方式，分别按上述两种情况实现（典型场景：学校既有自习室，也有学生个人购买校本课）。",
-        "<strong>按人员名单维护：</strong>沿用现有人员名单能力，可筛选年级/班级与学生，支持批量导入、添加学生、批量移除、导出等。",
-        "<strong>按设备维护：</strong>不展示名单表格与操作区，仅展示说明文案：「学生登录本校已开通【校本课】的设备后，即可学习对应年级的资源」。",
-        "<strong>切换校验：</strong>当前名单无数据时可直接切换；若已有维护数据，弹出确认「确认更换名单维护方式吗？更换后，已维护的数据将清空，需重新添加才能恢复」；确定后清空当前数据再切换，取消则保持原方式。",
+        "<strong>交互：</strong>右上角为复选框「名单学生可学习」「开通设备可学习」，可同时勾选。勾选「名单学生可学习」后，可再选「全部名单 / 自定义名单」。",
+        "<strong>全部名单（默认）：</strong>开通了校本课服务的全部学生可学习；进入页面即展示全部学生数据，不提供手工添加 / 导入 / 移除。",
+        "<strong>自定义名单：</strong>仅下发给开通服务的部分学生。从全部名单切到自定义时，先弹窗确认「切换后需手动维护学生名单，当前学生数据将被清空」；确定后清空名单，再由用户手工维护。",
+        "<strong>开通设备可学习：</strong>仅勾选该项时，不展示名单表格与操作区，仅展示说明文案：「学生登录本校已开通【校本课】的设备后，即可学习资源」。设备说明也可通过选项后的问号悬浮查看。",
+        "<strong>切换校验：</strong>取消勾选某方式时，若该方式下已有维护数据，弹出确认后清空对应数据；至少保留一种方式。",
       ],
     },
     "add-3": {
@@ -2881,9 +3042,433 @@
     });
   }
 
+  function setProtoMarkersHidden(hidden) {
+    const on = Boolean(hidden);
+    document.body.classList.toggle("is-proto-markers-off", on);
+    const btn = $("#proto-markers-toggle");
+    if (btn) {
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.title = on ? "显示改动标记" : "隐藏改动标记";
+      btn.setAttribute("aria-label", btn.title);
+      const iconOn = btn.querySelector(".proto-markers-toggle__icon--on");
+      const iconOff = btn.querySelector(".proto-markers-toggle__icon--off");
+      if (iconOn) iconOn.hidden = on;
+      if (iconOff) iconOff.hidden = !on;
+    }
+    if (on) {
+      closeDiffDrawer();
+      const tip = $("#proto-diff-pin-tip");
+      if (tip) tip.hidden = true;
+      // 隐藏备注时固定展示方案 B（学生 PAD 正式观感）
+      if (padXbCourseScheme !== "b") {
+        setPadXbCourseScheme("b", { force: true });
+      }
+    }
+  }
+
+  let flowMermaidReady = false;
+  const FLOW_MERMAID_SOURCE = String.raw`flowchart TD
+  subgraph T["老师"]
+    direction TB
+    T1[上传视频 / 试卷 / 课件]
+  end
+
+  subgraph J1g["教务"]
+    direction TB
+    J1[审核资源]
+    J2[发布课程 · 排课]
+    J3[维护学习名单]
+  end
+
+  subgraph S["学生"]
+    direction TB
+    S1[进入校本课]
+    S2[看视频 / 课件 / 做作业]
+  end
+
+  subgraph J2g["教务"]
+    direction TB
+    J4[查看学习数据]
+  end
+
+  T1 --> J1
+  J1 --> J2
+  J2 --> J3
+  J3 --> S1
+  S1 --> S2
+  S2 --> J4`;
+
+  function styleFlowClusterHeaders(host) {
+    const HEADER_H = 42;
+    const PAD_X = 14;
+    host.querySelectorAll(".cluster").forEach((cluster) => {
+      if (cluster.dataset.headerStyled === "1") return;
+      const rect = cluster.querySelector(":scope > rect:not(.cluster-header-bg)");
+      const label = cluster.querySelector(":scope > .cluster-label");
+      if (!rect || !label) return;
+
+      const x = Number(rect.getAttribute("x")) || 0;
+      const y = Number(rect.getAttribute("y")) || 0;
+      const w = Number(rect.getAttribute("width")) || 0;
+
+      rect.setAttribute("fill", "#25282e");
+      rect.setAttribute("stroke", "#a0a7b0");
+      rect.setAttribute("stroke-width", "1.25");
+      rect.setAttribute("rx", "0");
+      rect.setAttribute("ry", "0");
+
+      const headerBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      headerBg.setAttribute("class", "cluster-header-bg");
+      headerBg.setAttribute("x", String(x));
+      headerBg.setAttribute("y", String(y));
+      headerBg.setAttribute("width", String(w));
+      headerBg.setAttribute("height", String(HEADER_H));
+      headerBg.setAttribute("fill", "#2f333a");
+      headerBg.setAttribute("stroke", "none");
+      cluster.insertBefore(headerBg, label);
+
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("class", "cluster-header-line");
+      line.setAttribute("x1", String(x));
+      line.setAttribute("y1", String(y + HEADER_H));
+      line.setAttribute("x2", String(x + w));
+      line.setAttribute("y2", String(y + HEADER_H));
+      line.setAttribute("stroke", "#a0a7b0");
+      line.setAttribute("stroke-width", "1.25");
+      cluster.insertBefore(line, label);
+
+      const fo = label.querySelector("foreignObject");
+      const foH = fo ? Number(fo.getAttribute("height")) || 30 : 30;
+      const labelY = y + Math.max(0, (HEADER_H - foH) / 2);
+      label.setAttribute("transform", `translate(${x + PAD_X}, ${labelY})`);
+
+      label.querySelectorAll("div, span, p").forEach((el) => {
+        el.style.color = "#f3f5f7";
+        el.style.fontWeight = "600";
+        el.style.fontSize = "24px";
+        el.style.lineHeight = "1.2";
+        el.style.textAlign = "left";
+        el.style.margin = "0";
+      });
+
+      cluster.dataset.headerStyled = "1";
+    });
+  }
+
+  // 自上而下：老师 / 教务建课 / 学生 / 教务学情
+  const FLOW_CLUSTER_SPECS = [
+    { pad: 55, gap: 56, contentH: 174 },
+    { pad: 55, gap: 56, contentH: 415 },
+    { pad: 55, gap: 56, contentH: 294 },
+    { pad: 55, gap: 56, contentH: 174 },
+  ];
+  const FLOW_HEADER_H = 42;
+  const FLOW_CLUSTER_GAP = 64;
+  const FLOW_SIDE_PAD = 18;
+
+  function getFlowNodeBox(node) {
+    const shape = node.querySelector("rect");
+    if (!shape) return null;
+    const t = node.getAttribute("transform") || "";
+    const m = /translate\(([-\d.]+)(?:[,\s]+)([-\d.]+)/.exec(t);
+    const tx = m ? Number(m[1]) : 0;
+    const ty = m ? Number(m[2]) : 0;
+    const x = (Number(shape.getAttribute("x")) || 0) + tx;
+    const y = (Number(shape.getAttribute("y")) || 0) + ty;
+    const w = Number(shape.getAttribute("width")) || 0;
+    const h = Number(shape.getAttribute("height")) || 0;
+    return { node, shape, tx, ty, x, y, w, h, bottom: y + h, cx: x + w / 2, cy: y + h / 2 };
+  }
+
+  function setFlowNodeTy(node, ty) {
+    const t = node.getAttribute("transform") || "";
+    const m = /translate\(([-\d.]+)(?:[,\s]+)([-\d.]+)/.exec(t);
+    const tx = m ? m[1] : "0";
+    node.setAttribute("transform", `translate(${tx}, ${ty})`);
+  }
+
+  function reconnectFlowEdges(host) {
+    const byShort = new Map();
+    [...host.querySelectorAll(".node")]
+      .map(getFlowNodeBox)
+      .filter(Boolean)
+      .forEach((b) => {
+        const short = (b.node.id || "").replace(/^.*?flowchart-/, "").replace(/-\d+$/, "");
+        if (short) byShort.set(short, b);
+      });
+
+    const edgeGroup = host.querySelector(".edgePaths");
+    const nodeGroup = host.querySelector(".nodes");
+    // 连线画在节点之上，避免被挡住
+    if (edgeGroup && nodeGroup && nodeGroup.parentNode) {
+      nodeGroup.parentNode.appendChild(edgeGroup);
+    }
+
+    host.querySelectorAll(".edgePaths > path, path.flowchart-link").forEach((path) => {
+      const id = path.id || "";
+      const m = /L_([A-Za-z0-9]+)_([A-Za-z0-9]+)(?:_|$)/.exec(id);
+      if (!m) return;
+      const from = byShort.get(m[1]);
+      const to = byShort.get(m[2]);
+      if (!from || !to) return;
+
+      const x1 = +from.cx.toFixed(2);
+      const y1 = +(from.bottom + 0.5).toFixed(2);
+      const x2 = +to.cx.toFixed(2);
+      const y2 = +(to.y - 0.5).toFixed(2);
+      if (y2 <= y1) return;
+
+      // 纵向流程：从上节点底边中点连到下节点顶边中点
+      if (Math.abs(x1 - x2) < 0.5) {
+        path.setAttribute("d", `M${x1},${y1}L${x2},${y2}`);
+      } else {
+        const midY = +((y1 + y2) / 2).toFixed(2);
+        path.setAttribute("d", `M${x1},${y1}L${x1},${midY}L${x2},${midY}L${x2},${y2}`);
+      }
+      path.setAttribute("fill", "none");
+      path.style.stroke = "#b0b7c0";
+      path.style.strokeWidth = "1.75px";
+      path.style.fill = "none";
+    });
+  }
+
+  function applyFlowClusterMetrics(host) {
+    const svg = host.querySelector("svg");
+    if (!svg || svg.dataset.metricsApplied === "1") return;
+
+    const clusterEls = [...host.querySelectorAll(".cluster")]
+      .map((cluster) => {
+        const rect = cluster.querySelector(":scope > rect:not(.cluster-header-bg)");
+        if (!rect) return null;
+        return {
+          cluster,
+          rect,
+          x: Number(rect.getAttribute("x")) || 0,
+          y: Number(rect.getAttribute("y")) || 0,
+          w: Number(rect.getAttribute("width")) || 0,
+          h: Number(rect.getAttribute("height")) || 0,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.y - b.y);
+
+    const allNodes = [...host.querySelectorAll(".node")]
+      .map(getFlowNodeBox)
+      .filter(Boolean);
+
+    // 先按原始容器命中节点
+    clusterEls.forEach((c, idx) => {
+      c.spec = FLOW_CLUSTER_SPECS[idx] || FLOW_CLUSTER_SPECS[0];
+      c.nodes = allNodes
+        .filter(
+          (n) =>
+            n.cx >= c.x - 2 &&
+            n.cx <= c.x + c.w + 2 &&
+            n.cy >= c.y - 2 &&
+            n.cy <= c.y + c.h + 2
+        )
+        .sort((a, b) => a.y - b.y);
+    });
+
+    let cursorY = clusterEls.length ? clusterEls[0].y : 0;
+    const nodeDy = new Map();
+
+    clusterEls.forEach((c) => {
+      const spec = c.spec;
+      const frameY = cursorY;
+      const contentTop = frameY + FLOW_HEADER_H;
+      let y = contentTop + spec.pad;
+
+      c.nodes.forEach((n, i) => {
+        const targetTy = n.ty + (y - n.y);
+        const dy = targetTy - n.ty;
+        setFlowNodeTy(n.node, targetTy);
+        nodeDy.set(n.node.id, (nodeDy.get(n.node.id) || 0) + dy);
+        n.y = y;
+        n.bottom = y + n.h;
+        n.ty = targetTy;
+        y = n.bottom + (i < c.nodes.length - 1 ? spec.gap : 0);
+      });
+
+      const frameH = FLOW_HEADER_H + spec.contentH;
+      const frameX = c.x - FLOW_SIDE_PAD;
+      const frameW = c.w + FLOW_SIDE_PAD * 2;
+      c.rect.setAttribute("x", String(frameX));
+      c.rect.setAttribute("y", String(frameY));
+      c.rect.setAttribute("width", String(frameW));
+      c.rect.setAttribute("height", String(frameH));
+
+      const headerBg = c.cluster.querySelector(".cluster-header-bg");
+      const headerLine = c.cluster.querySelector(".cluster-header-line");
+      const label = c.cluster.querySelector(":scope > .cluster-label");
+      if (headerBg) {
+        headerBg.setAttribute("x", String(frameX));
+        headerBg.setAttribute("y", String(frameY));
+        headerBg.setAttribute("width", String(frameW));
+        headerBg.setAttribute("height", String(FLOW_HEADER_H));
+      }
+      if (headerLine) {
+        headerLine.setAttribute("x1", String(frameX));
+        headerLine.setAttribute("x2", String(frameX + frameW));
+        headerLine.setAttribute("y1", String(frameY + FLOW_HEADER_H));
+        headerLine.setAttribute("y2", String(frameY + FLOW_HEADER_H));
+      }
+      if (label) {
+        const fo = label.querySelector("foreignObject");
+        const foH = fo ? Number(fo.getAttribute("height")) || 30 : 30;
+        label.setAttribute(
+          "transform",
+          `translate(${frameX + 14}, ${frameY + Math.max(0, (FLOW_HEADER_H - foH) / 2)})`
+        );
+      }
+
+      c.frameY = frameY;
+      c.frameH = frameH;
+      c.frameBottom = frameY + frameH;
+      cursorY = c.frameBottom + FLOW_CLUSTER_GAP;
+    });
+
+    // 按最新节点位置重拉所有连线（容器内 + 跨容器）
+    reconnectFlowEdges(host);
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    clusterEls.forEach((c) => {
+      const x = Number(c.rect.getAttribute("x")) || 0;
+      const y = Number(c.rect.getAttribute("y")) || 0;
+      const w = Number(c.rect.getAttribute("width")) || 0;
+      const h = Number(c.rect.getAttribute("height")) || 0;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x + w);
+      maxY = Math.max(maxY, y + h);
+    });
+    const vb = (svg.getAttribute("viewBox") || "").trim().split(/[\s,]+/).map(Number);
+    if (vb.length === 4 && vb.every((n) => Number.isFinite(n))) {
+      const pad = 24;
+      const x0 = Math.min(vb[0], minX - pad);
+      const y0 = Math.min(vb[1], minY - pad);
+      const x1 = Math.max(vb[0] + vb[2], maxX + pad);
+      const y1 = Math.max(vb[1] + vb[3], maxY + pad);
+      svg.setAttribute("viewBox", `${x0} ${y0} ${x1 - x0} ${y1 - y0}`);
+    }
+    svg.dataset.metricsApplied = "1";
+  }
+
+  function finalizeFlowSvg(host) {
+    styleFlowClusterHeaders(host);
+    applyFlowClusterMetrics(host);
+    const svg = host.querySelector("svg");
+    if (!svg) return;
+    const vb = (svg.getAttribute("viewBox") || "").trim().split(/[\s,]+/).map(Number);
+    if (vb.length === 4 && vb.every((n) => Number.isFinite(n))) {
+      const w = Math.ceil(vb[2]);
+      const h = Math.ceil(vb[3]);
+      svg.setAttribute("width", String(w));
+      svg.setAttribute("height", String(h));
+      svg.style.width = `${w}px`;
+      svg.style.height = `${h}px`;
+      svg.style.maxWidth = "none";
+    }
+  }
+
+  function renderFlowMermaid() {
+    const host = $("#proto-flow-diagram");
+    if (!host || typeof mermaid === "undefined") return;
+    if (flowMermaidReady && host.querySelector("svg")) {
+      styleFlowClusterHeaders(host);
+      return;
+    }
+    try {
+      host.removeAttribute("data-processed");
+      host.textContent = FLOW_MERMAID_SOURCE;
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "dark",
+        securityLevel: "loose",
+        flowchart: {
+          htmlLabels: true,
+          curve: "basis",
+          padding: 16,
+          nodeSpacing: 44,
+          rankSpacing: 56,
+          wrappingWidth: 360,
+          subGraphTitleMargin: {
+            top: 10,
+            bottom: 10,
+          },
+        },
+        themeVariables: {
+          darkMode: true,
+          background: "#18191c",
+          primaryColor: "#3a3d44",
+          primaryTextColor: "#f3f5f7",
+          primaryBorderColor: "#8b919a",
+          lineColor: "#9aa3ad",
+          secondaryColor: "#2c2f36",
+          tertiaryColor: "#23252a",
+          clusterBkg: "#25282e",
+          clusterBorder: "#a0a7b0",
+          titleColor: "#f3f5f7",
+          fontFamily: '"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif',
+          fontSize: "24px",
+        },
+      });
+      mermaid.run({ nodes: [host] }).then(() => {
+        finalizeFlowSvg(host);
+        flowMermaidReady = true;
+      }).catch(() => {
+        /* ignore render errors in demo shell */
+      });
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function setProtoMode(mode) {
+    const next = mode === "proto" ? "proto" : "flow";
+    state.protoMode = next;
+    document.body.dataset.mode = next;
+    const flow = $("#proto-flow");
+    if (flow) flow.hidden = next !== "flow";
+    if (next === "flow") {
+      closeRoleMenu();
+      closeDiffDrawer();
+      closeLightbox();
+      window.scrollTo(0, 0);
+      renderFlowMermaid();
+      flow?.focus?.();
+    }
+    schedulePersist();
+  }
+
+  function enterProductPrototype() {
+    setProtoMode("proto");
+    // 进入方案页时默认隐藏「改 / 新增」改动标记
+    setProtoMarkersHidden(true);
+    // 定位到老师端「应用入口」首页（非校本课方案内页）
+    setTerminal("pc");
+    state.pcPage = "home";
+    setRole("teacher");
+    showPcHome();
+  }
+
+  function showBusinessFlow() {
+    setProtoMode("flow");
+  }
+
   function bind() {
+    $("#proto-flow-enter")?.addEventListener("click", enterProductPrototype);
+    $("#proto-flow-back")?.addEventListener("click", showBusinessFlow);
+
     $$(".seg__btn[data-terminal]").forEach((btn) => {
       btn.addEventListener("click", () => setTerminal(btn.dataset.terminal));
+    });
+
+    $("#proto-markers-toggle")?.addEventListener("click", () => {
+      setProtoMarkersHidden(!document.body.classList.contains("is-proto-markers-off"));
     });
 
     $$(".pc-role-hotspot").forEach((hot) => {
@@ -2891,7 +3476,7 @@
         e.stopPropagation();
         const menu = $(".role-menu");
         if (menu?.classList.contains("is-open")) closeRoleMenu();
-        else openRoleMenu();
+        else openRoleMenu(hot);
       });
     });
 
@@ -2911,7 +3496,10 @@
     $(".backdrop")?.addEventListener("click", closeRoleMenu);
 
     $$("[data-action='open-pc-module']").forEach((el) => {
-      el.addEventListener("click", openPcModule);
+      el.addEventListener("click", () => {
+        if (state.role === "jiaowu") state.jwNav = "lib";
+        openPcModule();
+      });
     });
 
     $("#pc-back")?.addEventListener("click", showPcHome);
@@ -2933,6 +3521,13 @@
       const btn = e.target.closest("[data-pad-xb-subject]");
       if (!btn) return;
       padXbSubject = btn.dataset.padXbSubject || "语文";
+      renderPadXbHome();
+      schedulePersist();
+    });
+
+    $("#pad-xb-grade")?.addEventListener("change", (e) => {
+      const next = e.target.value || "七年级";
+      padXbGrade = PAD_XB_GRADES.includes(next) ? next : "七年级";
       renderPadXbHome();
       schedulePersist();
     });
@@ -3178,7 +3773,9 @@
   const PREVIEW = {
     video: "https://www.letaoedu.com/page/lt/weike/preview?cwId=42290&_t=1791535954387",
     paper: "https://www.letaoedu.com/proxy/paper/auth/common/paper/view.htm?paperId=4978646",
-    courseware: "https://www.letaoedu.com/proxy/beike/auth/common/courseware/preview.htm?coursewareId=9220909",
+    // 原型演示：默认课件预览走本地真实资源（PDF 便于浏览器内直接查看）
+    courseware: "./assets/courseware/yi-ci-hanshu-ke1.pdf",
+    coursewareFile: "./assets/courseware/yi-ci-hanshu-ke1.ppt",
   };
 
   function makePageUrl(videoName) {
@@ -3199,17 +3796,41 @@
     a.remove();
   }
 
+  function resolveCwCatalogItem(cw) {
+    if (cw == null) return null;
+    if (typeof cw === "number") return CW_ITEMS[cw] || null;
+    if (typeof cw.cwIndex === "number" && CW_ITEMS[cw.cwIndex]) return CW_ITEMS[cw.cwIndex];
+    if (cw.name) {
+      const idx = CW_ITEMS.findIndex((item) => item.name === cw.name);
+      if (idx >= 0) return CW_ITEMS[idx];
+    }
+    return null;
+  }
+
+  function getCwPreviewUrl(cw) {
+    const item = resolveCwCatalogItem(cw);
+    return item?.previewUrl || PREVIEW.courseware;
+  }
+
+  function getCwDownloadUrl(cw) {
+    const item = resolveCwCatalogItem(cw);
+    return item?.fileUrl || PREVIEW.coursewareFile || PREVIEW.courseware;
+  }
+
   let courseListSeq = 1;
   const courseList = [
     {
       id: courseListSeq++,
-      subject: "语文",
-      stageSubject: "小学语文",
-      videoName: "avi: 03 jmeter的两种录制方法",
-      groupName: "",
+      subject: "数学",
+      stageSubject: "初中数学",
+      videoName: "一次函数的图像",
+      resourceType: "courseware",
+      groupName: "函数",
       maker: "zfy",
       homeworks: [],
-      coursewares: [],
+      coursewares: [
+        { key: "seed-cw-1", name: "一次函数的图像", cwIndex: 2 },
+      ],
       audit: "无",
       createdAt: "2026-10-10 10:01:58",
       updatedAt: "2026-10-10 10:01:58",
@@ -3219,12 +3840,15 @@
     },
     {
       id: courseListSeq++,
-      subject: "语文",
-      stageSubject: "小学语文",
-      videoName: "大字",
-      groupName: "",
+      subject: "数学",
+      stageSubject: "初中数学",
+      videoName: "一次函数的性质",
+      resourceType: "paper",
+      groupName: "函数",
       maker: "zfy",
-      homeworks: [],
+      homeworks: [
+        { key: "seed-hw-1", name: "一次函数的性质", paperIndex: 3 },
+      ],
       coursewares: [],
       audit: "无",
       createdAt: "2026-10-09 17:06:33",
@@ -3242,18 +3866,21 @@
     },
     {
       id: courseListSeq++,
-      subject: "语文",
-      stageSubject: "小学语文",
-      videoName: "wmv: 儿童歌曲 - 小龙人",
-      groupName: "",
+      subject: "数学",
+      stageSubject: "初中数学",
+      videoName: "一次函数在实际生活中的应用",
+      resourceType: "video",
+      groupName: "函数",
       maker: "zfy",
       homeworks: [
-        { key: "seed-hw-1", name: "2026-09-24化学试卷", paperIndex: 0 },
-        { key: "seed-hw-2", name: "化学题", paperIndex: 1 },
+        {
+          key: "seed-hw-2",
+          name: "一次函数与实际问题——应用专项练习",
+          paperIndex: 7,
+        },
       ],
       coursewares: [
-        { key: "seed-cw-1", name: "《第一组 感受自然》试卷(学生版)", cwIndex: 3 },
-        { key: "seed-cw-2", name: "《第一组 感受自然》课件", cwIndex: 4 },
+        { key: "seed-cw-2", name: "一次函数与实际问题", cwIndex: 7 },
       ],
       audit: "视频不达标",
       createdAt: "2026-10-09 16:52:14",
@@ -3275,20 +3902,20 @@
   const manageCourseList = [
     {
       id: manageListSeq++,
-      title: "一年级语文基础巩固训练营",
+      title: "一次函数",
       tags: ["vod"],
-      grade: "一年级",
-      subject: "语文",
-      lessons: 12,
-      learners: 36,
-      publishedAt: "2026-09-12",
+      grade: "初一",
+      subject: "数学",
+      lessons: 1,
+      learners: 0,
+      publishedAt: null,
       status: "on",
     },
     {
       id: manageListSeq++,
-      title: "小学数学思维拓展（上）",
+      title: "有理数及其运算",
       tags: ["vod", "insert"],
-      grade: "三年级",
+      grade: "七年级",
       subject: "数学",
       lessons: 8,
       learners: 28,
@@ -3297,10 +3924,10 @@
     },
     {
       id: manageListSeq++,
-      title: "英语绘本精读 · 自然拼读入门",
+      title: "整式的加减",
       tags: ["live"],
-      grade: "二年级",
-      subject: "英语",
+      grade: "七年级",
+      subject: "数学",
       lessons: 10,
       learners: 19,
       publishedAt: "2026-10-01",
@@ -3308,10 +3935,10 @@
     },
     {
       id: manageListSeq++,
-      title: "科学探究小实验合集",
+      title: "一元一次方程",
       tags: ["vod"],
-      grade: "四年级",
-      subject: "科学",
+      grade: "七年级",
+      subject: "数学",
       lessons: 6,
       learners: 15,
       publishedAt: "2026-10-05",
@@ -3319,10 +3946,21 @@
     },
     {
       id: manageListSeq++,
-      title: "自适应测试",
+      title: "几何图形初步",
       tags: ["vod"],
-      grade: "一年级",
-      subject: "语文",
+      grade: "七年级",
+      subject: "数学",
+      lessons: 12,
+      learners: 36,
+      publishedAt: "2026-09-12",
+      status: "on",
+    },
+    {
+      id: manageListSeq++,
+      title: "相交线与平行线",
+      tags: ["vod"],
+      grade: "七年级",
+      subject: "数学",
       lessons: null,
       learners: null,
       publishedAt: null,
@@ -3442,27 +4080,70 @@
   const learnersMaintainModeByCourse = {};
   let learnersListKeyword = "";
   let addDeviceMatchedSerial = null;
-  let pendingLearnersMaintainMode = null;
+  let pendingLearnersMaintainFlags = null;
+  let pendingLearnersMaintainClear = null;
+  let pendingPersonScopeAction = null;
+
+  function normalizeLearnersMaintainFlags(raw) {
+    let person = true;
+    let device = true;
+    let personScope = "all";
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      person = !!raw.person;
+      device = !!raw.device;
+      personScope = raw.personScope === "custom" ? "custom" : "all";
+      if (!person && !device) {
+        person = true;
+        device = true;
+      }
+    } else if (raw === "device") {
+      person = false;
+      device = true;
+    } else if (raw === "both") {
+      person = true;
+      device = true;
+    } else if (raw === "person") {
+      person = true;
+      device = false;
+    }
+    return { person, device, personScope };
+  }
+
+  function getLearnersMaintainFlags(courseId = learnersCourseId) {
+    if (courseId == null) return { person: true, device: true, personScope: "all" };
+    const key = learnersKey(courseId);
+    const flags = normalizeLearnersMaintainFlags(learnersMaintainModeByCourse[key]);
+    learnersMaintainModeByCourse[key] = flags;
+    return { ...flags };
+  }
 
   function isLearnersDeviceMode() {
-    if (learnersCourseId == null) return false;
-    return learnersMaintainModeByCourse[learnersKey(learnersCourseId)] === "device";
+    const flags = getLearnersMaintainFlags();
+    return !!flags.device && !flags.person;
+  }
+
+  function isLearnersAllRosterMode() {
+    const flags = getLearnersMaintainFlags();
+    return !!flags.person && flags.personScope !== "custom";
   }
 
   function getLearnersMaintainMode() {
-    return isLearnersDeviceMode() ? "device" : "person";
+    const flags = getLearnersMaintainFlags();
+    if (flags.person && flags.device) return "both";
+    if (flags.device) return "device";
+    return "person";
   }
 
-  function getCurrentLearnersRosterCount() {
+  function getRosterCountForFlag(flag) {
     if (learnersCourseId == null) return 0;
-    return isLearnersDeviceMode()
+    return flag === "device"
       ? getDevicesForCourse(learnersCourseId).length
       : getLearnersForCourse(learnersCourseId).length;
   }
 
-  function clearCurrentLearnersRosterData() {
+  function clearLearnersRosterDataByFlag(flag) {
     if (learnersCourseId == null) return;
-    if (isLearnersDeviceMode()) {
+    if (flag === "device") {
       getDevicesForCourse(learnersCourseId).length = 0;
       getRemovedDevicesForCourse(learnersCourseId).length = 0;
     } else {
@@ -3472,10 +4153,33 @@
     syncCourseLearnerCount(learnersCourseId);
   }
 
-  function applyLearnersMaintainMode(mode) {
+  // 在 schoolTreeData 定义后赋值，避免取到空名单
+  let getAllServiceLearnerSeed = () => [];
+
+  function fillAllRosterLearners(courseId) {
+    if (courseId == null) return;
+    const list = getLearnersForCourse(courseId);
+    const seed = getAllServiceLearnerSeed();
+    list.length = 0;
+    seed.forEach((item) => list.push({ ...item }));
+    getRemovedLearnersForCourse(courseId).length = 0;
+    syncCourseLearnerCount(courseId);
+  }
+
+  function ensureLearnersRosterForFlags(courseId, flags) {
+    if (courseId == null || !flags?.person) return;
+    if (flags.personScope === "custom") return;
+    // 全部名单：与「添加学生」页同源，展示开通校本课服务的全部学生
+    fillAllRosterLearners(courseId);
+  }
+
+  function applyLearnersMaintainFlags(flags) {
     if (learnersCourseId == null) return;
-    const next = mode === "device" ? "device" : "person";
+    const next = normalizeLearnersMaintainFlags(flags);
     learnersMaintainModeByCourse[learnersKey(learnersCourseId)] = next;
+    if (next.person && next.personScope !== "custom") {
+      fillAllRosterLearners(learnersCourseId);
+    }
     learnersListKeyword = "";
     const keywordInput = $("#jw-learners-keyword");
     if (keywordInput) keywordInput.value = "";
@@ -3485,8 +4189,35 @@
     schedulePersist();
   }
 
-  function openLearnersModeConfirmModal(mode) {
-    pendingLearnersMaintainMode = mode === "device" ? "device" : "person";
+  function setLearnersModeModalCopy(title, desc) {
+    const titleEl = $("#jw-learners-mode-title");
+    const descEl = $("#jw-learners-mode-desc");
+    if (titleEl) titleEl.textContent = title;
+    if (descEl) descEl.textContent = desc;
+  }
+
+  function openLearnersModeConfirmModal(nextFlags, clearFlag) {
+    pendingPersonScopeAction = null;
+    pendingLearnersMaintainFlags = normalizeLearnersMaintainFlags(nextFlags);
+    pendingLearnersMaintainClear = clearFlag === "device" ? "device" : "person";
+    setLearnersModeModalCopy(
+      "确认更换名单维护方式吗？",
+      "更换后，已维护的数据将清空，需重新添加才能恢复"
+    );
+    const modal = $("#jw-learners-mode-modal");
+    if (!modal) return;
+    modal.hidden = false;
+    modal.classList.add("is-open");
+  }
+
+  function openPersonScopeConfirmModal() {
+    pendingLearnersMaintainFlags = null;
+    pendingLearnersMaintainClear = null;
+    pendingPersonScopeAction = "custom";
+    setLearnersModeModalCopy(
+      "确认切换为自定义名单吗？",
+      "切换后需手动维护学生名单，当前页面上的学生数据将被清空"
+    );
     const modal = $("#jw-learners-mode-modal");
     if (!modal) return;
     modal.hidden = false;
@@ -3496,39 +4227,83 @@
   function closeLearnersModeConfirmModal() {
     const modal = $("#jw-learners-mode-modal");
     if (!modal) return;
-    pendingLearnersMaintainMode = null;
+    pendingLearnersMaintainFlags = null;
+    pendingLearnersMaintainClear = null;
+    pendingPersonScopeAction = null;
     modal.classList.remove("is-open");
     modal.hidden = true;
-    // 取消时把切换按钮状态回正
+    // 取消时把勾选 / 单选状态回正
     syncLearnersMaintainModeUI();
   }
 
   function confirmLearnersMaintainModeSwitch() {
-    if (learnersCourseId == null || !pendingLearnersMaintainMode) {
+    if (learnersCourseId == null) {
       closeLearnersModeConfirmModal();
       return;
     }
-    const next = pendingLearnersMaintainMode;
-    clearCurrentLearnersRosterData();
-    pendingLearnersMaintainMode = null;
+    if (pendingPersonScopeAction === "custom") {
+      clearLearnersRosterDataByFlag("person");
+      pendingPersonScopeAction = null;
+      const modal = $("#jw-learners-mode-modal");
+      if (modal) {
+        modal.classList.remove("is-open");
+        modal.hidden = true;
+      }
+      const current = getLearnersMaintainFlags();
+      applyLearnersMaintainFlags({ ...current, person: true, personScope: "custom" });
+      showToast("已切换为自定义名单");
+      return;
+    }
+    if (!pendingLearnersMaintainFlags) {
+      closeLearnersModeConfirmModal();
+      return;
+    }
+    const next = pendingLearnersMaintainFlags;
+    const clearFlag = pendingLearnersMaintainClear;
+    if (clearFlag) clearLearnersRosterDataByFlag(clearFlag);
+    pendingLearnersMaintainFlags = null;
+    pendingLearnersMaintainClear = null;
     const modal = $("#jw-learners-mode-modal");
     if (modal) {
       modal.classList.remove("is-open");
       modal.hidden = true;
     }
-    applyLearnersMaintainMode(next);
+    applyLearnersMaintainFlags(next);
     showToast("已更换名单维护方式");
   }
 
-  function setLearnersMaintainMode(mode) {
+  function setLearnersMaintainFlag(flag, enabled) {
     if (learnersCourseId == null) return;
-    const next = mode === "device" ? "device" : "person";
-    if (next === getLearnersMaintainMode()) return;
-    if (getCurrentLearnersRosterCount() === 0) {
-      applyLearnersMaintainMode(next);
+    const key = flag === "device" ? "device" : "person";
+    const current = getLearnersMaintainFlags();
+    if (!!current[key] === !!enabled) return;
+    const next = { ...current, [key]: !!enabled };
+    if (!next.person && !next.device) {
+      showToast("请至少选择一种维护方式", "warn");
+      syncLearnersMaintainModeUI();
       return;
     }
-    openLearnersModeConfirmModal(next);
+    if (!enabled && getRosterCountForFlag(key) > 0) {
+      openLearnersModeConfirmModal(next, key);
+      return;
+    }
+    applyLearnersMaintainFlags(next);
+  }
+
+  function setPersonScope(scope) {
+    if (learnersCourseId == null) return;
+    const nextScope = scope === "custom" ? "custom" : "all";
+    const current = getLearnersMaintainFlags();
+    if (!current.person) {
+      syncLearnersMaintainModeUI();
+      return;
+    }
+    if (current.personScope === nextScope) return;
+    if (nextScope === "custom") {
+      openPersonScopeConfirmModal();
+      return;
+    }
+    applyLearnersMaintainFlags({ ...current, personScope: "all" });
   }
 
   function isLearnDataMulti() {
@@ -3623,25 +4398,39 @@
   function syncCourseLearnerCount(courseId) {
     const course = manageCourseList.find((item) => item.id === courseId);
     if (!course) return;
-    const deviceMode = learnersMaintainModeByCourse[learnersKey(courseId)] === "device";
-    course.learners = deviceMode
-      ? getDevicesForCourse(courseId).length
-      : getLearnersForCourse(courseId).length;
+    const flags = getLearnersMaintainFlags(courseId);
+    course.learners =
+      flags.person || !flags.device
+        ? getLearnersForCourse(courseId).length
+        : getDevicesForCourse(courseId).length;
   }
 
   function syncLearnersMaintainModeUI() {
-    const mode = getLearnersMaintainMode();
-    const isDevice = mode === "device";
-    $$("[data-learners-mode]").forEach((btn) => {
-      const active = btn.dataset.learnersMode === mode;
-      btn.classList.toggle("is-active", active);
-      btn.setAttribute("aria-selected", active ? "true" : "false");
+    const flags = getLearnersMaintainFlags();
+    const deviceOnly = !!flags.device && !flags.person;
+    const allRoster = !!flags.person && flags.personScope !== "custom";
+    $$("[data-learners-mode]").forEach((input) => {
+      const key = input.dataset.learnersMode === "device" ? "device" : "person";
+      input.checked = !!flags[key];
+    });
+    const scopeSelect = $("#jw-person-scope");
+    if (scopeSelect) {
+      scopeSelect.value = flags.personScope === "custom" ? "custom" : "all";
+      scopeSelect.hidden = !flags.person;
+      scopeSelect.disabled = !flags.person;
+    }
+    $$("[data-person-scope-wrap]").forEach((el) => {
+      if (el === scopeSelect) return;
+      el.hidden = !flags.person;
     });
     $$("[data-learners-person-panel]").forEach((el) => {
-      el.hidden = isDevice;
+      el.hidden = deviceOnly;
     });
     $$("[data-learners-device-panel]").forEach((el) => {
-      el.hidden = !isDevice;
+      el.hidden = !deviceOnly;
+    });
+    $$(".jw-learners-actions").forEach((el) => {
+      el.classList.toggle("is-all-roster", allRoster);
     });
     const keywordInput = $("#jw-learners-keyword");
     if (keywordInput) {
@@ -3888,7 +4677,11 @@
 
   function renderLearnersTable() {
     const tbody = $("#jw-learners-tbody");
+    const thead = $("#jw-learners-thead");
     const countEl = $("#jw-learners-record-count");
+    if (learnersCourseId != null) {
+      ensureLearnersRosterForFlags(learnersCourseId, getLearnersMaintainFlags(learnersCourseId));
+    }
     syncLearnersMaintainModeUI();
     if (isLearnersDeviceMode()) {
       if (tbody) tbody.innerHTML = "";
@@ -3896,9 +4689,44 @@
       return;
     }
     if (!tbody) return;
+    const allRoster = isLearnersAllRosterMode();
+    if (thead) {
+      thead.innerHTML = allRoster
+        ? `<tr>
+            <th>乐号</th>
+            <th>姓名</th>
+            <th>性别</th>
+            <th>班级</th>
+            <th>添加时间</th>
+          </tr>`
+        : `<tr>
+            <th class="col-check">
+              <input class="xb-check" type="checkbox" id="jw-learners-check-all" aria-label="全选" />
+            </th>
+            <th>乐号</th>
+            <th>姓名</th>
+            <th>性别</th>
+            <th>班级</th>
+            <th>添加时间</th>
+            <th class="col-maction">操作</th>
+          </tr>`;
+    }
     const list = getVisibleLearnersList();
+    const colSpan = allRoster ? 5 : 7;
     if (!list.length) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="jw-learners-empty">暂无数据</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${colSpan}"><div class="jw-learners-empty">暂无数据</div></td></tr>`;
+    } else if (allRoster) {
+      tbody.innerHTML = list
+        .map(
+          (row) => `<tr data-learner-id="${escapeAttr(String(row.id))}">
+            <td>${escapeAttr(row.lehao || "--")}</td>
+            <td>${escapeAttr(row.name || "--")}</td>
+            <td>${escapeAttr(row.gender || "--")}</td>
+            <td>${escapeAttr(row.klass || "--")}</td>
+            <td>${escapeAttr(row.addedAt || "--")}</td>
+          </tr>`
+        )
+        .join("");
     } else {
       tbody.innerHTML = list
         .map(
@@ -3921,6 +4749,7 @@
     if (checkAll) {
       checkAll.checked = false;
       checkAll.indeterminate = false;
+      checkAll.disabled = false;
     }
   }
 
@@ -3930,6 +4759,8 @@
     learnersListKeyword = "";
     const keywordInput = $("#jw-learners-keyword");
     if (keywordInput) keywordInput.value = "";
+    const flags = getLearnersMaintainFlags(row.id);
+    ensureLearnersRosterForFlags(row.id, flags);
     syncLearnersMaintainModeUI();
     setJiaowuNav("learners");
     renderLearnersTable();
@@ -5067,6 +5898,23 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     });
   }
 
+  getAllServiceLearnerSeed = function getAllServiceLearnerSeed() {
+    const out = [];
+    walkTree(schoolTreeData, (node) => {
+      if (node.children?.length) return;
+      if (!node.lehao && !node.name) return;
+      out.push({
+        id: Number(node.lehao) || out.length + 1,
+        lehao: String(node.lehao || ""),
+        name: node.name || "--",
+        gender: node.gender || "保密",
+        klass: node.klass || "--",
+        addedAt: "2026-09-01 08:00:00",
+      });
+    });
+    return out;
+  };
+
   function collectCheckedLeaves(nodes) {
     const leaves = [];
     walkTree(nodes, (node) => {
@@ -5379,14 +6227,13 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     }
     const pending = collected.students;
     const removed = getRemovedLearnersForCourse(courseId);
-    const overlap = removed.filter((item) =>
-      pending.some((p) => String(p.lehao) === String(item.lehao) || p.name === item.name)
-    );
-    if (overlap.length) {
-      pendingAddStudents = pending;
-      restoreContinueAction = "add";
-      openImportRestoreModal(overlap);
-      return;
+    if (removed.length && pending.length) {
+      const keep = removed.filter(
+        (item) =>
+          !pending.some((p) => String(p.lehao) === String(item.lehao) || p.name === item.name)
+      );
+      removed.length = 0;
+      removed.push(...keep);
     }
     finishAddLearnersSuccess(pending);
   }
@@ -5583,10 +6430,13 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       learnersCourseId = null;
       setJiaowuNav("manage");
     });
-    $$("[data-learners-mode]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        setLearnersMaintainMode(btn.dataset.learnersMode);
+    $$("[data-learners-mode]").forEach((input) => {
+      input.addEventListener("change", () => {
+        setLearnersMaintainFlag(input.dataset.learnersMode, input.checked);
       });
+    });
+    $("#jw-person-scope")?.addEventListener("change", (e) => {
+      setPersonScope(e.target.value);
     });
     $$("[data-close-learners-mode]").forEach((el) => {
       el.addEventListener("click", closeLearnersModeConfirmModal);
@@ -5605,6 +6455,13 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     $$("[data-learners-act]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const act = btn.dataset.learnersAct;
+        if (
+          isLearnersAllRosterMode() &&
+          (act === "批量导入" || act === "添加学生" || act === "添加设备" || act === "批量移除")
+        ) {
+          showToast("全部名单下无需手动维护学生", "warn");
+          return;
+        }
         if (act === "批量导入") {
           openLearnersImportPage();
           return;
@@ -5668,9 +6525,6 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     });
     $("#jw-import-start")?.addEventListener("click", () => {
       if (!importHasFile) return;
-      restoreContinueAction = "import";
-      pendingAddStudents = [];
-      if (!isLearnersDeviceMode() && openImportRestoreModal()) return;
       finishImportSuccess();
     });
     $$("[data-close-import-restore]").forEach((el) => {
@@ -5845,7 +6699,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
                   ? `<span class="xb-list-attach__label">课件:</span>`
                   : `<span class="xb-list-attach__label xb-list-attach__label--spacer" aria-hidden="true">课件:</span>`
               }
-              <a class="xb-preview-link xb-list-attach__link" href="${escapeHref(PREVIEW.courseware)}" target="_blank" rel="noopener noreferrer" title="点击预览">${escapeAttr(cw.name)}</a>
+              <a class="xb-preview-link xb-list-attach__link" href="${escapeHref(getCwPreviewUrl(cw))}" target="_blank" rel="noopener noreferrer" title="点击预览">${escapeAttr(cw.name)}</a>
             </span>
           </div>`
               : `<div class="xb-course-info__meta">
@@ -6049,8 +6903,8 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     const subject = $("#jw-pub-subject");
     const lessons = $("#jw-pub-lessons");
     const intro = $("#jw-pub-intro");
-    if (grade) grade.selectedIndex = 0;
-    if (subject) subject.selectedIndex = 0;
+    if (grade) grade.value = "初一";
+    if (subject) subject.value = "数学";
     if (lessons) lessons.value = "";
     if (intro) intro.value = "";
     const order = document.querySelector('input[name="jw-learn-mode"][value="order"]');
@@ -6088,8 +6942,8 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     const lessons = lessonsRaw ? Number(lessonsRaw) : null;
     return {
       title: name || "未命名课程",
-      grade: grade || "一年级",
-      subject: subject || "语文",
+      grade: grade || "初一",
+      subject: subject || "数学",
       lessons: Number.isFinite(lessons) && lessons > 0 ? lessons : null,
       learners: null,
       publishedAt: null,
@@ -6421,27 +7275,39 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
                 </svg>
                 删除
               </button>
-              <button type="button" class="xb-btn xb-btn--ghost jw-unit__add-course" data-unit-add-course="${unit.id}">+ 添加课程</button>
+              <button type="button" class="xb-btn xb-btn--ghost jw-unit__add-course" data-unit-add-course="${unit.id}">+ 添加课时</button>
             </div>
           </div>
           <div class="jw-unit__body">
             ${
               unit.lessons && unit.lessons.length
                 ? `<ul class="jw-unit__lessons">${unit.lessons
-                    .map(
-                      (lesson, li) => `<li class="jw-unit__lesson" data-unit-id="${unit.id}" data-lesson-index="${li}" draggable="true">
+                    .map((lesson, li) => {
+                      const isResourceOnly =
+                        lesson.resourceType === "paper" || lesson.resourceType === "courseware";
+                      const typeTag =
+                        lesson.resourceType === "paper"
+                          ? "试卷"
+                          : lesson.resourceType === "courseware"
+                            ? "课件"
+                            : "";
+                      return `<li class="jw-unit__lesson" data-unit-id="${unit.id}" data-lesson-index="${li}" draggable="true">
                         <div class="jw-unit__lesson-main">
                           <div class="jw-unit__lesson-title">第${li + 1}节 ${escapeAttr(lesson.name)}${
+                            typeTag
+                              ? `<span class="jw-unit__attach-tag">${typeTag}</span>`
+                              : ""
+                          }${
                             index === 0 && li === 0
                               ? `<button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-lesson-row" title="查看此处改动说明">改</button>`
                               : ""
                           }</div>
                           ${
-                            lesson.resourceType === "paper" || lesson.resourceType === "courseware"
+                            isResourceOnly
                               ? ""
-                              : `<div class="jw-unit__lesson-meta">${escapeAttr(lesson.duration || "0分0秒")}</div>`
+                              : `<div class="jw-unit__lesson-meta">${escapeAttr(lesson.duration || "0分0秒")}</div>
+                          ${renderLessonAttachHtml(lesson)}`
                           }
-                          ${renderLessonAttachHtml(lesson)}
                         </div>
                         <div class="jw-unit__lesson-ops">
                           <button type="button" class="jw-unit__lesson-icon" data-lesson-del="${unit.id}:${li}" aria-label="删除课时" title="删除">
@@ -6451,11 +7317,11 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
                           </button>
                           <span class="jw-unit__lesson-drag" aria-hidden="true" title="拖拽排序">⋮⋮</span>
                         </div>
-                      </li>`
-                    )
+                      </li>`;
+                    })
                     .join("")}</ul>`
                 : `<div class="jw-unit__body-art" aria-hidden="true"></div>
-                   <p class="jw-unit__body-text">请添加课时视频</p>`
+                   <p class="jw-unit__body-text">添加课时内容</p>`
             }
           </div>
         </article>`;
@@ -6486,11 +7352,15 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   }
 
   let ADD_COURSE_VIDEOS = [
-    { name: "大字", duration: "2分19秒", resourceType: "video" },
-    { name: "flv: 测试分析", duration: "5分02秒", resourceType: "video" },
-    { name: "wmv: 儿童歌曲 - 小龙人", duration: "3分41秒", resourceType: "video" },
-    { name: "2", duration: "1分08秒", resourceType: "video" },
-    { name: "屏幕录制 2024-08-12 162520", duration: "12分36秒", resourceType: "video" },
+    { name: "第1讲：函数的概念与三种表示方法", duration: "18分32秒", resourceType: "video" },
+    { name: "第2讲：正比例函数与一次函数的概念辨析", duration: "16分45秒", resourceType: "video" },
+    { name: "第3讲：一次函数的图象绘制方法", duration: "20分18秒", resourceType: "video" },
+    { name: "第4讲：一次函数的增减性与图象性质", duration: "17分06秒", resourceType: "video" },
+    { name: "第5讲：一次函数图象与系数k、b的关系", duration: "19分21秒", resourceType: "video" },
+    { name: "第6讲：待定系数法求一次函数解析式", duration: "21分04秒", resourceType: "video" },
+    { name: "第7讲：一次函数解析式的典型例题精讲", duration: "22分50秒", resourceType: "video" },
+    { name: "第8讲：一次函数在实际生活中的应用", duration: "15分38秒", resourceType: "video" },
+    { name: "第9讲：一次函数综合题型与解题技巧", duration: "24分12秒", resourceType: "video" },
   ];
   const ADD_COURSE_MAX = 20;
   let addCourseUnitId = null;
@@ -7288,7 +8158,10 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       }
       const cwName = e.target.closest("[data-list-cw-name]");
       if (cwName && cwName.readOnly) {
-        openExternalUrl(PREVIEW.courseware);
+        const [rowId, key] = String(cwName.dataset.listCwName || "").split(":");
+        const row = courseList.find((item) => String(item.id) === rowId);
+        const cw = (row?.coursewares || []).find((item) => item.key === key);
+        openExternalUrl(getCwPreviewUrl(cw));
       }
     });
 
@@ -7334,7 +8207,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   const LOCAL_KEY = "local";
   const RESOURCE_KEY = "resource";
   let addTab = "library";
-  let addResourceType = "video";
+  let addResourceType = "courseware";
 
   const localUpload = {
     fileName: "",
@@ -7461,12 +8334,19 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     syncLocalFileAcceptUI();
   }
 
+  function defaultPickVideoIds() {
+    if (!PICK_COURSES.length) return [];
+    // 教务排课从资源库选视频：默认勾选第 2 条
+    if (addModalSource === "jwAddCourse" && PICK_COURSES.length > 1) return [1];
+    return [0];
+  }
+
   function setResourceType(type) {
     const next = type === "paper" || type === "courseware" ? type : "video";
     if (next === addResourceType) return;
     addResourceType = next;
     pickState.confirmed = [];
-    pickState.selected = new Set(PICK_COURSES.length ? [0] : []);
+    pickState.selected = new Set(defaultPickVideoIds());
     delete hwByCourse[RESOURCE_KEY];
     delete cwByCourse[RESOURCE_KEY];
     if (next !== "video") {
@@ -7495,13 +8375,13 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     if (!modal) return;
     addModalSource = source === "jwAddCourse" ? "jwAddCourse" : "courseList";
     pickState.confirmed = [];
-    pickState.selected = new Set(PICK_COURSES.length ? [0] : []);
+    pickState.selected = new Set(defaultPickVideoIds());
     Object.keys(hwByCourse).forEach((key) => delete hwByCourse[key]);
     Object.keys(cwByCourse).forEach((key) => delete cwByCourse[key]);
     renderSelectedCourses();
     resetLocalUploadForm();
     addResourceType =
-      addModalSource === "jwAddCourse" ? jwAddCourseResourceType : "video";
+      addModalSource === "jwAddCourse" ? jwAddCourseResourceType : "courseware";
     syncResourceTypeUI();
     renderLocalResourceList();
     setJwStackClass(addModalSource === "jwAddCourse");
@@ -7624,8 +8504,8 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       panel.hidden = panel.dataset.addPanel !== addTab;
     });
     if (addTab === "local") {
-      // 本地上传不支持试卷，仅保留视频/课件
-      if (addResourceType === "paper") setResourceType("video");
+      // 本地上传不支持试卷，仅保留视频/课件；默认回落到课件
+      if (addResourceType === "paper") setResourceType("courseware");
       syncLocalGroupOptions();
       syncResourceTypeUI();
       renderLocalAttaches();
@@ -7969,17 +8849,15 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   }
 
   const PICK_COURSES = [
-    "wmv: 儿童歌曲-小龙人",
-    "wmv: 儿童歌曲 - 小龙人",
-    "flv: 测试分析",
-    "avi: 03 jmeter的两种录制方法",
-    "屏幕录制 2025-12-22 164212",
-    "大字",
-    "chloe_yacht_departure_tracking_shot",
-    "预习报告第3题",
-    "1",
-    "合拍视频1",
-    "测试视频2",
+    "第1讲：函数的概念与三种表示方法",
+    "第2讲：正比例函数与一次函数的概念辨析",
+    "第3讲：一次函数的图象绘制方法",
+    "第4讲：一次函数的增减性与图象性质",
+    "第5讲：一次函数图象与系数k、b的关系",
+    "第6讲：待定系数法求一次函数解析式",
+    "第7讲：一次函数解析式的典型例题精讲",
+    "第8讲：一次函数在实际生活中的应用",
+    "第9讲：一次函数综合题型与解题技巧",
   ];
 
   const pickState = {
@@ -7992,6 +8870,8 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     if (!modal) return;
     if (pickState.confirmed.length) {
       pickState.selected = new Set(pickState.confirmed);
+    } else if (!pickState.selected.size) {
+      pickState.selected = new Set(defaultPickVideoIds());
     }
     applyAttachModalStack(modal);
     modal.hidden = false;
@@ -8370,14 +9250,15 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   }
 
   const HW_PAPERS = [
-    { subject: "化学", name: "2026-09-24化学试卷", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
-    { subject: "数学", name: "填空题.png", author: "zfy", type: "普通试卷", subjective: "无", handwriting: "无", cite: 1 },
-    { subject: "语文", name: "2026-03-10语文阅读理解", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "有", cite: 2 },
-    { subject: "历史", name: "七年级历史上册单元测", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
-    { subject: "数学", name: "二次函数专项练习", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "有", cite: 3 },
-    { subject: "英语", name: "Unit1 词汇检测卷", author: "zfy", type: "普通试卷", subjective: "无", handwriting: "无", cite: 1 },
-    { subject: "物理", name: "力学综合测试", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
-    { subject: "化学", name: "酸碱盐基础卷", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "有", cite: 2 },
+    { subject: "数学", name: "第1课时：函数的概念与表示方法——基础巩固练习", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
+    { subject: "数学", name: "第2课时：一次函数与正比例函数——基础达标测试", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
+    { subject: "数学", name: "第3课时：一次函数的图象——专项巩固练习", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "有", cite: 0 },
+    { subject: "数学", name: "第4课时：一次函数的性质——知识应用测试", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
+    { subject: "数学", name: "第5课时：一次函数图象与系数的关系——专项提升练习", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "有", cite: 0 },
+    { subject: "数学", name: "第6课时：待定系数法求一次函数解析式——方法巩固练习", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
+    { subject: "数学", name: "第7课时：一次函数解析式的综合应用——能力提升测试", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "有", cite: 0 },
+    { subject: "数学", name: "第8课时：一次函数与实际问题——应用专项练习", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
+    { subject: "数学", name: "第9课时：一次函数综合应用与拓展——单元综合测试", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "有", cite: 0 },
   ];
 
   const hwState = {
@@ -8400,6 +9281,13 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     return selected;
   }
 
+  function defaultAttachPickIds(catalog) {
+    if (!catalog?.length) return [];
+    // 教务排课从资源库选视频后，配套试卷/课件默认勾选第 2 条
+    if (addModalSource === "jwAddCourse" && catalog.length > 1) return [1];
+    return [0];
+  }
+
   function openHwModal(courseId) {
     const modal = $("#xb-hw-modal");
     if (!modal) return;
@@ -8407,7 +9295,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     hwState.courseId = courseId;
     hwState.listRowId = null;
     const existed = hwByCourse[courseId] || [];
-    hwState.selected = new Set(existed.length ? existed : [0]);
+    hwState.selected = new Set(existed.length ? existed : defaultAttachPickIds(HW_PAPERS));
     renderHwTable();
     applyAttachModalStack(modal);
     modal.hidden = false;
@@ -8553,14 +9441,23 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   }
 
   const CW_ITEMS = [
-    { subject: "小学语文", name: "lesson_0707_153848_422", author: "zfy", docType: "视频", cite: 0 },
-    { subject: "小学语文", name: "lesson_0707_153848_423", author: "zfy", docType: "视频", cite: 1 },
-    { subject: "小学语文", name: "lesson_0707_153848_424", author: "zfy", docType: "视频", cite: 0 },
-    { subject: "小学语文", name: "《第一组 感受自然》试卷(学生版)", author: "zfy", docType: "文档", cite: 14 },
-    { subject: "小学语文", name: "《第一组 感受自然》课件", author: "zfy", docType: "文档", cite: 5 },
-    { subject: "小学数学", name: "七年级上册单元复习课件", author: "zfy", docType: "文档", cite: 2 },
-    { subject: "小学英语", name: "Unit1 词汇课件", author: "zfy", docType: "文档", cite: 3 },
-    { subject: "小学语文", name: "古诗诵读示范视频", author: "zfy", docType: "视频", cite: 1 },
+    {
+      subject: "初中数学",
+      name: "第1课时：函数的概念与表示方法",
+      author: "zfy",
+      docType: "文档",
+      cite: 0,
+      previewUrl: "./assets/courseware/yi-ci-hanshu-ke1.pdf",
+      fileUrl: "./assets/courseware/yi-ci-hanshu-ke1.ppt",
+    },
+    { subject: "初中数学", name: "第2课时：一次函数与正比例函数", author: "zfy", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第3课时：一次函数的图象", author: "zfy", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第4课时：一次函数的性质", author: "zfy", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第5课时：一次函数图象与系数的关系", author: "zfy", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第6课时：用待定系数法求一次函数解析式", author: "zfy", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第7课时：一次函数解析式的综合应用", author: "zfy", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第8课时：一次函数与实际问题", author: "zfy", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第9课时：一次函数综合应用与拓展", author: "zfy", docType: "文档", cite: 0 },
   ];
 
   const cwState = {
@@ -8590,7 +9487,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     cwState.courseId = courseId;
     cwState.listRowId = null;
     const existed = cwByCourse[courseId] || [];
-    cwState.selected = new Set(existed.length ? existed : [0]);
+    cwState.selected = new Set(existed.length ? existed : defaultAttachPickIds(CW_ITEMS));
     renderCwTable();
     applyAttachModalStack(modal);
     modal.hidden = false;
@@ -8696,8 +9593,8 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
         <td>${item.docType}</td>
         <td>${item.cite}</td>
         <td>
-          <button type="button" class="xb-link-preview">预览</button>
-          <button type="button" class="xb-link-preview" style="margin-left:8px">下载</button>
+          <button type="button" class="xb-link-preview" data-cw-preview="${item.index}">预览</button>
+          <button type="button" class="xb-link-preview" style="margin-left:8px" data-cw-download="${item.index}">下载</button>
         </td>
       </tr>`
       )
@@ -9324,7 +10221,12 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
         return;
       }
       const cwName = e.target.closest("[data-list-cw-name]");
-      if (cwName && cwName.readOnly) openExternalUrl(PREVIEW.courseware);
+      if (cwName && cwName.readOnly) {
+        const [rowId, key] = String(cwName.dataset.listCwName || "").split(":");
+        const row = courseList.find((item) => String(item.id) === rowId);
+        const cw = (row?.coursewares || []).find((item) => item.key === key);
+        openExternalUrl(getCwPreviewUrl(cw));
+      }
     });
   }
 
@@ -9335,7 +10237,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     $("#xb-submit-ok")?.addEventListener("click", confirmSubmitRow);
   }
 
-  const lessonGroups = [];
+  const lessonGroups = ["函数", "有理数"];
   let activeGroupFilter = "全部";
   let pendingMoveRowIds = [];
 
@@ -9376,7 +10278,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     const modal = $("#xb-move-modal");
     if (!modal) return;
     if (!lessonGroups.length) {
-      window.alert("请先在上方「单课分组」中添加分组");
+      window.alert("请先在上方「资源分组」中添加分组");
       return;
     }
     pendingMoveRowIds = rowIds || [];
@@ -9583,6 +10485,23 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       if (input.checked) cwState.selected.add(id);
       else cwState.selected.delete(id);
     });
+    $("#xb-cw-tbody")?.addEventListener("click", (e) => {
+      const previewBtn = e.target.closest("[data-cw-preview]");
+      if (previewBtn) {
+        openExternalUrl(getCwPreviewUrl(Number(previewBtn.dataset.cwPreview)));
+        return;
+      }
+      const downloadBtn = e.target.closest("[data-cw-download]");
+      if (downloadBtn) {
+        const a = document.createElement("a");
+        a.href = getCwDownloadUrl(Number(downloadBtn.dataset.cwDownload));
+        a.download = "";
+        a.rel = "noopener noreferrer";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    });
   }
 
   function restoreFromSaved(saved) {
@@ -9591,8 +10510,17 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     state.role = saved.role || state.role;
     state.pcPage = saved.pcPage || state.pcPage;
     state.padPage = saved.padPage || state.padPage;
+    if (saved.protoMode === "proto" || saved.protoMode === "flow") {
+      state.protoMode = saved.protoMode;
+    } else {
+      // 旧缓存无该字段：按产品页恢复，避免刷新又回到流程图
+      state.protoMode = "proto";
+    }
     if (saved.padXbSubject && PAD_XB_SUBJECTS.includes(saved.padXbSubject)) {
       padXbSubject = saved.padXbSubject;
+    }
+    if (saved.padXbGrade && PAD_XB_GRADES.includes(saved.padXbGrade)) {
+      padXbGrade = saved.padXbGrade;
     }
     if (saved.padXbCourseId) padXbCourseId = saved.padXbCourseId;
     if (saved.padXbCourseScheme === "a" || saved.padXbCourseScheme === "b" || saved.padXbCourseScheme === "c") {
@@ -9623,9 +10551,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       );
     }
     if (saved.scheduleUnitSeq) scheduleUnitSeq = saved.scheduleUnitSeq;
-    if (Array.isArray(saved.addCourseVideos) && saved.addCourseVideos.length) {
-      ADD_COURSE_VIDEOS = saved.addCourseVideos;
-    }
+    // 可选视频库以代码种子为准，不从旧缓存整表覆盖（避免演示名称被盖回）
     if (saved.editingPublishId != null) editingPublishId = saved.editingPublishId;
     if (saved.publishMode === "modify" || saved.publishMode === "create") {
       publishMode = saved.publishMode;
@@ -9678,7 +10604,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
         delete learnersMaintainModeByCourse[key];
       });
       Object.entries(saved.learnersMaintainModeByCourse).forEach(([key, mode]) => {
-        learnersMaintainModeByCourse[key] = mode === "device" ? "device" : "person";
+        learnersMaintainModeByCourse[key] = normalizeLearnersMaintainFlags(mode);
       });
     }
     return saved;
@@ -9705,6 +10631,19 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   }
   if (state.jwNav === "learn-data") {
     renderLearnDataPage();
+  }
+  // 默认进 PC 教师端首页；刷新保留上次页；主动点「流程」才看业务流程图；?proto=1 强制回教师首页入口
+  const wantProto =
+    typeof location !== "undefined" &&
+    /(?:\?|&)proto=1(?:&|$)/.test(location.search || "");
+  if (wantProto || !saved) {
+    enterProductPrototype();
+  } else if (state.protoMode === "flow") {
+    setProtoMode("flow");
+    setProtoMarkersHidden(true);
+  } else {
+    setProtoMode("proto");
+    setProtoMarkersHidden(true);
   }
   persistReady = true;
   schedulePersist();

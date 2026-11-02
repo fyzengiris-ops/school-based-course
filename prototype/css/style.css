@@ -33,70 +33,313 @@ button {
   background: none;
 }
 
-/* —— 顶栏：终端切换 + 说明 —— */
-.proto-bar {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 10px 20px;
-  background: #1f2a33;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+/* —— 业务流程图页：会话同款 Mermaid 纵向 flowchart —— */
+.proto-flow {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  overflow: auto;
+  color: #e8eaed;
+  background: #1e1f22;
 }
 
-.proto-bar__title {
-  font-size: 14px;
+.proto-flow[hidden] {
+  display: none !important;
+}
+
+.proto-flow__inner {
+  width: min(760px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 28px 0 72px;
+}
+
+.proto-flow__head {
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.proto-flow__eyebrow {
+  color: #7ddea8;
+  font-size: 16px;
   font-weight: 600;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.proto-flow__title {
+  font-size: 36px;
+  line-height: 1.3;
+  margin-bottom: 8px;
+  color: #f3f5f7;
+}
+
+.proto-flow__lead {
+  color: #a8b0ba;
+  font-size: 20px;
+  line-height: 1.65;
+}
+
+.proto-flow__diagram-wrap {
+  background: #18191c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 28px 20px 20px;
+  overflow-x: auto;
+}
+
+.proto-flow__diagram-wrap .mermaid {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  margin: 0 auto;
+  color: #e8eaed;
+  font-size: 24px;
+}
+
+.proto-flow__diagram-wrap .mermaid svg {
+  display: block;
+  margin: 0 auto;
+  max-width: none !important;
+  height: auto !important;
+}
+
+.proto-flow__diagram-wrap .mermaid .nodeLabel,
+.proto-flow__diagram-wrap .mermaid .edgeLabel,
+.proto-flow__diagram-wrap .mermaid .cluster-label,
+.proto-flow__diagram-wrap .mermaid .label,
+.proto-flow__diagram-wrap .mermaid foreignObject div,
+.proto-flow__diagram-wrap .mermaid foreignObject span {
+  font-size: 24px !important;
+  line-height: 1.35 !important;
+}
+
+.proto-flow__diagram-wrap .mermaid .cluster-label foreignObject div,
+.proto-flow__diagram-wrap .mermaid .cluster-label span,
+.proto-flow__diagram-wrap .mermaid .cluster-label p {
+  font-size: 24px !important;
+  font-weight: 600 !important;
+  color: #f3f5f7 !important;
+  text-align: left !important;
+  margin: 0 !important;
+}
+
+.proto-flow__diagram-wrap .mermaid .cluster > rect {
+  fill: #25282e !important;
+  stroke: #a0a7b0 !important;
+  stroke-width: 1.25px !important;
+}
+
+.proto-flow__diagram-wrap .mermaid .cluster-header-bg {
+  fill: #2f333a;
+}
+
+.proto-flow__diagram-wrap .mermaid .cluster-header-line {
+  stroke: #a0a7b0;
+  stroke-width: 1.25px;
+}
+
+.proto-flow__diagram-wrap .mermaid .node rect,
+.proto-flow__diagram-wrap .mermaid .node polygon {
+  fill: #3a3d44 !important;
+  stroke: #8b919a !important;
+  stroke-width: 1.25px !important;
+}
+
+.proto-flow__diagram-wrap .mermaid path.flowchart-link {
+  stroke: #b0b7c0 !important;
+  stroke-width: 1.75px !important;
+  fill: none !important;
+}
+
+.proto-flow__foot {
+  position: sticky;
+  bottom: 0;
+  margin-top: 18px;
+  padding: 14px 0 6px;
+  background: linear-gradient(180deg, rgba(30, 31, 34, 0), #1e1f22 28%);
+  display: flex;
+  justify-content: center;
+}
+
+.proto-flow__enter {
+  appearance: none;
+  border: none;
+  border-radius: 10px;
+  min-width: 220px;
+  padding: 13px 20px;
+  background: linear-gradient(180deg, #1abc9c, #16a085);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
   letter-spacing: 0.02em;
-  white-space: nowrap;
+  box-shadow: 0 10px 24px rgba(22, 160, 133, 0.28);
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
 
-.proto-bar__title span {
-  color: #7fdbcb;
-  font-weight: 400;
-  margin-left: 8px;
-  font-size: 12px;
+.proto-flow__enter:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
 }
 
-.proto-bar__center {
+.proto-flow__enter:active {
+  transform: translateY(0);
+}
+
+body[data-mode="flow"] .stage,
+body[data-mode="flow"] .backdrop,
+body[data-mode="flow"] .proto-diff-entry,
+body[data-mode="flow"] .proto-diff-drawer,
+body[data-mode="flow"] .proto-lightbox {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body[data-mode="flow"] .proto-chrome__dock {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body[data-mode="proto"] .proto-flow {
+  display: none !important;
+}
+
+.proto-flow-back {
+  min-width: 40px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: rgba(200, 210, 218, 0.85);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  transition: 0.15s ease;
+}
+
+.proto-flow-back:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* —— 演示控件：角落浮动，页面本身全屏呈现 —— */
+.proto-chrome {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.proto-chrome__dock {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(31, 42, 51, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0.38;
+  pointer-events: auto;
+  transition: opacity 0.18s ease, background 0.18s ease;
+}
+
+.proto-chrome__dock:hover,
+.proto-chrome__dock:focus-within {
+  opacity: 0.92;
+  background: rgba(31, 42, 51, 0.78);
 }
 
 .seg {
   display: inline-flex;
-  padding: 3px;
-  background: #0f161c;
-  border-radius: 8px;
+  padding: 2px;
+  background: rgba(15, 22, 28, 0.55);
+  border-radius: 7px;
 }
 
 .seg__btn {
-  min-width: 72px;
-  padding: 7px 14px;
-  border-radius: 6px;
-  color: #a8b4bf;
-  font-size: 13px;
+  min-width: 40px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: rgba(200, 210, 218, 0.85);
+  font-size: 11px;
+  letter-spacing: 0.02em;
   transition: 0.15s ease;
 }
 
 .seg__btn.is-active {
-  background: var(--teal);
+  background: rgba(26, 188, 156, 0.92);
   color: #fff;
   font-weight: 600;
 }
 
-/* —— 顶栏入口：改动说明 —— */
+/* —— 改动标记显隐开关 —— */
+.proto-markers-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  color: rgba(200, 210, 218, 0.55);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.proto-markers-toggle:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.proto-markers-toggle[aria-pressed="true"] {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.proto-markers-toggle__icon[hidden] {
+  display: none !important;
+}
+
+/* 隐藏页面上的改 / 新增标记与改动说明入口 */
+body.is-proto-markers-off .proto-diff-pin,
+body.is-proto-markers-off .proto-add-pin,
+body.is-proto-markers-off .proto-diff-entry,
+body.is-proto-markers-off #proto-diff-pin-tip,
+body.is-proto-markers-off .pad-caption {
+  display: none !important;
+}
+
+/* 汇报态：PAD 学习页隐藏「缓存」与方案 A/B/C 切换，只保留当前方案内容（默认 B） */
+body.is-proto-markers-off .xb-pad-course-info__cache,
+body.is-proto-markers-off .xb-pad-scheme-switch {
+  display: none !important;
+}
+
+/* 汇报态：控件进一步收淡，悬停才显眼 */
+body.is-proto-markers-off .proto-chrome__dock {
+  opacity: 0.22;
+}
+
+body.is-proto-markers-off .proto-chrome__dock:hover,
+body.is-proto-markers-off .proto-chrome__dock:focus-within {
+  opacity: 0.88;
+}
+
+/* —— 改动说明入口（右上角悬浮） —— */
 .proto-diff-entry {
+  position: absolute;
+  top: 12px;
+  right: 12px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
   flex-shrink: 0;
+  pointer-events: auto;
+  opacity: 0.88;
+  transition: opacity 0.15s ease;
+}
+
+.proto-diff-entry:hover {
+  opacity: 1;
 }
 
 .proto-diff-entry__tag {
@@ -816,11 +1059,12 @@ button {
 
 /* —— 舞台 —— */
 .stage {
-  min-height: calc(100vh - 48px);
+  min-height: 100vh;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 24px;
+  padding: 0;
+  background: #fff;
 }
 
 .stage[data-terminal="pad"] {
@@ -837,15 +1081,24 @@ button {
   display: block;
 }
 
-/* —— PC 视图 —— */
+/* —— PC 视图：全屏铺满，像真实网页 —— */
 .pc-shell {
-  width: min(1440px, 100%);
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   background: #fff;
-  border-radius: 4px;
-  box-shadow: var(--shadow);
+  border-radius: 0;
+  box-shadow: none;
   overflow: hidden;
   position: relative;
+}
+
+body[data-terminal="pc"] {
+  background: #fff;
+}
+
+.pc-shell .xb-page.is-active {
+  min-height: 100vh;
 }
 
 .pc-home {
@@ -862,16 +1115,26 @@ button {
   pointer-events: none;
 }
 
-/* 右上角身份热区（叠在截图姓名区域） */
+/* 右上角身份热区（叠在截图姓名 / 头像区域；原图更换后按角色分别对齐） */
 .pc-role-hotspot {
   position: absolute;
-  top: 1.1%;
-  right: 1.2%;
-  width: 7.5%;
-  height: 3.6%;
   border-radius: 4px;
   cursor: pointer;
   z-index: 20;
+}
+
+.pc-role-hotspot--teacher {
+  top: 1.0%;
+  right: 12.2%;
+  width: 6.4%;
+  height: 3.3%;
+}
+
+.pc-role-hotspot--jiaowu {
+  top: 0.9%;
+  right: 10.5%;
+  width: 6.0%;
+  height: 3.4%;
 }
 
 .pc-role-hotspot:hover {
@@ -1055,57 +1318,81 @@ button {
 }
 
 .module-chip--jiaowu {
-  /* 教务：教学应用「更多」整格覆盖 */
-  top: 85.5%;
-  left: 89.2%;
+  /* 教务首页「资源中心」格：原图像素 2208,1065 / 155×164 @ 2838×1608 */
+  top: 66.23%;
+  left: 77.80%;
   right: auto;
-  width: 6.2%;
+  width: 5.46%;
   min-width: 0;
-  height: 11%;
-  padding: 6px 2px;
-  gap: 2px;
+  height: 10.20%;
+  padding: 8px 2px 6px;
+  gap: 4px;
   background: #fff;
-  border-style: solid;
+  border: none;
+  border-radius: 8px;
+  box-shadow: none;
   overflow: hidden;
 }
 
 .module-chip--jiaowu .module-chip__icon {
-  width: 28px;
-  height: 28px;
-  font-size: 14px;
-  border-radius: 6px;
+  width: 42%;
+  max-width: 48px;
+  height: auto;
+  aspect-ratio: 1;
+  font-size: 16px;
+  border-radius: 10px;
 }
 
 .module-chip--jiaowu .module-chip__name {
-  font-size: 10px;
-  max-width: 58px;
+  font-size: clamp(10px, 0.85vw, 13px);
+  max-width: 90%;
   line-height: 1.15;
+  color: #333;
+  font-weight: 500;
 }
 
 .module-chip--teacher {
-  /* 老师：宫格「更多」整格覆盖 */
-  top: 68.5%;
-  left: 62.2%;
-  width: 7.8%;
+  /* 老师首页「我的资源」格：原图像素 1420,962 / 248×266 @ 2850×1606 */
+  top: 59.90%;
+  left: 49.82%;
+  width: 8.70%;
   min-width: 0;
-  height: 12%;
-  padding: 6px 4px;
-  gap: 2px;
-  background: #e8f8f5;
-  border-style: solid;
+  height: 16.56%;
+  padding: 10px 8px;
+  gap: 6px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  background: #36c2b9;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(15, 40, 60, 0.08);
   overflow: hidden;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.module-chip--teacher:hover {
+  background: #249e96;
+  border: none;
+  box-shadow: 0 4px 12px rgba(15, 40, 60, 0.18);
 }
 
 .module-chip--teacher .module-chip__icon {
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
+  width: 36%;
+  max-width: 52px;
+  height: auto;
+  aspect-ratio: 1;
+  font-size: 18px;
+  margin-top: auto;
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .module-chip--teacher .module-chip__name {
-  font-size: 12px;
-  max-width: 80px;
-  line-height: 1.15;
+  font-size: clamp(12px, 1.05vw, 16px);
+  max-width: 100%;
+  line-height: 1.2;
+  color: #fff;
+  font-weight: 600;
 }
 
 /* —— PAD 平板外壳 —— */
@@ -1575,6 +1862,49 @@ button {
 .xb-pad-home__top-actions {
   justify-self: end;
   min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.xb-pad-home__grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 2px 10px rgba(20, 80, 64, 0.12);
+  backdrop-filter: blur(8px);
+  color: #146354;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.xb-pad-home__grade-label {
+  white-space: nowrap;
+}
+
+.xb-pad-home__grade-select {
+  appearance: none;
+  border: none;
+  background: transparent
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%23146354' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat right 8px center;
+  color: #146354;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  min-width: 78px;
+  height: 28px;
+  padding: 0 24px 0 2px;
+  cursor: pointer;
+}
+
+.xb-pad-home__grade-select:focus {
+  outline: none;
 }
 
 .xb-pad-home__subjects {
@@ -2489,6 +2819,26 @@ button {
   pointer-events: none;
 }
 
+.xb-pad-ware-page__img[hidden] {
+  display: none !important;
+}
+
+.xb-pad-ware-page__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+}
+
+.xb-pad-ware-page__frame[hidden] {
+  display: none !important;
+}
+
+.xb-pad-ware-page.is-pdf .xb-pad-ware-page__back {
+  background: rgba(0, 0, 0, 0.35);
+}
+
 .xb-pad-ware-page__back {
   position: absolute;
   top: 6px;
@@ -3358,20 +3708,62 @@ button {
 }
 
 .xb-pad-course-b__item--standalone {
-  padding: 12px 4px;
-  margin-bottom: 2px;
+  padding: 12px 6px;
+  margin-bottom: 4px;
   border-bottom: 1px solid #f2f4f5;
-  border-radius: 0;
-  background: transparent !important;
+  border-radius: 10px;
+  gap: 10px;
+  background: #fafbfc !important;
 }
 
-.xb-pad-course-b__item--standalone .xb-pad-course-b__ico {
-  background: transparent;
-  box-shadow: none;
+.xb-pad-course-b__item--standalone:hover {
+  background: #f3f7f5 !important;
+}
+
+.xb-pad-course-b__item--standalone .xb-pad-course-b__ico.is-prominent {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.xb-pad-course-b__item--standalone .xb-pad-course-b__ico.is-prominent svg {
+  width: 22px;
+  height: 22px;
 }
 
 .xb-pad-course-b__item--standalone.is-current .xb-pad-course-b__item-name {
   color: #2fa87e;
+}
+
+.xb-pad-course-b__type-tag {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.xb-pad-course-b__type-tag--paper {
+  color: #b86d08;
+  background: #ffe8bf;
+}
+
+.xb-pad-course-b__type-tag--ware {
+  color: #c24a1a;
+  background: #ffdccb;
+}
+
+.xb-pad-course-b__type-tag--video {
+  color: #1f8f68;
+  background: #d5f3e8;
 }
 
 .xb-pad-course-b__ico {
@@ -3397,6 +3789,16 @@ button {
 .xb-pad-course-b__ico--ware {
   color: #c45c2a;
   background: #fff0e8;
+}
+
+.xb-pad-course-b__ico--paper.is-prominent {
+  color: #b86d08;
+  background: #ffe8bf;
+}
+
+.xb-pad-course-b__ico--ware.is-prominent {
+  color: #c24a1a;
+  background: #ffdccb;
 }
 
 .xb-pad-course-b__ware-card .xb-pad-course-b__ico {
@@ -4049,20 +4451,62 @@ button {
 }
 
 .xb-pad-course-c__item--standalone {
-  padding: 12px 4px;
-  margin-bottom: 2px;
+  padding: 12px 6px;
+  margin-bottom: 4px;
   border-bottom: 1px solid #f2f4f5;
-  border-radius: 0;
-  background: transparent !important;
+  border-radius: 10px;
+  gap: 10px;
+  background: #fafbfc !important;
 }
 
-.xb-pad-course-c__item--standalone .xb-pad-course-c__ico {
-  background: transparent;
-  box-shadow: none;
+.xb-pad-course-c__item--standalone:hover {
+  background: #f3f7f5 !important;
+}
+
+.xb-pad-course-c__item--standalone .xb-pad-course-c__ico.is-prominent {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.xb-pad-course-c__item--standalone .xb-pad-course-c__ico.is-prominent svg {
+  width: 22px;
+  height: 22px;
 }
 
 .xb-pad-course-c__item--standalone.is-current .xb-pad-course-c__item-name {
   color: #2fa87e;
+}
+
+.xb-pad-course-c__type-tag {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.xb-pad-course-c__type-tag--paper {
+  color: #b86d08;
+  background: #ffe8bf;
+}
+
+.xb-pad-course-c__type-tag--ware {
+  color: #c24a1a;
+  background: #ffdccb;
+}
+
+.xb-pad-course-c__type-tag--video {
+  color: #1f8f68;
+  background: #d5f3e8;
 }
 
 .xb-pad-course-c__ico {
@@ -4088,6 +4532,16 @@ button {
 .xb-pad-course-c__ico--ware {
   color: #c45c2a;
   background: #fff0e8;
+}
+
+.xb-pad-course-c__ico--paper.is-prominent {
+  color: #b86d08;
+  background: #ffe8bf;
+}
+
+.xb-pad-course-c__ico--ware.is-prominent {
+  color: #c24a1a;
+  background: #ffdccb;
 }
 
 .xb-pad-course-c__ware-card .xb-pad-course-c__ico {
