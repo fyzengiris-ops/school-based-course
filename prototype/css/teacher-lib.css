@@ -119,7 +119,7 @@
   margin-left: 2px;
 }
 
-/* —— 主内容（教师无侧栏；教务有侧栏） —— */
+/* —— 主内容（教师、教务都有侧栏） —— */
 .xb-main {
   flex: 1;
   padding: 16px 20px 24px;
@@ -129,10 +129,12 @@
 .xb-body {
   display: flex;
   align-items: flex-start;
+  flex: 1;
   min-height: 0;
 }
 
-.xb-page--jiaowu .xb-side {
+.xb-page--jiaowu .xb-side,
+#pc-teacher-lib .xb-side {
   align-self: stretch;
   min-height: 100%;
 }
@@ -437,6 +439,69 @@
 .jw-learners-mode-tip:hover::before,
 .jw-learners-mode-tip:focus-visible::after,
 .jw-learners-mode-tip:focus-visible::before {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.jw-learners-warn:hover::after,
+.jw-learners-warn:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.jw-learners-warn:hover::before,
+.jw-learners-warn:focus-visible::before {
+  opacity: 1;
+}
+
+.jw-learners-warn {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: -16px;
+  cursor: help;
+}
+
+.jw-learners-warn:focus-visible {
+  outline: none;
+}
+
+.jw-learners-warn::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 8px);
+  z-index: 40;
+  width: max-content;
+  max-width: 280px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.55;
+  white-space: normal;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -2px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.jw-learners-warn::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 2px);
+  z-index: 41;
+  border: 6px solid transparent;
+  border-bottom-color: rgba(0, 0, 0, 0.78);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 0.12s ease;
+}
   opacity: 1;
   transform: none;
 }
@@ -1851,6 +1916,7 @@
   background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23bbb'/%3E%3C/svg%3E") no-repeat right 10px center;
 }
 
+.jw-publish-input:disabled,
 .jw-publish-select:disabled {
   background-color: #f5f5f5;
   color: #999;
@@ -2350,6 +2416,56 @@
   margin-top: 4px;
   font-size: 12px;
   color: #999;
+}
+
+.jw-unit__lesson .xb-course-info__title {
+  margin-bottom: 0;
+}
+
+.jw-unit__lesson .xb-course-info__title .xb-preview-link {
+  font-size: 14px;
+  color: #333;
+}
+
+.jw-pack {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: #fafafa;
+  border-radius: 4px;
+}
+
+.jw-pack .xb-course-info__meta {
+  line-height: 1.7;
+}
+
+.jw-res-type {
+  flex-shrink: 0;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 2px;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.jw-res-type--video {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.jw-res-type--paper {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.jw-res-type--courseware {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.jw-unit__lesson .xb-course-info__title .xb-preview-link:hover,
+.jw-pack .xb-preview-link:hover {
+  color: var(--xb-teal);
+  text-decoration: underline;
 }
 
 .jw-unit__lesson-ops {
@@ -3332,6 +3448,11 @@
   white-space: nowrap;
   vertical-align: bottom;
   font-size: 12px;
+}
+
+.jw-unit__lesson .xb-list-attach__link,
+.jw-unit__lesson .xb-preview-link {
+  max-width: 480px;
 }
 
 .xb-list-attach__name {

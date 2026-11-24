@@ -5,9 +5,10 @@
   const state = {
     terminal: "pc", // pc | pad
     role: "teacher", // teacher | jiaowu
-    pcPage: "home", // home | module
+    pcPage: "home", // home | module | my-resources | add-resource
     padPage: "home", // home | xiaoben | jingxuan | course-detail | course-ware | course-hw | course-hw-grade | course-hw-report | course-hw-detail | course-hw-status
     jwNav: "lib", // manage | lib | publish | learners | learners-import | learners-add | learn-data
+    tcNav: "lib",
     publishStep: 1, // 1 | 2
     protoMode: "proto", // flow | proto
   };
@@ -16,8 +17,86 @@
   let persistTimer = null;
   let persistReady = false;
 
-  const $ = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  let manageScope = "jw";
+  const MANAGE_ID_KEEP = new Set([
+    "jw-review-modal",
+    "jw-review-title",
+    "jw-review-opinion",
+    "jw-review-count",
+    "jw-review-ok",
+    "jw-add-btn",
+    "jw-add-group-btn",
+    "jw-group-tags",
+    "jw-move-btn",
+    "jw-check-all",
+    "jw-course-tbody",
+    "jw-record-count",
+    "jw-tip-pop",
+  ]);
+
+  function mapManageId(id) {
+    if (manageScope !== "tc") return id;
+    if (id === "pc-diff-learn-pin") return "tc-diff-learn-pin";
+    if (id === "pc-diff-publish-pin") return "tc-diff-publish-pin";
+    if (id.startsWith("jw-") && !MANAGE_ID_KEEP.has(id)) return "tc-" + id.slice(3);
+    return id;
+  }
+
+  function mapManageSelector(sel) {
+    if (manageScope !== "tc" || typeof sel !== "string") return sel;
+    return sel
+      .replace(/#([A-Za-z0-9_-]+)/g, (full, id) => "#" + mapManageId(id))
+      .replace(/name="jw-(learn-mode|learn-sub|progress|hw-check|add-learner-mode)"/g, 'name="tc-$1"')
+      .replace(/name='jw-(learn-mode|learn-sub|progress|hw-check|add-learner-mode)'/g, "name='tc-$1'");
+  }
+
+  function isManageSelector(sel) {
+    return (
+      typeof sel === "string" &&
+      (/[.#](?:jw|tc)-/.test(sel) ||
+        /name=["'](?:jw|tc)-/.test(sel) ||
+        sel.includes("pc-diff-learn-pin") ||
+        sel.includes("pc-diff-publish-pin"))
+    );
+  }
+
+  function manageHost() {
+    return document.getElementById(manageScope === "tc" ? "pc-teacher-lib" : "pc-jiaowu-lib");
+  }
+
+  const $ = (sel, root = document) => {
+    if (root !== document) return root.querySelector(sel);
+    const mapped = mapManageSelector(sel);
+    if (isManageSelector(sel) || isManageSelector(mapped)) {
+      const hit = manageHost()?.querySelector(mapped);
+      if (hit) return hit;
+    }
+    return document.querySelector(mapped);
+  };
+  const $$ = (sel, root = document) => {
+    if (root !== document) return Array.from(root.querySelectorAll(sel));
+    const mapped = mapManageSelector(sel);
+    if (isManageSelector(sel) || isManageSelector(mapped)) {
+      const host = manageHost();
+      const hits = host ? Array.from(host.querySelectorAll(mapped)) : [];
+      if (hits.length) return hits;
+    }
+    return Array.from(document.querySelectorAll(mapped));
+  };
+
+  function bindManageControl(id, type, handler) {
+    const suffix = id.replace(/^jw-/, "");
+    ["jw-", "tc-"].forEach((prefix) => {
+      if (prefix === "tc-" && MANAGE_ID_KEEP.has(id)) return;
+      document.getElementById(prefix + suffix)?.addEventListener(type, handler);
+    });
+  }
+
+  function syncManageScopeFromEvent(event) {
+    const page = event.target?.closest?.("#pc-teacher-lib, #pc-jiaowu-lib");
+    if (!page) return;
+    manageScope = page.id === "pc-teacher-lib" ? "tc" : "jw";
+  }
 
   function loadProtoState() {
     try {
@@ -40,10 +119,10 @@
       subject: $("#jw-pub-subject")?.value || "",
       lessons: $("#jw-pub-lessons")?.value || "",
       intro: $("#jw-pub-intro")?.value || "",
-      learnMode: document.querySelector('input[name="jw-learn-mode"]:checked')?.value || "order",
-      learnSub: document.querySelector('input[name="jw-learn-sub"]:checked')?.value || "video",
-      progress: document.querySelector('input[name="jw-progress"]:checked')?.value || "lock",
-      hwCheck: document.querySelector('input[name="jw-hw-check"]:checked')?.value || "self",
+      learnMode: $('input[name="jw-learn-mode"]:checked')?.value || "order",
+      learnSub: $('input[name="jw-learn-sub"]:checked')?.value || "video",
+      progress: $('input[name="jw-progress"]:checked')?.value || "lock",
+      hwCheck: $('input[name="jw-hw-check"]:checked')?.value || "self",
     };
   }
 
@@ -58,15 +137,15 @@
     if ($("#jw-pub-subject") && form.subject) $("#jw-pub-subject").value = form.subject;
     if ($("#jw-pub-lessons")) $("#jw-pub-lessons").value = form.lessons || "";
     if ($("#jw-pub-intro")) $("#jw-pub-intro").value = form.intro || "";
-    const learnMode = document.querySelector(`input[name="jw-learn-mode"][value="${form.learnMode || "order"}"]`);
+    const learnMode = $(`input[name="jw-learn-mode"][value="${form.learnMode || "order"}"]`);
     if (learnMode) learnMode.checked = true;
-    const learnSub = document.querySelector(`input[name="jw-learn-sub"][value="${form.learnSub || "video"}"]`);
+    const learnSub = $(`input[name="jw-learn-sub"][value="${form.learnSub || "video"}"]`);
     if (learnSub) learnSub.checked = true;
     const sub = $("#jw-learn-sub");
     if (sub) sub.hidden = form.learnMode === "free";
-    const progress = document.querySelector(`input[name="jw-progress"][value="${form.progress || "lock"}"]`);
+    const progress = $(`input[name="jw-progress"][value="${form.progress || "lock"}"]`);
     if (progress) progress.checked = true;
-    const hw = document.querySelector(`input[name="jw-hw-check"][value="${form.hwCheck || "self"}"]`);
+    const hw = $(`input[name="jw-hw-check"][value="${form.hwCheck || "self"}"]`);
     if (hw) hw.checked = true;
   }
 
@@ -87,6 +166,7 @@
         padXbHwStep,
         padXbHwStatus,
         jwNav: state.jwNav,
+        tcNav: state.tcNav,
         publishStep: state.publishStep,
         editingPublishId,
         publishMode,
@@ -202,13 +282,1102 @@
     $("#pc-jiaowu-lib")?.classList.remove("is-active");
   }
 
+  let closeXbShare = () => {};
+
+  function hideMyResources() {
+    const page = $("#pc-teacher-my-resources");
+    if (page) {
+      page.hidden = true;
+      page.classList.remove("is-usage-open");
+    }
+    closeResUse();
+    closeXbShare();
+  }
+
+  function hideAddResource() {
+    const page = $("#pc-teacher-add-resource");
+    if (page) page.hidden = true;
+  }
+
+  let resShareMarks = { school: false, leke: false, xiaoben: false };
+
+  function renderResShareTags() {
+    const shareItem = document.querySelector("[data-action='open-res-share']");
+    if (shareItem) shareItem.hidden = !!(resShareMarks.school && resShareMarks.leke && resShareMarks.xiaoben);
+    const box = $("#res-share-tags");
+    if (!box) return;
+    box.querySelectorAll("[data-share-tag]").forEach((el) => {
+      el.hidden = !resShareMarks[el.dataset.shareTag];
+    });
+    box.hidden = !(resShareMarks.school || resShareMarks.leke || resShareMarks.xiaoben);
+  }
+
+  function closeResShare() {
+    const modal = $("#res-share-modal");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.hidden = true;
+    const menu = $("#res-share-float-menu");
+    if (menu) menu.hidden = true;
+    const confirm = $("#res-share-confirm");
+    if (confirm) confirm.hidden = true;
+  }
+
+  function openResUse() {
+    const modal = $("#res-use-modal");
+    if (!modal) return;
+    modal.hidden = false;
+    modal.classList.add("is-open");
+  }
+
+  function closeResUse() {
+    const modal = $("#res-use-modal");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.hidden = true;
+  }
+
+  const XB_DEFAULT_PACK_TIP = "以教师个人名字命名的课包为默认课包，不可删除和编辑，学生可通过教师名称选择课包资源进行学习";
+  let xbShareScheme = "a";
+  let applyXbModalScheme = () => {};
+
+  function createTeacherPack() {
+    return {
+      id: "pack-teacher",
+      name: "蒋雯",
+      fixed: true,
+      open: true,
+      children: [],
+      files: [
+        { type: "ppt", label: "PPT", name: "正数和负数的定义" },
+        { type: "video", label: "微课", name: "正数和负数的应用" },
+        { type: "paper", label: "试卷", name: "正数和负数的综合检测" },
+      ],
+    };
+  }
+
+  function teacherPackInfoHtml() {
+    return `<span class="res-share-help res-node__help">
+      <button type="button" class="res-share-help__btn res-share-help__btn--info" aria-label="默认课包说明">i</button>
+      <span class="res-share-help__tip" role="tooltip">${XB_DEFAULT_PACK_TIP}</span>
+    </span>`;
+  }
+
+  function syncPackFloatMenu(menu, kind, fixed) {
+    if (!menu) return;
+    const addBtn = menu.querySelector("[data-share-add-dir]");
+    const editBtn = menu.querySelector("[data-share-edit-dir]");
+    const delBtn = menu.querySelector("[data-share-del-dir]");
+    const learnersBtn = menu.querySelector("[data-share-learners]");
+    if (addBtn) addBtn.hidden = fixed;
+    if (editBtn) {
+      editBtn.hidden = fixed;
+      editBtn.textContent = kind === "pack" ? "编辑课包" : "编辑目录";
+    }
+    if (delBtn) {
+      delBtn.hidden = fixed;
+      delBtn.textContent = kind === "pack" ? "删除课包" : "删除目录";
+    }
+    if (learnersBtn) learnersBtn.hidden = kind !== "pack";
+  }
+
+  function openPackLearners(packName) {
+    const modal = $("#res-pack-learners");
+    if (!modal) return;
+    const nameEl = $("#res-pack-learners-name");
+    if (nameEl) nameEl.textContent = packName || "课包";
+    const students = getAllServiceLearnerSeed();
+    const body = $("#res-pack-learners-body");
+    const count = $("#res-pack-learners-count");
+    if (count) count.textContent = `共 ${students.length} 名学生`;
+    if (body) {
+      body.innerHTML = students.length
+        ? students
+            .map(
+              (student) => `<tr>
+          <td>${escapeAttr(student.klass)}</td>
+          <td>${escapeAttr(student.name)}</td>
+          <td>${escapeAttr(student.gender)}</td>
+          <td>${escapeAttr(student.lehao)}</td>
+          <td>${escapeAttr(student.addedAt)}</td>
+        </tr>`
+            )
+            .join("")
+        : `<tr><td class="res-pack-learners__empty" colspan="5">暂无可学习该课包的学生</td></tr>`;
+    }
+    modal.hidden = false;
+    modal.classList.add("is-open");
+  }
+
+  function closePackLearners() {
+    const modal = $("#res-pack-learners");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.hidden = true;
+  }
+
+  $$("[data-close-pack-learners]").forEach((el) => {
+    el.addEventListener("click", closePackLearners);
+  });
+
+  function setXbShareScheme(scheme) {
+    xbShareScheme = scheme === "b" ? "b" : "a";
+    $$("#res-xb-modal [data-xb-scheme]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.xbScheme === xbShareScheme);
+    });
+    applyXbModalScheme();
+  }
+
+  function mountXbShare() {
+    const modal = $("#res-xb-modal");
+    if (!modal) return;
+    const q = (sel) => modal.querySelector(sel);
+    let tree = [];
+    let teacherPack = createTeacherPack();
+    let selectedId = "";
+    let composer = null;
+    let seq = 1;
+    let dirId = "";
+    let nodeKind = "dir";
+    let deleteId = "";
+    let menuTimer = null;
+    let fileDrag = null;
+
+    const esc = (text) =>
+      String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+
+    function roots() {
+      return xbShareScheme === "b" ? [teacherPack, ...tree] : tree;
+    }
+
+    function findNode(id, nodes = roots()) {
+      for (const node of nodes) {
+        if (node.id === id) return node;
+        const found = findNode(id, node.children || []);
+        if (found) return found;
+      }
+      return null;
+    }
+
+    function findParent(id, nodes = roots(), parent = null) {
+      for (const node of nodes) {
+        if (node.id === id) return parent;
+        const found = findParent(id, node.children || [], node);
+        if (found) return found;
+      }
+      return null;
+    }
+
+    function mode() {
+      return q('input[name="xb-pack-to"]:checked')?.value || "default";
+    }
+
+    function sync() {
+      const schemeB = xbShareScheme === "b";
+      const picking = !schemeB && mode() === "pick";
+      const shareTo = q("[data-share-to-row]");
+      if (shareTo) shareTo.hidden = schemeB;
+      const wrap = q("[data-xb-tree-wrap]");
+      if (wrap) wrap.hidden = !(picking || schemeB);
+      placeNewPackButton(q("[data-xb-new-pack-group]"), q("[data-share-pack-bar]"), q(".res-share-radios"), schemeB, picking);
+      q("[data-xb-form]")?.classList.toggle("is-scheme-b", schemeB);
+      const ok = q("[data-xb-ok]");
+      if (ok) ok.disabled = (picking || schemeB) && !selectedId;
+    }
+
+    function composerHtml(depth, placeholder) {
+      const pad = 30 + depth * 18;
+      const draft = esc(composer?.draft || "");
+      const err = composer?.error ? `<p class="res-share-compose__err">请输入名称</p>` : "";
+      return `<div class="res-share-compose" style="padding-left:${pad}px">
+        <input class="res-share-compose__input" type="text" placeholder="${placeholder}" value="${draft}" />
+        <button type="button" class="res-share-compose__ok" data-share-compose="ok">确定</button>
+        <button type="button" class="res-share-compose__cancel" data-share-compose="cancel">取消</button>
+        ${err}
+      </div>`;
+    }
+
+    function filesHtml(files, depth, parentId) {
+      return (files || [])
+        .map(
+          (file, index) => `<div class="res-file" draggable="true" data-file-dir="${esc(parentId)}" data-file-index="${index}" style="padding-left:${30 + depth * 18}px" title="按住拖动调整顺序">
+            <span class="res-file__grip" aria-hidden="true"></span>
+            <span class="res-file__tag res-file__tag--${esc(file.type)}">${esc(file.label)}</span>
+            <span class="res-file__name">${esc(file.name)}</span>
+          </div>`
+        )
+        .join("");
+    }
+
+    function nodesHtml(nodes, depth) {
+      return nodes
+        .map((node) => {
+          const isPack = depth === 0;
+          const selected = node.id === selectedId ? " is-selected" : "";
+          const hasKids = (node.children || []).length > 0;
+          const hasFiles = (node.files || []).length > 0;
+          const kind = isPack ? "res-node__row--pack" : "res-node__row--sec";
+          const icon = isPack
+            ? `<span class="res-node__icon res-node__icon--pack" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M1.5 3.4A1.4 1.4 0 0 1 2.9 2h3.1l1.2 1.4H13a1.4 1.4 0 0 1 1.4 1.4v7.3A1.4 1.4 0 0 1 13 13.5H2.9a1.4 1.4 0 0 1-1.4-1.4V3.4z"/></svg></span>`
+            : `<span class="res-node__icon res-node__icon--sec" aria-hidden="true"><svg viewBox="0 0 16 16"><circle cx="2.4" cy="3.6" r="1.15"/><circle cx="2.4" cy="8" r="1.15"/><circle cx="2.4" cy="12.4" r="1.15"/><path d="M5.2 3.6h8.2M5.2 8h8.2M5.2 12.4h6.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>`;
+          const more = `<div class="res-node__more" data-dir-id="${esc(node.id)}" data-node-kind="${isPack ? "pack" : "dir"}"${node.fixed ? ' data-node-fixed="1"' : ""}>
+            <button type="button" class="res-node__more-btn" aria-label="更多" aria-haspopup="menu"><i></i><i></i><i></i></button>
+          </div>`;
+          const info = node.fixed ? teacherPackInfoHtml() : "";
+          const editing = composer && composer.editId === node.id;
+          const editErr = editing && composer.error ? `<p class="res-share-compose__err">请输入名称</p>` : "";
+          const nameCell = editing
+            ? `<div class="res-node__edit">
+                ${icon}
+                <input class="res-share-compose__input" type="text" value="${esc(composer.draft ?? node.name)}" aria-label="${isPack ? "课包名称" : "目录名称"}" />
+                <button type="button" class="res-share-compose__ok" data-share-compose="ok">确定</button>
+                <button type="button" class="res-share-compose__cancel" data-share-compose="cancel">取消</button>
+                ${editErr}
+              </div>`
+            : `<button type="button" class="res-node__pick" data-share-pick="${esc(node.id)}">${icon}<span class="res-node__name">${esc(node.name)}</span></button>`;
+          const composingChild = composer && composer.parentId === node.id;
+          const afterComposer = composer && composer.afterId === node.id ? composerHtml(depth, "请输入目录名称") : "";
+          const empty =
+            node.open && !hasKids && !hasFiles && !composingChild
+              ? `<div class="res-node__empty" style="padding-left:${30 + (depth + 1) * 18}px">暂无资源</div>`
+              : "";
+          const kids =
+            node.open || composingChild
+              ? `<div class="res-node__kids">${composingChild ? composerHtml(depth + 1, "请输入目录名称") : ""}${
+                  node.open ? nodesHtml(node.children || [], depth + 1) : ""
+                }${node.open ? filesHtml(node.files, depth + 1, node.id) : ""}${empty}</div>`
+              : "";
+          return `<div class="res-node ${isPack ? "res-node--pack" : "res-node--sec"}">
+            <div class="res-node__row ${kind}${node.fixed ? " res-node__row--fixed" : ""}${selected}" style="padding-left:${12 + depth * 18}px">
+              <button type="button" class="res-node__toggle" data-share-toggle="${esc(node.id)}" aria-expanded="${node.open ? "true" : "false"}" aria-label="${node.open ? "收起" : "展开"}">${node.open ? "▾" : "▸"}</button>
+              ${nameCell}
+              ${editing ? "" : info}
+              ${editing ? "" : more}
+            </div>
+            ${kids}
+          </div>${afterComposer}`;
+        })
+        .join("");
+    }
+
+    function render() {
+      const root = q("[data-xb-tree]");
+      if (!root) return;
+      const menu = q("[data-xb-menu]");
+      if (menu) menu.hidden = true;
+      const creating = composer && composer.root;
+      const composerBox = creating ? composerHtml(0, "请输入课包名称") : "";
+      root.innerHTML = xbShareScheme === "b"
+        ? `${nodesHtml([teacherPack], 0)}${composerBox}${nodesHtml(tree, 0)}`
+        : `${composerBox}${nodesHtml(tree, 0)}`;
+      const input = root.querySelector(".res-share-compose__input");
+      if (input) {
+        input.focus();
+        const end = input.value.length;
+        input.setSelectionRange(end, end);
+      }
+    }
+
+    function reset() {
+      teacherPack = createTeacherPack();
+      tree = JSON.parse(JSON.stringify(SHARE_PACK_SEED));
+      selectedId = xbShareScheme === "b" ? "pack-teacher" : "";
+      composer = null;
+      seq = 1;
+      render();
+    }
+
+    function confirmCompose() {
+      if (!composer) return;
+      const input = q("[data-xb-tree] .res-share-compose__input");
+      const raw = input?.value || "";
+      const name = raw.trim();
+      if (!name) {
+        composer.draft = raw;
+        composer.error = true;
+        render();
+        return;
+      }
+      if (composer.editId) {
+        const editing = findNode(composer.editId);
+        if (editing) editing.name = name;
+        composer = null;
+        render();
+        return;
+      }
+      const node = { id: `xb-share-${seq++}`, name, open: true, children: [], files: [] };
+      if (composer.root) {
+        node.subject = "初中数学";
+        tree.unshift(node);
+      } else if (composer.parentId) {
+        const parent = findNode(composer.parentId);
+        if (parent) {
+          parent.open = true;
+          parent.children.unshift(node);
+        }
+      } else if (composer.afterId) {
+        const parent = findParent(composer.afterId);
+        if (parent) {
+          const index = parent.children.findIndex((item) => item.id === composer.afterId);
+          parent.children.splice(index + 1, 0, node);
+        }
+      }
+      selectedId = node.id;
+      composer = null;
+      render();
+      sync();
+    }
+
+    function moveFile(parentId, from, to) {
+      const dir = findNode(parentId);
+      if (!dir?.files || from === to || from < 0 || to < 0) return;
+      const [item] = dir.files.splice(from, 1);
+      const dest = from < to ? to - 1 : to;
+      dir.files.splice(Math.max(0, Math.min(dest, dir.files.length)), 0, item);
+    }
+
+    function hasResources(node) {
+      if (!node) return false;
+      if ((node.files || []).length) return true;
+      return (node.children || []).some((child) => hasResources(child));
+    }
+
+    function removeDir(id) {
+      if (id === "pack-teacher") return;
+      const parent = findParent(id);
+      if (parent) parent.children = parent.children.filter((item) => item.id !== id);
+      else tree = tree.filter((item) => item.id !== id);
+      if (selectedId && !findNode(selectedId)) selectedId = "";
+      if (composer && [composer.afterId, composer.editId, composer.parentId].some((item) => item && !findNode(item))) {
+        composer = null;
+      }
+      render();
+      sync();
+    }
+
+    function openConfirm(kind) {
+      const title = q("#res-xb-confirm-title");
+      const desc = q(".res-share-confirm__desc");
+      const ok = q("[data-xb-confirm-ok]");
+      if (kind === "pack") {
+        if (title) title.textContent = "确定删除课包吗？";
+        if (desc) desc.textContent = "删除课包，将同步删除课包下面的目录和资源";
+        if (ok) ok.textContent = "确定";
+      } else {
+        if (title) title.textContent = "确认删除目录吗？";
+        if (desc) desc.textContent = "删除目录，将同步删除目录下的资源，学生将不可查看";
+        if (ok) ok.textContent = "确认";
+      }
+      const confirm = q("[data-xb-confirm]");
+      if (confirm) confirm.hidden = false;
+    }
+
+    function closeConfirm() {
+      deleteId = "";
+      const confirm = q("[data-xb-confirm]");
+      if (confirm) confirm.hidden = true;
+    }
+
+    function close() {
+      modal.classList.remove("is-open");
+      modal.hidden = true;
+      const menu = q("[data-xb-menu]");
+      if (menu) menu.hidden = true;
+      closeConfirm();
+    }
+
+    function open() {
+      q("[data-xb-form]")?.reset();
+      reset();
+      sync();
+      modal.hidden = false;
+      modal.classList.add("is-open");
+    }
+
+    q("[data-xb-form]")?.addEventListener("submit", (event) => event.preventDefault());
+    modal.querySelectorAll('input[name="xb-pack-to"]').forEach((el) => {
+      el.addEventListener("change", sync);
+    });
+    q("[data-xb-new-pack]")?.addEventListener("click", () => {
+      if (composer?.root) {
+        q("[data-xb-tree] .res-share-compose__input")?.focus();
+        return;
+      }
+      composer = { root: true, draft: "", error: false };
+      render();
+    });
+    q("[data-xb-ok]")?.addEventListener("click", () => {
+      if (q("[data-xb-ok]")?.disabled) return;
+      close();
+      closeResUse();
+      $("#pc-teacher-my-resources")?.classList.remove("is-usage-open");
+    });
+    modal.querySelectorAll("[data-close-xb-share]").forEach((el) => {
+      el.addEventListener("click", close);
+    });
+
+    const treeEl = q("[data-xb-tree]");
+    treeEl?.addEventListener("click", (event) => {
+      const toggle = event.target.closest("[data-share-toggle]");
+      const pick = event.target.closest("[data-share-pick]");
+      const composeOk = event.target.closest('[data-share-compose="ok"]');
+      const composeCancel = event.target.closest('[data-share-compose="cancel"]');
+      if (toggle) {
+        const node = findNode(toggle.dataset.shareToggle);
+        if (node) node.open = !node.open;
+        render();
+        return;
+      }
+      if (pick) {
+        selectedId = pick.dataset.sharePick;
+        render();
+        sync();
+        return;
+      }
+      if (composeOk) confirmCompose();
+      if (composeCancel) {
+        composer = null;
+        render();
+      }
+    });
+    treeEl?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && event.target.classList.contains("res-share-compose__input")) {
+        event.preventDefault();
+        confirmCompose();
+      }
+    });
+
+    function clearDropMarks() {
+      treeEl?.querySelectorAll(".res-file.is-drop-before, .res-file.is-drop-after, .res-file.is-dragging").forEach((el) => {
+        el.classList.remove("is-drop-before", "is-drop-after", "is-dragging");
+      });
+    }
+    treeEl?.addEventListener("dragstart", (event) => {
+      const row = event.target.closest(".res-file");
+      if (!row) return;
+      fileDrag = { dirId: row.dataset.fileDir, index: Number(row.dataset.fileIndex) };
+      row.classList.add("is-dragging");
+      const menu = q("[data-xb-menu]");
+      if (menu) menu.hidden = true;
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", String(fileDrag.index));
+      }
+    });
+    treeEl?.addEventListener("dragover", (event) => {
+      const row = event.target.closest(".res-file");
+      if (!row || !fileDrag || row.dataset.fileDir !== fileDrag.dirId) return;
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+      const after = event.clientY > row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2;
+      clearDropMarks();
+      treeEl.querySelector(`.res-file[data-file-index="${fileDrag.index}"][data-file-dir="${fileDrag.dirId}"]`)?.classList.add("is-dragging");
+      row.classList.add(after ? "is-drop-after" : "is-drop-before");
+    });
+    treeEl?.addEventListener("drop", (event) => {
+      const row = event.target.closest(".res-file");
+      if (!row || !fileDrag || row.dataset.fileDir !== fileDrag.dirId) return;
+      event.preventDefault();
+      const from = fileDrag.index;
+      const rect = row.getBoundingClientRect();
+      let to = Number(row.dataset.fileIndex);
+      if (event.clientY > rect.top + rect.height / 2) to += 1;
+      moveFile(fileDrag.dirId, from, to);
+      fileDrag = null;
+      render();
+    });
+    treeEl?.addEventListener("dragend", () => {
+      fileDrag = null;
+      clearDropMarks();
+    });
+
+    const menu = q("[data-xb-menu]");
+    function placeMenu(more) {
+      if (!menu || !more) return;
+      clearTimeout(menuTimer);
+      dirId = more.dataset.dirId || "";
+      nodeKind = more.dataset.nodeKind === "pack" ? "pack" : "dir";
+      syncPackFloatMenu(menu, nodeKind, more.dataset.nodeFixed === "1");
+      const btn = more.querySelector(".res-node__more-btn");
+      const host = modal.querySelector(".xb-modal__dialog");
+      if (!btn || !host) return;
+      menu.hidden = false;
+      const rect = btn.getBoundingClientRect();
+      const box = host.getBoundingClientRect();
+      const menuWidth = menu.offsetWidth || 112;
+      menu.style.left = `${Math.max(8, rect.right - box.left - menuWidth)}px`;
+      menu.style.top = `${rect.bottom - box.top + 4}px`;
+    }
+    function hideMenuSoon() {
+      clearTimeout(menuTimer);
+      menuTimer = setTimeout(() => {
+        if (menu) menu.hidden = true;
+        dirId = "";
+      }, 160);
+    }
+    treeEl?.addEventListener("mouseover", (event) => {
+      const more = event.target.closest(".res-node__more");
+      if (more) placeMenu(more);
+    });
+    treeEl?.addEventListener("mouseout", (event) => {
+      const more = event.target.closest(".res-node__more");
+      if (!more) return;
+      if (more.contains(event.relatedTarget) || menu?.contains(event.relatedTarget)) return;
+      hideMenuSoon();
+    });
+    menu?.addEventListener("mouseenter", () => clearTimeout(menuTimer));
+    menu?.addEventListener("mouseleave", hideMenuSoon);
+    menu?.addEventListener("click", (event) => {
+      const id = dirId;
+      if (!id) return;
+      if (event.target.closest("[data-share-learners]")) {
+        const node = findNode(id);
+        menu.hidden = true;
+        dirId = "";
+        openPackLearners(node?.name || "");
+        return;
+      }
+      if (event.target.closest("[data-share-add-dir]")) {
+        if (nodeKind === "pack") {
+          const node = findNode(id);
+          if (node) node.open = true;
+          composer = { parentId: id, draft: "", error: false };
+        } else {
+          composer = { afterId: id, draft: "", error: false };
+        }
+        menu.hidden = true;
+        dirId = "";
+        render();
+        return;
+      }
+      if (event.target.closest("[data-share-edit-dir]")) {
+        const node = findNode(id);
+        composer = { editId: id, draft: node?.name || "", error: false };
+        menu.hidden = true;
+        dirId = "";
+        render();
+        return;
+      }
+      if (!event.target.closest("[data-share-del-dir]")) return;
+      const node = findNode(id);
+      const kind = nodeKind;
+      menu.hidden = true;
+      dirId = "";
+      const needsConfirm = kind === "pack" ? (node?.children || []).length > 0 : hasResources(node);
+      if (needsConfirm) {
+        deleteId = id;
+        openConfirm(kind);
+        return;
+      }
+      removeDir(id);
+    });
+    modal.querySelectorAll("[data-xb-confirm-cancel]").forEach((el) => {
+      el.addEventListener("click", closeConfirm);
+    });
+    q("[data-xb-confirm-ok]")?.addEventListener("click", () => {
+      const id = deleteId;
+      closeConfirm();
+      if (id) removeDir(id);
+    });
+
+    closeXbShare = close;
+    applyXbModalScheme = () => {
+      if (xbShareScheme === "b") {
+        if (!selectedId || !findNode(selectedId, tree)) selectedId = "pack-teacher";
+      } else if (selectedId === "pack-teacher") {
+        selectedId = "";
+      }
+      sync();
+      render();
+    };
+    return { open, close };
+  }
+
+  const SHARE_PACK_SEED = [
+    {
+      id: "pack-rational",
+      name: "有理数",
+      subject: "初中数学",
+      open: true,
+      children: [
+        {
+          id: "sec-pos",
+          name: "正数和负数",
+          open: true,
+          children: [],
+          files: [
+            { type: "ppt", label: "PPT", name: "正数和负数的定义" },
+            { type: "video", label: "微课", name: "正数和负数的应用" },
+            { type: "paper", label: "试卷", name: "正数和负数的综合检测" },
+          ],
+        },
+        { id: "sec-concept", name: "有理数的概念", open: false, children: [] },
+        { id: "sec-axis", name: "数轴", open: false, children: [] },
+        { id: "sec-opposite", name: "相反数", open: false, children: [] },
+      ],
+    },
+    {
+      id: "pack-ops",
+      name: "有理数的运算",
+      subject: "初中数学",
+      open: false,
+      children: [],
+    },
+  ];
+
+  let shareTree = [];
+  let fileTeacherPack = createTeacherPack();
+  let shareSelectedId = "";
+  let shareComposer = null;
+  let shareSeq = 1;
+  let fileShareScheme = "a";
+
+  function fileShareChecked(value) {
+    return !!document.querySelector(`#res-share-library input[name="share-to"][value="${value}"]`)?.checked;
+  }
+
+  function applyResShareLocks() {
+    $$('#res-share-library input[name="share-to"]').forEach((el) => {
+      const locked = !!resShareMarks[el.value];
+      el.checked = locked;
+      el.disabled = locked;
+      el.closest("label")?.classList.toggle("is-locked", locked);
+    });
+  }
+
+  function fileShareAppIsXiaoben() {
+    return $("#res-share-app")?.value === "xiaoben";
+  }
+
+  function fileShareLegacyLibrary() {
+    return fileShareScheme !== "a" && !fileShareAppIsXiaoben();
+  }
+
+  function fileShareLibraryFieldsVisible() {
+    if (fileShareLegacyLibrary()) return true;
+    return fileShareScheme === "a" && (fileShareChecked("school") || fileShareChecked("leke"));
+  }
+
+  function fileSharePlaceVisible() {
+    return fileShareScheme === "a" && fileShareChecked("xiaoben");
+  }
+
+  function fileShareUsesTeacherPack() {
+    return fileSharePlaceVisible() || (fileShareScheme === "c" && fileShareAppIsXiaoben());
+  }
+
+  function syncSharePick() {
+    if (fileShareUsesTeacherPack()) {
+      if (!shareSelectedId || !findShareNode(shareSelectedId, shareTree)) shareSelectedId = "pack-teacher";
+    } else if (shareSelectedId === "pack-teacher") {
+      shareSelectedId = "";
+    }
+  }
+
+  function shareEscape(text) {
+    return String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function shareRoots() {
+    return fileShareUsesTeacherPack() && fileTeacherPack ? [fileTeacherPack, ...shareTree] : shareTree;
+  }
+
+  function findShareNode(id, nodes = shareRoots()) {
+    for (const node of nodes) {
+      if (node.id === id) return node;
+      const found = findShareNode(id, node.children || []);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function findShareParent(id, nodes = shareRoots(), parent = null) {
+    for (const node of nodes) {
+      if (node.id === id) return parent;
+      const found = findShareParent(id, node.children || [], node);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function placeNewPackButton(button, bar, radios, schemeB, picking) {
+    if (!button) return;
+    if (schemeB) {
+      if (bar && button.parentElement !== bar) bar.appendChild(button);
+      if (bar) bar.hidden = false;
+      button.hidden = false;
+      return;
+    }
+    if (radios && button.parentElement !== radios) radios.appendChild(button);
+    if (bar) bar.hidden = true;
+    button.hidden = !picking;
+  }
+
+  function shareTargetMode() {
+    return document.querySelector('input[name="xb-share-to"]:checked')?.value || "default";
+  }
+
+  function syncShareTarget() {
+    syncSharePick();
+    const library = $("#res-share-library");
+    const xiaoben = $("#res-share-xiaoben");
+    const appRow = $("#res-share-app-row");
+    const place = fileSharePlaceVisible();
+    const legacyXiaoben = fileShareScheme !== "a" && fileShareAppIsXiaoben();
+    const teacherLayout = fileShareUsesTeacherPack();
+    const showXiaoben = place || legacyXiaoben;
+    const showLibrary = fileShareScheme === "a" || fileShareLegacyLibrary();
+    const libraryFields = $("#res-share-library-fields");
+    const xbOpt = document.querySelector("#res-share-library .res-share-check--xiaoben");
+    if (appRow) appRow.hidden = fileShareScheme === "a";
+    if (library) library.hidden = !showLibrary;
+    if (xbOpt) xbOpt.hidden = fileShareScheme !== "a";
+    if (libraryFields) libraryFields.hidden = !fileShareLibraryFieldsVisible();
+    const groupRow = $("#res-share-group-row");
+    const showGroup = fileShareScheme === "a" && fileShareLibraryFieldsVisible() && fileShareChecked("school");
+    if (groupRow) groupRow.hidden = !showGroup;
+    if (!showGroup) setShareGroupOpen(false);
+    if (xiaoben) xiaoben.hidden = !showXiaoben;
+    const picking = fileShareScheme === "b" && legacyXiaoben && shareTargetMode() === "pick";
+    const shareTo = document.querySelector("#res-share-xiaoben [data-share-to-row]");
+    if (shareTo) shareTo.hidden = teacherLayout;
+    const wrap = $("#res-share-tree-wrap");
+    if (wrap) wrap.hidden = !(picking || teacherLayout);
+    const labelText = document.querySelector("[data-share-tree-label]");
+    const label = $("#res-share-tree-label");
+    if (labelText) labelText.textContent = place ? "校本课存放位置" : "存放位置";
+    label?.classList.toggle("is-wide", place);
+    placeNewPackButton(
+      $("#res-share-new-pack-group"),
+      document.querySelector("#res-share-xiaoben [data-share-pack-bar]"),
+      document.querySelector("#res-share-xiaoben .res-share-radios"),
+      teacherLayout,
+      picking
+    );
+    xiaoben?.classList.toggle("is-scheme-b", teacherLayout);
+    xiaoben?.classList.toggle("is-xb-place", place);
+    const ok = $("#res-share-ok");
+    if (ok) ok.disabled = (picking || teacherLayout) && !shareSelectedId;
+  }
+
+  function setFileShareScheme(scheme) {
+    fileShareScheme = scheme === "c" ? "c" : scheme === "b" ? "b" : "a";
+    $$("#res-share-schemes [data-file-scheme]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.fileScheme === fileShareScheme);
+    });
+    syncShareTarget();
+    renderShareTree();
+  }
+
+  function setShareGroupOpen(open) {
+    const drop = $("#res-share-group");
+    const panel = drop?.querySelector(".res-share-drop__panel");
+    const btn = drop?.querySelector(".res-share-drop__btn");
+    if (!drop || !panel || !btn) return;
+    drop.classList.toggle("is-open", open);
+    panel.hidden = !open;
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function syncResShareApp() {
+    syncShareTarget();
+    renderShareTree();
+  }
+
+  function renderShareComposer(depth, placeholder) {
+    const pad = 30 + depth * 18;
+    const draft = shareEscape(shareComposer?.draft || "");
+    const err = shareComposer?.error
+      ? `<p class="res-share-compose__err">请输入名称</p>`
+      : "";
+    return `<div class="res-share-compose" style="padding-left:${pad}px">
+      <input class="res-share-compose__input" type="text" placeholder="${placeholder}" value="${draft}" />
+      <button type="button" class="res-share-compose__ok" data-share-compose="ok">确定</button>
+      <button type="button" class="res-share-compose__cancel" data-share-compose="cancel">取消</button>
+      ${err}
+    </div>`;
+  }
+
+  function renderShareFiles(files, depth, dirId) {
+    return (files || [])
+      .map(
+        (file, index) => `<div class="res-file" draggable="true" data-file-dir="${shareEscape(dirId)}" data-file-index="${index}" style="padding-left:${30 + depth * 18}px" title="按住拖动调整顺序">
+          <span class="res-file__grip" aria-hidden="true"></span>
+          <span class="res-file__tag res-file__tag--${shareEscape(file.type)}">${shareEscape(file.label)}</span>
+          <span class="res-file__name">${shareEscape(file.name)}</span>
+        </div>`
+      )
+      .join("");
+  }
+
+  function renderShareNodes(nodes, depth) {
+    return nodes
+      .map((node) => {
+        const isPack = depth === 0;
+        const selected = node.id === shareSelectedId ? " is-selected" : "";
+        const hasKids = node.children.length > 0;
+        const hasFiles = (node.files || []).length > 0;
+        const kind = isPack ? "res-node__row--pack" : "res-node__row--sec";
+        const icon = isPack
+          ? `<span class="res-node__icon res-node__icon--pack" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M1.5 3.4A1.4 1.4 0 0 1 2.9 2h3.1l1.2 1.4H13a1.4 1.4 0 0 1 1.4 1.4v7.3A1.4 1.4 0 0 1 13 13.5H2.9a1.4 1.4 0 0 1-1.4-1.4V3.4z"/></svg></span>`
+          : `<span class="res-node__icon res-node__icon--sec" aria-hidden="true"><svg viewBox="0 0 16 16"><circle cx="2.4" cy="3.6" r="1.15"/><circle cx="2.4" cy="8" r="1.15"/><circle cx="2.4" cy="12.4" r="1.15"/><path d="M5.2 3.6h8.2M5.2 8h8.2M5.2 12.4h6.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>`;
+        const more = `<div class="res-node__more" data-dir-id="${shareEscape(node.id)}" data-node-kind="${
+          isPack ? "pack" : "dir"
+        }"${node.fixed ? ' data-node-fixed="1"' : ""}>
+              <button type="button" class="res-node__more-btn" aria-label="更多" aria-haspopup="menu">
+                <i></i><i></i><i></i>
+              </button>
+            </div>`;
+        const info = node.fixed ? teacherPackInfoHtml() : "";
+        const editing = shareComposer && shareComposer.editId === node.id;
+        const editErr = editing && shareComposer.error ? `<p class="res-share-compose__err">请输入名称</p>` : "";
+        const nameCell = editing
+          ? `<div class="res-node__edit">
+              ${icon}
+              <input class="res-share-compose__input" type="text" value="${shareEscape(shareComposer.draft ?? node.name)}" aria-label="${
+              isPack ? "课包名称" : "目录名称"
+            }" />
+              <button type="button" class="res-share-compose__ok" data-share-compose="ok">确定</button>
+              <button type="button" class="res-share-compose__cancel" data-share-compose="cancel">取消</button>
+              ${editErr}
+            </div>`
+          : `<button type="button" class="res-node__pick" data-share-pick="${shareEscape(node.id)}">
+              ${icon}
+              <span class="res-node__name">${shareEscape(node.name)}</span>
+            </button>`;
+        const composingChild = shareComposer && shareComposer.parentId === node.id;
+        const afterComposer =
+          shareComposer && shareComposer.afterId === node.id
+            ? renderShareComposer(depth, "请输入目录名称")
+            : "";
+        const empty =
+          node.open && !hasKids && !hasFiles && !composingChild
+            ? `<div class="res-node__empty" style="padding-left:${30 + (depth + 1) * 18}px">暂无资源</div>`
+            : "";
+        const kids =
+          node.open || composingChild
+            ? `<div class="res-node__kids">${
+                composingChild ? renderShareComposer(depth + 1, "请输入目录名称") : ""
+              }${node.open ? renderShareNodes(node.children, depth + 1) : ""}${
+                node.open ? renderShareFiles(node.files, depth + 1, node.id) : ""
+              }${empty}</div>`
+            : "";
+        return `<div class="res-node ${isPack ? "res-node--pack" : "res-node--sec"}">
+          <div class="res-node__row ${kind}${node.fixed ? " res-node__row--fixed" : ""}${selected}" style="padding-left:${12 + depth * 18}px">
+            <button type="button" class="res-node__toggle" data-share-toggle="${shareEscape(node.id)}" aria-expanded="${
+              node.open ? "true" : "false"
+            }" aria-label="${node.open ? "收起" : "展开"}">${node.open ? "▾" : "▸"}</button>
+            ${nameCell}
+            ${editing ? "" : info}
+            ${editing ? "" : more}
+          </div>
+          ${kids}
+        </div>${afterComposer}`;
+      })
+      .join("");
+  }
+
+  function renderShareTree() {
+    const root = $("#res-share-tree");
+    if (!root) return;
+    const menu = $("#res-share-float-menu");
+    if (menu) menu.hidden = true;
+    const creatingPack = shareComposer && shareComposer.root;
+    const composerBox = creatingPack ? renderShareComposer(0, "请输入课包名称") : "";
+    root.innerHTML = fileShareUsesTeacherPack()
+      ? `${renderShareNodes([fileTeacherPack], 0)}${composerBox}${renderShareNodes(shareTree, 0)}`
+      : `${composerBox}${renderShareNodes(shareTree, 0)}`;
+    const input = root.querySelector(".res-share-compose__input");
+    if (input) {
+      input.focus();
+      const end = input.value.length;
+      input.setSelectionRange(end, end);
+    }
+  }
+
+  function resetShareTree() {
+    fileTeacherPack = createTeacherPack();
+    shareTree = JSON.parse(JSON.stringify(SHARE_PACK_SEED));
+    shareSelectedId = fileShareUsesTeacherPack() ? "pack-teacher" : "";
+    shareComposer = null;
+    shareSeq = 1;
+    renderShareTree();
+  }
+
+  function confirmShareCompose() {
+    if (!shareComposer) return;
+    const input = $("#res-share-tree .res-share-compose__input");
+    const raw = input?.value || "";
+    const name = raw.trim();
+    if (!name) {
+      shareComposer.draft = raw;
+      shareComposer.error = true;
+      renderShareTree();
+      return;
+    }
+    if (shareComposer.editId) {
+      const editing = findShareNode(shareComposer.editId);
+      if (editing) editing.name = name;
+      shareComposer = null;
+      renderShareTree();
+      return;
+    }
+    const node = {
+      id: `share-${shareSeq++}`,
+      name,
+      open: true,
+      children: [],
+      files: [],
+    };
+    if (shareComposer.root) {
+      node.subject = "初中数学";
+      shareTree.unshift(node);
+    } else if (shareComposer.parentId) {
+      const parent = findShareNode(shareComposer.parentId);
+      if (parent) {
+        parent.open = true;
+        parent.children.unshift(node);
+      }
+    } else if (shareComposer.afterId) {
+      const parent = findShareParent(shareComposer.afterId);
+      if (parent) {
+        const index = parent.children.findIndex((item) => item.id === shareComposer.afterId);
+        parent.children.splice(index + 1, 0, node);
+      }
+    }
+    shareSelectedId = node.id;
+    shareComposer = null;
+    renderShareTree();
+    syncShareTarget();
+  }
+
+  function moveShareFile(dirId, from, to) {
+    const dir = findShareNode(dirId);
+    if (!dir?.files || from === to || from < 0 || to < 0) return;
+    const [item] = dir.files.splice(from, 1);
+    const dest = from < to ? to - 1 : to;
+    dir.files.splice(Math.max(0, Math.min(dest, dir.files.length)), 0, item);
+  }
+
+  function shareDirHasResources(node) {
+    if (!node) return false;
+    if ((node.files || []).length) return true;
+    return (node.children || []).some((child) => shareDirHasResources(child));
+  }
+
+  function removeShareDir(id) {
+    if (id === "pack-teacher") return;
+    const parent = findShareParent(id);
+    if (parent) parent.children = parent.children.filter((item) => item.id !== id);
+    else shareTree = shareTree.filter((item) => item.id !== id);
+    if (shareSelectedId && !findShareNode(shareSelectedId)) shareSelectedId = "";
+    if (
+      shareComposer &&
+      [shareComposer.afterId, shareComposer.editId, shareComposer.parentId].some((item) => item && !findShareNode(item))
+    ) {
+      shareComposer = null;
+    }
+    renderShareTree();
+    syncShareTarget();
+  }
+
+  function openShareDeleteConfirm(kind) {
+    const title = $("#res-share-confirm-title");
+    const desc = document.querySelector("#res-share-confirm .res-share-confirm__desc");
+    const ok = $("#res-share-confirm-ok");
+    if (kind === "pack") {
+      if (title) title.textContent = "确定删除课包吗？";
+      if (desc) desc.textContent = "删除课包，将同步删除课包下面的目录和资源";
+      if (ok) ok.textContent = "确定";
+    } else {
+      if (title) title.textContent = "确认删除目录吗？";
+      if (desc) desc.textContent = "删除目录，将同步删除目录下的资源，学生将不可查看";
+      if (ok) ok.textContent = "确认";
+    }
+    const confirm = $("#res-share-confirm");
+    if (confirm) confirm.hidden = false;
+  }
+
+  function openResShare() {
+    const modal = $("#res-share-modal");
+    if (!modal) return;
+    const form = $("#res-share-form");
+    form?.reset();
+    const app = $("#res-share-app");
+    if (app) app.value = "library";
+    fileShareScheme = "a";
+    $$("#res-share-schemes [data-file-scheme]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.fileScheme === "a");
+    });
+    applyResShareLocks();
+    resetShareTree();
+    syncShareTarget();
+    modal.hidden = false;
+    modal.classList.add("is-open");
+  }
+
   function showPcHome() {
     state.pcPage = "home";
     hideModulePages();
+    hideMyResources();
+    hideAddResource();
+    closeResShare();
     $$(".pc-role-panel").forEach((panel) => {
       panel.hidden = panel.dataset.role !== state.role;
     });
     schedulePersist();
+  }
+
+  function openMyResources() {
+    if (state.role !== "teacher") {
+      showPcHome();
+      return;
+    }
+    state.pcPage = "my-resources";
+    closeRoleMenu();
+    $$(".pc-role-panel").forEach((panel) => {
+      panel.hidden = true;
+    });
+    hideModulePages();
+    hideAddResource();
+    const page = $("#pc-teacher-my-resources");
+    if (page) page.hidden = false;
+    window.scrollTo(0, 0);
+    schedulePersist();
+  }
+
+  function openAddResource() {
+    if (state.role !== "teacher") {
+      showPcHome();
+      return;
+    }
+    state.pcPage = "add-resource";
+    closeRoleMenu();
+    $$(".pc-role-panel").forEach((panel) => {
+      panel.hidden = true;
+    });
+    hideModulePages();
+    hideMyResources();
+    const page = $("#pc-teacher-add-resource");
+    if (page) page.hidden = false;
+    window.scrollTo(0, 0);
+    schedulePersist();
+  }
+
+  function showManageSubviews() {
+    const nav = manageScope === "tc" ? state.tcNav || "lib" : state.jwNav || "lib";
+    setJiaowuNav(nav);
+    if (nav === "publish") {
+      setPublishStep(state.publishStep || 1);
+      applyScheduleModeUI();
+    }
+    if (nav === "learners" || nav === "learners-import" || nav === "learners-add") {
+      renderLearnersTable();
+    }
+    if (nav === "learn-data") renderLearnDataPage();
   }
 
   function openPcModule() {
@@ -216,26 +1385,16 @@
     closeRoleMenu();
     $$(".pc-role-panel").forEach((p) => (p.hidden = true));
     hideModulePages();
+    hideMyResources();
 
     if (state.role === "teacher") {
+      manageScope = "tc";
       $("#pc-teacher-lib")?.classList.add("is-active");
+      showManageSubviews();
     } else {
+      manageScope = "jw";
       $("#pc-jiaowu-lib")?.classList.add("is-active");
-      setJiaowuNav(state.jwNav || "lib");
-      if (state.jwNav === "publish") {
-        setPublishStep(state.publishStep || 1);
-        applyScheduleModeUI();
-      }
-      if (
-        state.jwNav === "learners" ||
-        state.jwNav === "learners-import" ||
-        state.jwNav === "learners-add"
-      ) {
-        renderLearnersTable();
-      }
-      if (state.jwNav === "learn-data") {
-        renderLearnDataPage();
-      }
+      showManageSubviews();
     }
     refreshCourseViews();
     schedulePersist();
@@ -243,7 +1402,8 @@
 
   let padXbSubject = "数学";
   let padXbGrade = "七年级";
-  const PAD_XB_GRADES = ["七年级", "八年级", "九年级"];
+  const PAD_XB_STUDENT_GRADE = "七年级";
+  const PAD_XB_GRADES = ["一年级", "二年级", "三年级", "四年级", "五年级", "六年级", "七年级", "八年级", "九年级"];
   let padXbCourseId = null;
   let padXbHwStep = 0;
   let padXbHwStatus = "unsubmitted"; // unsubmitted | pending | graded
@@ -283,6 +1443,195 @@
   }
 
   const PAD_XB_SUBJECTS = ["语文", "数学", "英语", "科学", "综合"];
+
+  const PAD_XB_TEACHERS = {
+    一年级: { 语文: "林晓", 数学: "周宁", 英语: "陈雪", 科学: "吴芳", 综合: "郑敏" },
+    二年级: { 语文: "何静", 数学: "马丽", 英语: "孙悦", 科学: "钱程", 综合: "冯雪" },
+    三年级: { 语文: "韩梅", 数学: "丁磊", 英语: "曹颖", 科学: "许诺", 综合: "邓琳" },
+    四年级: { 语文: "潘婷", 数学: "高远", 英语: "罗欣", 科学: "谢安", 综合: "袁圆" },
+    五年级: { 语文: "贾玲", 数学: "沈浩", 英语: "谭薇", 科学: "彭飞", 综合: "崔茜" },
+    六年级: { 语文: "张静", 数学: "刘洋", 英语: "陈晨", 科学: "黄丽", 综合: "吴敏" },
+    七年级: { 语文: "李慧", 数学: "蒋雯", 英语: "王蕾", 科学: "赵阳", 综合: "孙倩" },
+  };
+
+  function padXbTeacherResources(subject, grade) {
+    const names = {
+      语文: ["古诗词常见意象梳理", "朗读指导：静夜思", "第一单元字词检测"],
+      数学: ["正数和负数的定义", "正数和负数的应用", "正数和负数的综合检测"],
+      英语: ["Unit 1 词汇清单", "日常对话跟读", "单元听力小测"],
+      科学: ["植物的生长过程", "观察实验：种子发芽", "科学探究小测验"],
+      综合: ["校园安全须知", "主题班会微课", "综合实践记录"],
+    };
+    const [ppt, video, paper] = names[subject] || ["课件讲义", "微课讲解", "综合检测"];
+    const prefix = `tch-${grade}-${subject}`;
+    return [
+      {
+        id: `${prefix}-ppt`,
+        type: "ware",
+        standalone: true,
+        title: ppt,
+        actionLabel: "去学习",
+      },
+      {
+        id: `${prefix}-video`,
+        type: "video",
+        title: video,
+        meta: "总时长:12分06秒",
+      },
+      {
+        id: `${prefix}-paper`,
+        type: "paper",
+        standalone: true,
+        title: paper,
+        actionLabel: "去提交",
+        actionKind: "answer",
+      },
+    ];
+  }
+
+  function padXbTeacherResources(subject, grade) {
+    const names = {
+      语文: ["古诗词常见意象梳理", "朗读指导：静夜思", "第一单元字词检测"],
+      数学: ["正数和负数的定义", "正数和负数的应用", "正数和负数的综合检测"],
+      英语: ["Unit 1 词汇清单", "日常对话跟读", "单元听力小测"],
+      科学: ["植物的生长过程", "观察实验：种子发芽", "科学探究小测验"],
+      综合: ["校园安全须知", "主题班会微课", "综合实践记录"],
+    };
+    const [ppt, video] = names[subject] || ["课件讲义", "微课讲解", "综合检测"];
+    const papers = PAD_XB_TEACHER_PAPERS[subject] || PAD_XB_TEACHER_PAPERS.数学;
+    const prefix = `tch-${grade}-${subject}`;
+    return [
+      {
+        id: `${prefix}-ppt`,
+        type: "ware",
+        standalone: true,
+        title: ppt,
+        actionLabel: "去学习",
+      },
+      {
+        id: `${prefix}-video`,
+        type: "video",
+        title: video,
+        meta: "总时长:12分06秒",
+        actionLabel: "去学习",
+      },
+      ...papers.map((paper, index) => padXbTeacherPaper(prefix, index, paper)),
+    ];
+  }
+
+  const PAD_XB_TEACHER_PAPERS = {
+    语文: [
+      { title: "第一单元字词检测", kind: "answer" },
+      { title: "古诗词默写练习", kind: "grade" },
+      { title: "朗读评价作业", kind: "report", mark: "88分" },
+    ],
+    数学: [
+      { title: "正数和负数的综合检测", kind: "answer" },
+      { title: "有理数运算练习", kind: "grade" },
+      { title: "数轴应用小测", kind: "report", mark: "92分" },
+    ],
+    英语: [
+      { title: "单元听力小测", kind: "answer" },
+      { title: "Unit 1 词汇听写", kind: "grade" },
+      { title: "日常对话口语评价", kind: "report", mark: "85分" },
+    ],
+    科学: [
+      { title: "科学探究小测验", kind: "answer" },
+      { title: "种子发芽观察记录", kind: "grade" },
+      { title: "植物生长实验报告", kind: "report", mark: "90分" },
+    ],
+    综合: [
+      { title: "综合实践记录", kind: "answer" },
+      { title: "校园安全知识检测", kind: "grade" },
+      { title: "主题实践评价", kind: "report", mark: "86分" },
+    ],
+  };
+
+  function padXbTeacherPaper(prefix, index, paper) {
+    const title = paper.title;
+    const id = `${prefix}-paper-${index}`;
+    if (paper.kind === "grade") {
+      return {
+        id,
+        type: "paper",
+        standalone: true,
+        title,
+        actionLabel: "去批改",
+        actionKind: "grade",
+        card: {
+          status: "待批改",
+          statusTone: "muted",
+          title,
+          time: "提交时间: 2026年10月16日 11:01",
+          action: "去批改",
+          actionKind: "grade",
+        },
+      };
+    }
+    if (paper.kind === "report") {
+      return {
+        id,
+        type: "paper",
+        standalone: true,
+        title,
+        actionLabel: "查看报告",
+        actionKind: "report",
+        card: {
+          status: "已批改",
+          statusTone: "success",
+          title,
+          time: "提交时间: 2026年10月16日 10:59",
+          mark: paper.mark || "92分",
+          action: "查看报告",
+          actionKind: "report",
+        },
+      };
+    }
+    return {
+      id,
+      type: "paper",
+      standalone: true,
+      title,
+      actionLabel: "答题",
+      actionKind: "answer",
+      card: {
+        status: "未提交",
+        statusTone: "danger",
+        title,
+        time: "提交时间: --",
+        action: "答题",
+        actionKind: "answer",
+      },
+    };
+  }
+
+  function padXbTeacherCourse(subject, grade) {
+    const currentRank = PAD_XB_GRADES.indexOf(PAD_XB_STUDENT_GRADE);
+    const gradeRank = PAD_XB_GRADES.indexOf(grade);
+    if (gradeRank < 0 || gradeRank > currentRank) return null;
+    const name = PAD_XB_TEACHERS[grade]?.[subject];
+    if (!name) return null;
+    const studied = PAD_XB_GRADES.indexOf(grade) >= PAD_XB_GRADES.indexOf("四年级");
+    const resources = padXbTeacherResources(subject, grade);
+    return {
+      id: `tch-${grade}-${subject}`,
+      title: name,
+      grade,
+      subject,
+      teacherPack: true,
+      cover: "./assets/pad/covers/cover-school-2.svg",
+      resources,
+      learned: studied ? 1 : 0,
+      total: resources.length,
+      lastLesson: studied ? resources[1].title : "",
+    };
+  }
+
+  function padXbCoursesFor(subject, grade) {
+    const teacher = padXbTeacherCourse(subject, grade);
+    const rest = (PAD_XB_COURSES[subject] || []).filter((course) => (course.grade || PAD_XB_STUDENT_GRADE) === grade);
+    return teacher ? [teacher, ...rest] : rest;
+  }
 
   const PAD_XB_COURSES = {
     语文: [
@@ -513,6 +1862,12 @@
 
   function findPadXbCourse(courseId) {
     const id = String(courseId || "");
+    for (const grade of PAD_XB_GRADES) {
+      for (const subject of PAD_XB_SUBJECTS) {
+        const teacher = padXbTeacherCourse(subject, grade);
+        if (teacher && teacher.id === id) return teacher;
+      }
+    }
     for (const subject of PAD_XB_SUBJECTS) {
       const hit = (PAD_XB_COURSES[subject] || []).find((item) => String(item.id) === id);
       if (hit) return { ...hit, subject };
@@ -552,9 +1907,7 @@
   function renderPadXbCourses() {
     const grid = $("#pad-xb-course-grid");
     const empty = $("#pad-xb-empty");
-    const list = (PAD_XB_COURSES[padXbSubject] || []).filter(
-      (course) => (course.grade || "七年级") === padXbGrade
-    );
+    const list = padXbCoursesFor(padXbSubject, padXbGrade);
     if (!grid) return;
     if (!list.length) {
       grid.innerHTML = "";
@@ -583,6 +1936,11 @@
           </div>
           <div class="xb-pad-course__body">
             <span class="xb-pad-course__title">${escapeAttr(course.title)}</span>
+            ${
+              course.teacherPack
+                ? `<span class="xb-pad-course__teacher">授课老师</span>`
+                : ""
+            }
             <div class="xb-pad-course__progress">
               <span class="xb-pad-course__progress-text">已学：${course.learned}/${
           course.total
@@ -881,7 +2239,11 @@
   ];
 
   function walkPadXbBItems(visitor) {
-    for (const unit of PAD_XB_B_UNITS) {
+    const course = findPadXbCourse(padXbCourseId);
+    const units = course?.teacherPack
+      ? [{ items: course.resources || [] }]
+      : PAD_XB_B_UNITS;
+    for (const unit of units) {
       for (const item of unit.items || []) {
         if (visitor(item, null) === false) return;
         for (const child of item.attach || []) {
@@ -1093,6 +2455,7 @@
     const statusNearName = isPadXbSchemeC()
       ? renderPadXbCState(null, item.status, item.statusLabel)
       : renderPadXbBStatusBadge(item.status, item.statusLabel);
+    const learnBtn = `<span class="xb-pad-course-b__item-action is-btn">${escapeAttr(item.actionLabel || "去学习")}</span>`;
     return `<div class="xb-pad-course-b__lesson${hasAttach ? " has-attach" : ""}${videoCurrent}">
       <button type="button" class="xb-pad-course-b__item xb-pad-course-b__item--lesson${videoCurrent}" data-pad-b-open-video="${escapeAttr(
         item.id
@@ -1106,6 +2469,7 @@
           </div>
           ${sub ? `<div class="xb-pad-course-b__item-sub">${sub}</div>` : ""}
         </div>
+        ${learnBtn}
       </button>
       ${attachHtml ? `<div class="xb-pad-course-b__attach">${attachHtml}</div>` : ""}
     </div>`;
@@ -1115,9 +2479,7 @@
   function renderPadXbBAttachRow(item) {
     if (item.type === "paper") return renderPadXbBPaperRow(item, "attach");
     const nameMeta = isPadXbSchemeC() ? renderPadXbCWareState(item) : "";
-    const right = isPadXbSchemeC()
-      ? ""
-      : `<span class="xb-pad-course-b__item-action is-btn">去学习</span>`;
+    const right = `<span class="xb-pad-course-b__item-action is-btn">去学习</span>`;
     return `<button type="button" class="xb-pad-course-b__item xb-pad-course-b__item--attach" data-pad-b-open-ware="${escapeAttr(
       item.id
     )}">
@@ -1136,9 +2498,7 @@
   function renderPadXbBStandaloneItem(item) {
     if (item.type === "paper") return renderPadXbBPaperRow(item, "standalone");
     const nameMeta = isPadXbSchemeC() ? renderPadXbCWareState(item) : "";
-    const right = isPadXbSchemeC()
-      ? ""
-      : `<span class="xb-pad-course-b__item-action is-btn">${escapeAttr(item.actionLabel || "去学习")}</span>`;
+    const right = `<span class="xb-pad-course-b__item-action is-btn">${escapeAttr(item.actionLabel || "去学习")}</span>`;
     return `<button type="button" class="xb-pad-course-b__item xb-pad-course-b__item--standalone" data-pad-b-open-ware="${escapeAttr(
       item.id
     )}">
@@ -1160,19 +2520,26 @@
   }
 
   function renderPadXbBCatalogHtml() {
-    const html = PAD_XB_B_UNITS.map(
-      (unit) =>
-        `<div class="xb-pad-course-b__unit">${escapeAttr(unit.title)}</div>${(unit.items || [])
-          .map(renderPadXbBTopItem)
-          .join("")}`
-    ).join("");
+    const course = findPadXbCourse(padXbCourseId);
+    const html = course?.teacherPack
+      ? (course.resources || []).map(renderPadXbBTopItem).join("")
+      : PAD_XB_B_UNITS.map(
+          (unit) =>
+            `<div class="xb-pad-course-b__unit">${escapeAttr(unit.title)}</div>${(unit.items || [])
+              .map(renderPadXbBTopItem)
+              .join("")}`
+        ).join("");
     return padXbAdaptUiHtml(html);
   }
 
   function renderPadXbBCatalog() {
+    const course = findPadXbCourse(padXbCourseId);
     const html = renderPadXbBCatalogHtml();
     const listEl = padXbSchemeEl("catalog");
-    if (listEl) listEl.innerHTML = html;
+    if (listEl) {
+      listEl.innerHTML = html;
+      listEl.parentElement?.classList.toggle("is-teacher-pack", !!course?.teacherPack);
+    }
     const episodeList = padXbSchemeEl("episode-list");
     if (episodeList) episodeList.innerHTML = html;
   }
@@ -1214,21 +2581,25 @@
     schedulePersist();
   }
 
+  function padXbCourseDetailTitle(course) {
+    if (course?.teacherPack && course.subject && course.title) return `${course.subject}·${course.title}`;
+    return course?.title || "自适应学习2";
+  }
+
   function renderPadXbCoursePageB(course) {
-    const title = course?.title || "自适应学习2";
-    const grade = course?.grade || "一年级";
-    const learnMode = course?.learnMode || "按课时顺序解锁（按视频进度解锁）";
+    const title = padXbCourseDetailTitle(course);
     const lastLesson = course?.lastLesson || "第2节 一次函数在实际生活中的应用";
     const titleEl = padXbSchemeEl("title");
     const metaEl = padXbSchemeEl("meta");
     const lastEl = padXbSchemeEl("last");
     if (titleEl) titleEl.textContent = title;
-    if (metaEl) {
-      metaEl.innerHTML = `<span>适合年级：${escapeAttr(grade)}</span><span class="xb-pad-course-info__sep">|</span><span>学习方式：${escapeAttr(
-        learnMode
-      )}</span>`;
+    if (metaEl) metaEl.hidden = true;
+    const resume = padXbSchemeEl("resume");
+    const showRecent = !course?.teacherPack || !!course.lastLesson;
+    if (resume) resume.hidden = !showRecent;
+    if (lastEl && showRecent) {
+      lastEl.textContent = `最近学习到：${course?.teacherPack ? course.lastLesson : lastLesson}`;
     }
-    if (lastEl) lastEl.textContent = `最近学习到：${lastLesson}`;
     if (padXbBFocusId && !findPadXbBItem(padXbBFocusId)) padXbBFocusId = null;
     padXbBPlayMode = false;
     setPadXbBEpisodeSheet(false);
@@ -1353,15 +2724,53 @@
             <span>${metaHtml}</span>
           </div>
         </div>
+        <button type="button" class="xb-pad-course-resource__action" data-pad-resource-action="去学习">去学习</button>
       </div>
       ${papers}
       ${wares}
     </div>`;
   }
 
+  function renderPadXbTeacherSchemeAItem(item) {
+    if (item.type === "paper") {
+      const data = item.card || {};
+      const kind = data.actionKind || item.actionKind || "answer";
+      const label = data.action || item.actionLabel || "答题";
+      const mark = data.mark
+        ? `<span class="xb-pad-course-resource__score">${escapeAttr(data.mark)}</span>`
+        : "";
+      return `<div class="xb-pad-course-resource">
+        <div class="xb-pad-course-resource__main">
+          <span class="xb-pad-course-resource__title">${escapeAttr(item.title || "")}</span>
+          <span class="xb-pad-course-resource__tag">试卷</span>
+        </div>
+        ${mark}
+        <button type="button" class="xb-pad-course-resource__action" data-pad-hw-action="${escapeAttr(
+          kind
+        )}">${escapeAttr(label)}</button>
+      </div>`;
+    }
+    const tag = item.type === "video" ? "视频" : "课件";
+    const actionAttr =
+      item.type === "ware" ? ` data-pad-open-ware="1"` : ` data-pad-resource-action="去学习"`;
+    return `<div class="xb-pad-course-resource">
+      <div class="xb-pad-course-resource__main">
+        <span class="xb-pad-course-resource__title">${escapeAttr(item.title || "")}</span>
+        <span class="xb-pad-course-resource__tag">${tag}</span>
+      </div>
+      <button type="button" class="xb-pad-course-resource__action"${actionAttr}>去学习</button>
+    </div>`;
+  }
+
   function renderPadXbCourseCatalog() {
     const listEl = $("#pad-xb-course-catalog");
     if (!listEl) return;
+    const course = findPadXbCourse(padXbCourseId);
+    listEl.parentElement?.classList.toggle("is-teacher-pack", !!course?.teacherPack);
+    if (course?.teacherPack) {
+      listEl.innerHTML = (course.resources || []).map(renderPadXbTeacherSchemeAItem).join("");
+      return;
+    }
     listEl.innerHTML = `<div class="xb-pad-course-catalog__unit">第1章 默认单元</div>${PAD_XB_LESSONS.map(
       renderPadXbLessonBlock
     ).join("")}`;
@@ -1377,20 +2786,20 @@
   }
 
   function renderPadXbCoursePage(course) {
-    const title = course?.title || "自适应学习2";
-    const grade = course?.grade || "一年级";
-    const learnMode = course?.learnMode || "按课时顺序解锁（按视频进度解锁）";
+    const title = padXbCourseDetailTitle(course);
     const lastLesson = course?.lastLesson || "第2节 一次函数在实际生活中的应用";
     const titleEl = $("#pad-xb-course-title");
     const metaEl = $("#pad-xb-course-meta");
     const lastEl = $("#pad-xb-course-last");
     if (titleEl) titleEl.textContent = title;
-    if (metaEl) {
-      metaEl.innerHTML = `<span>适合年级：${escapeAttr(grade)}</span><span class="xb-pad-course-info__sep">|</span><span>学习方式：${escapeAttr(
-        learnMode
-      )}</span>`;
+    if (metaEl) metaEl.hidden = true;
+    const showRecent = !course?.teacherPack || !!course.lastLesson;
+    const continueBtn = $("#pad-xb-course-continue");
+    if (lastEl) {
+      lastEl.hidden = !showRecent;
+      if (showRecent) lastEl.textContent = `最近学习到：${course?.teacherPack ? course.lastLesson : lastLesson}`;
     }
-    if (lastEl) lastEl.textContent = `最近学习到：${lastLesson}`;
+    if (continueBtn) continueBtn.hidden = !showRecent;
     renderPadXbCourseCatalog();
   }
 
@@ -1436,10 +2845,7 @@
     schedulePersist();
   }
 
-  function resolvePadXbWarePreviewUrl(wareId) {
-    const hit = findPadXbBItem(wareId || padXbBFocusId);
-    if (hit?.previewUrl) return hit.previewUrl;
-    if (hit?.id === "b-w1") return "./assets/courseware/yi-ci-zhengbili.pdf";
+  function resolvePadXbWarePreviewUrl(_wareId) {
     return "";
   }
 
@@ -1520,7 +2926,7 @@
     host.innerHTML = `<article class="xb-pad-course-hw-card is-${escapeAttr(status)}">
       <div class="xb-pad-course-hw-card__top">
         <div class="xb-pad-course-hw-card__meta">
-          <span class="xb-pad-course-hw-card__author">zfy</span>
+          <span class="xb-pad-course-hw-card__author">蒋雯</span>
           <span class="xb-pad-course-hw-card__tag">学生自批</span>
         </div>
         <span class="xb-pad-course-hw-card__status is-${escapeAttr(data.statusTone || "danger")}">${escapeAttr(
@@ -2036,7 +3442,7 @@
               children: [
                 { text: "右侧面板左上角【课程管理】标题去掉；", kind: "remove" },
                 {
-                  text: "右上角【学习设置】【切换成旧版本】去掉，保留【发布课程】；",
+                  text: "右上角【学习设置】【切换成旧版本】去掉，保留【发布资源包】；",
                   kind: "remove",
                 },
                 { text: "筛选区【开课日期】去掉；", kind: "remove" },
@@ -2056,9 +3462,9 @@
         {
           id: "pc-jw-publish",
           src: "./assets/ref/pc-jiaowu-publish-basic.png",
-          caption: "原发布课程-基本信息",
+          caption: "原发布资源包-基本信息",
           changes: [
-            { text: "面包屑【发布混排课】调整为【发布课程】；", kind: "rename" },
+            { text: "面包屑【发布混排课】调整为【发布资源包】；", kind: "rename" },
             {
               text: "课程信息模块改动",
               children: [
@@ -2087,7 +3493,7 @@
         {
           id: "pc-jw-publish-confirm",
           src: "./assets/ref/pc-jiaowu-publish-confirm-original.png",
-          caption: "原发布确认弹窗（基本信息【立即发布】/ 排课【发布】共用，红框去掉）",
+          caption: "原发布确认弹窗（基本信息【立即发布】/ 添加资源【发布】共用，红框去掉）",
           changes: [
             {
               text: "去掉底部灰色小字「当前直播课单价已低于底价15.0元」；",
@@ -2099,9 +3505,9 @@
         {
           id: "pc-jw-schedule",
           src: "./assets/ref/pc-jiaowu-schedule-empty.png",
-          caption: "原排课-空数据",
+          caption: "原添加资源-空数据",
           changes: [
-            { text: "面包屑【发布混排课】调整为【发布课程】；", kind: "rename" },
+            { text: "面包屑【发布混排课】调整为【发布资源包】；", kind: "rename" },
             {
               text: "去掉提示文案「对课时进行的修改，发布后均会同步给所有已报名学生，请您谨慎修改！」；",
               kind: "remove",
@@ -2113,7 +3519,7 @@
         {
           id: "pc-jw-unit",
           src: "./assets/ref/pc-jiaowu-schedule-unit1.png?v=20261022",
-          caption: "原排课-单元1",
+          caption: "原添加资源-单元1",
           changes: [
             {
               text: "去掉【设置单元学习计划】字段；",
@@ -2146,7 +3552,7 @@
         {
           id: "pc-jw-lesson-row",
           src: "./assets/ref/pc-jiaowu-lesson-row-original.png",
-          caption: "原排课课时行（红框去掉）",
+          caption: "原添加资源课时行（红框去掉）",
           changes: [
             {
               text: "课时信息去掉「老师姓名」和「课程类型」（上一步添加课程弹窗已去掉对应设置项）；",
@@ -2162,7 +3568,7 @@
         {
           id: "pc-jw-schedule-edit",
           src: "./assets/ref/pc-jiaowu-schedule-edit-original.png",
-          caption: "原已上架课程【排课】编辑页（红框去掉）",
+          caption: "原已上架课程【添加资源】编辑页（红框去掉）",
           changes: [
             {
               text: "去掉顶部提示「对课时进行的修改，发布后均会同步给所有已报名学生，请您谨慎修改！」；",
@@ -2187,10 +3593,10 @@
           caption: "原列表【修改】进入的基本信息页（字段对齐校本课发布页）",
           changes: [
             {
-              text: "中间字段与已实现的【发布课程】基础信息保持一致：去掉【学习有效期】【直播课程时间】【课程老师】、整块【课程费用】【课程报名】；作业批改仅保留【学生自批】；【点播课进度条】改为【视频进度条】等（同发布页）；",
+              text: "中间字段与已实现的【发布资源包】基础信息保持一致：去掉【学习有效期】【直播课程时间】【课程老师】、整块【课程费用】【课程报名】；作业批改仅保留【学生自批】；【点播课进度条】改为【视频进度条】等（同发布页）；",
               kind: "remove",
             },
-            { text: "无顶部步骤条；面包屑为【课程管理 > 基本信息】；", kind: "rename" },
+            { text: "无顶部步骤条；面包屑为【资源包管理 > 基本信息】；", kind: "rename" },
             { text: "【年级学科】置灰不可编辑；", kind: "rename" },
             "底部为【取消】【保存】。",
           ],
@@ -2785,9 +4191,9 @@
       items: [
         "本期在添加资源时新增【资源类型】字段，下拉可切换选择：视频 / 试卷 / 课件。",
         "默认选中的选项为【课件】。",
-        "<strong>选「视频」：</strong>完全复用点播课现有能力。可直接选择老师上传的视频资源（视频资源可能包含配套的课件或试卷）；也可由当前排课人自己新选视频（从资源库选择，或本地上传）。",
-        "<strong>选「试卷」：</strong>下方选择字段改为「选择试卷」。下方列表展示老师上传的试卷资源。排课人可点【添加】，进入个人试卷 / 个人收藏试卷列表；选中后点确定，试卷回显到老师上传的试卷资源列表，并为选中状态。",
-        "<strong>选「课件」：</strong>下方选择字段改为「选择课件」。下方列表展示老师上传的课件资源。排课人可点【添加】，先进入「从资源库选择 / 本地上传」中间页：若走资源库，需在中间页再点一次【添加】，打开个人课件 / 个人收藏课件列表，选中确定后先回显到中间页，再点中间页【确定】才回显到老师上传的课件资源列表并选中；若走本地上传，上传并完成必填后点【确定】，课件回显到老师上传的课件资源列表并选中。",
+        "<strong>选「视频」：</strong>完全复用点播课现有能力。可直接选择老师上传的视频资源（视频资源可能包含配套的课件或试卷）；也可由当前添加资源的人自己新选视频（从资源库选择，或本地上传）。",
+        "<strong>选「试卷」：</strong>下方选择字段改为「选择试卷」。下方列表展示老师上传的试卷资源。添加资源的人可点【添加】，进入个人试卷 / 个人收藏试卷列表；选中后点确定，试卷回显到老师上传的试卷资源列表，并为选中状态。",
+        "<strong>选「课件」：</strong>下方选择字段改为「选择课件」。下方列表展示老师上传的课件资源。添加资源的人可点【添加】，先进入「从资源库选择 / 本地上传」中间页：若走资源库，需在中间页再点一次【添加】，打开个人课件 / 个人收藏课件列表，选中确定后先回显到中间页，再点中间页【确定】才回显到老师上传的课件资源列表并选中；若走本地上传，上传并完成必填后点【确定】，课件回显到老师上传的课件资源列表并选中。",
       ],
     },
     "add-2": {
@@ -3076,7 +4482,7 @@
   subgraph J1g["教务"]
     direction TB
     J1[审核资源]
-    J2[发布课程 · 排课]
+    J2[发布资源包 · 添加资源]
     J3[维护学习名单]
   end
 
@@ -3460,6 +4866,11 @@
   }
 
   function bind() {
+    ["click", "change", "input", "keydown", "mouseover", "mouseout", "dragover", "drop", "focusin", "focusout"].forEach(
+      (type) => {
+        document.addEventListener(type, syncManageScopeFromEvent, true);
+      }
+    );
     $("#proto-flow-enter")?.addEventListener("click", enterProductPrototype);
     $("#proto-flow-back")?.addEventListener("click", showBusinessFlow);
 
@@ -3498,8 +4909,296 @@
     $$("[data-action='open-pc-module']").forEach((el) => {
       el.addEventListener("click", () => {
         if (state.role === "jiaowu") state.jwNav = "lib";
+        else state.tcNav = "lib";
         openPcModule();
       });
+    });
+
+    $$("[data-action='open-my-resources']").forEach((el) => {
+      el.addEventListener("click", () => openMyResources());
+    });
+
+    $$("[data-action='open-add-resource']").forEach((el) => {
+      el.addEventListener("click", () => openAddResource());
+    });
+
+    $$("[data-action='close-add-resource']").forEach((el) => {
+      el.addEventListener("click", () => openMyResources());
+    });
+
+    $$("[data-action='open-res-share']").forEach((el) => {
+      el.addEventListener("click", () => openResShare());
+    });
+
+    $$("[data-file-scheme]").forEach((btn) => {
+      btn.addEventListener("click", () => setFileShareScheme(btn.dataset.fileScheme));
+    });
+    $$("#res-xb-modal [data-xb-scheme]").forEach((btn) => {
+      btn.addEventListener("click", () => setXbShareScheme(btn.dataset.xbScheme));
+    });
+    $$('#res-share-library input[name="share-to"]').forEach((el) => {
+      el.addEventListener("change", () => {
+        if (fileShareUsesTeacherPack()) {
+          if (!shareSelectedId || !findShareNode(shareSelectedId, shareTree)) shareSelectedId = "pack-teacher";
+        } else if (shareSelectedId === "pack-teacher") {
+          shareSelectedId = "";
+        }
+        syncShareTarget();
+        renderShareTree();
+      });
+    });
+    $("#res-share-group")?.querySelector(".res-share-drop__btn")?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const drop = $("#res-share-group");
+      setShareGroupOpen(!drop?.classList.contains("is-open"));
+    });
+    document.addEventListener("click", (event) => {
+      if (event.target.closest("#res-share-group")) return;
+      setShareGroupOpen(false);
+    });
+
+    const usagePage = $("#pc-teacher-my-resources");
+    let usageTimer = null;
+    const showUsageShot = () => {
+      clearTimeout(usageTimer);
+      usagePage?.classList.add("is-usage-open");
+    };
+    const hideUsageShotSoon = () => {
+      clearTimeout(usageTimer);
+      usageTimer = setTimeout(() => {
+        if ($("#res-use-modal")?.classList.contains("is-open")) return;
+        if ($("#res-xb-modal")?.classList.contains("is-open")) return;
+        usagePage?.classList.remove("is-usage-open");
+      }, 200);
+    };
+    $(".res-usage-hotspot")?.addEventListener("mouseenter", showUsageShot);
+    $(".res-usage-hotspot")?.addEventListener("mouseleave", hideUsageShotSoon);
+    $(".res-usage-panel")?.addEventListener("mouseenter", showUsageShot);
+    $(".res-usage-panel")?.addEventListener("mouseleave", hideUsageShotSoon);
+    $$("[data-action='open-res-use']").forEach((el) => {
+      el.addEventListener("click", () => openResUse());
+    });
+    const xbShare = mountXbShare();
+    $$("[data-action='open-xb-share']").forEach((el) => {
+      el.addEventListener("click", () => xbShare?.open());
+    });
+    $$("[data-close-use]").forEach((el) => {
+      el.addEventListener("click", () => closeResUse());
+    });
+
+    $("#res-share-app")?.addEventListener("change", syncResShareApp);
+    $("#res-share-form")?.addEventListener("submit", (event) => event.preventDefault());
+    $$('input[name="xb-share-to"]').forEach((el) => {
+      el.addEventListener("change", syncShareTarget);
+    });
+    $("#res-share-new-pack")?.addEventListener("click", () => {
+      if (shareComposer?.root) {
+        $("#res-share-tree .res-share-compose__input")?.focus();
+        return;
+      }
+      shareComposer = { root: true, draft: "", error: false };
+      renderShareTree();
+    });
+    $("#res-share-ok")?.addEventListener("click", () => {
+      if ($("#res-share-ok")?.disabled) return;
+      if (fileShareScheme === "a" || !fileShareAppIsXiaoben()) {
+        if (fileShareChecked("school")) resShareMarks.school = true;
+        if (fileShareChecked("leke")) resShareMarks.leke = true;
+        if (fileShareScheme === "a" && fileShareChecked("xiaoben")) resShareMarks.xiaoben = true;
+      } else {
+        resShareMarks.xiaoben = true;
+      }
+      renderResShareTags();
+      closeResShare();
+      schedulePersist();
+    });
+    $("#res-share-tree")?.addEventListener("click", (event) => {
+      const toggle = event.target.closest("[data-share-toggle]");
+      const pick = event.target.closest("[data-share-pick]");
+      const composeOk = event.target.closest('[data-share-compose="ok"]');
+      const composeCancel = event.target.closest('[data-share-compose="cancel"]');
+      if (toggle) {
+        const node = findShareNode(toggle.dataset.shareToggle);
+        if (node) node.open = !node.open;
+        renderShareTree();
+        return;
+      }
+      if (pick) {
+        shareSelectedId = pick.dataset.sharePick;
+        renderShareTree();
+        syncShareTarget();
+        return;
+      }
+      if (composeOk) confirmShareCompose();
+      if (composeCancel) {
+        shareComposer = null;
+        renderShareTree();
+      }
+    });
+
+    let shareFileDrag = null;
+    const shareTreeEl = $("#res-share-tree");
+
+    function clearShareFileDropMarks() {
+      shareTreeEl?.querySelectorAll(".res-file.is-drop-before, .res-file.is-drop-after, .res-file.is-dragging").forEach((el) => {
+        el.classList.remove("is-drop-before", "is-drop-after", "is-dragging");
+      });
+    }
+
+    shareTreeEl?.addEventListener("dragstart", (event) => {
+      const row = event.target.closest(".res-file");
+      if (!row) return;
+      shareFileDrag = { dirId: row.dataset.fileDir, index: Number(row.dataset.fileIndex) };
+      row.classList.add("is-dragging");
+      $("#res-share-float-menu")?.setAttribute("hidden", "");
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", String(shareFileDrag.index));
+      }
+    });
+    shareTreeEl?.addEventListener("dragover", (event) => {
+      const row = event.target.closest(".res-file");
+      if (!row || !shareFileDrag || row.dataset.fileDir !== shareFileDrag.dirId) return;
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+      const after = event.clientY > row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2;
+      clearShareFileDropMarks();
+      document.querySelector(`.res-file[data-file-index="${shareFileDrag.index}"][data-file-dir="${shareFileDrag.dirId}"]`)?.classList.add("is-dragging");
+      row.classList.add(after ? "is-drop-after" : "is-drop-before");
+    });
+    shareTreeEl?.addEventListener("drop", (event) => {
+      const row = event.target.closest(".res-file");
+      if (!row || !shareFileDrag || row.dataset.fileDir !== shareFileDrag.dirId) return;
+      event.preventDefault();
+      const from = shareFileDrag.index;
+      const rect = row.getBoundingClientRect();
+      let to = Number(row.dataset.fileIndex);
+      if (event.clientY > rect.top + rect.height / 2) to += 1;
+      moveShareFile(shareFileDrag.dirId, from, to);
+      shareFileDrag = null;
+      renderShareTree();
+    });
+    shareTreeEl?.addEventListener("dragend", () => {
+      shareFileDrag = null;
+      clearShareFileDropMarks();
+    });
+
+    let shareDirId = "";
+    let shareNodeKind = "dir";
+    let shareDeleteId = "";
+    let shareMenuTimer = null;
+    const shareFloatMenu = $("#res-share-float-menu");
+
+    function placeShareDirMenu(more) {
+      if (!shareFloatMenu || !more) return;
+      clearTimeout(shareMenuTimer);
+      shareDirId = more.dataset.dirId || "";
+      shareNodeKind = more.dataset.nodeKind === "pack" ? "pack" : "dir";
+      syncPackFloatMenu(shareFloatMenu, shareNodeKind, more.dataset.nodeFixed === "1");
+      const btn = more.querySelector(".res-node__more-btn");
+      const host = $("#res-share-modal .xb-modal__dialog");
+      if (!btn || !host) return;
+      shareFloatMenu.hidden = false;
+      const rect = btn.getBoundingClientRect();
+      const box = host.getBoundingClientRect();
+      const menuWidth = shareFloatMenu.offsetWidth || 112;
+      shareFloatMenu.style.left = `${Math.max(8, rect.right - box.left - menuWidth)}px`;
+      shareFloatMenu.style.top = `${rect.bottom - box.top + 4}px`;
+    }
+
+    function hideShareDirMenuSoon() {
+      clearTimeout(shareMenuTimer);
+      shareMenuTimer = setTimeout(() => {
+        if (shareFloatMenu) shareFloatMenu.hidden = true;
+        shareDirId = "";
+      }, 160);
+    }
+
+    $("#res-share-tree")?.addEventListener("mouseover", (event) => {
+      const more = event.target.closest(".res-node__more");
+      if (more) placeShareDirMenu(more);
+    });
+    $("#res-share-tree")?.addEventListener("mouseout", (event) => {
+      const more = event.target.closest(".res-node__more");
+      if (!more) return;
+      if (more.contains(event.relatedTarget) || shareFloatMenu?.contains(event.relatedTarget)) return;
+      hideShareDirMenuSoon();
+    });
+    shareFloatMenu?.addEventListener("mouseenter", () => clearTimeout(shareMenuTimer));
+    shareFloatMenu?.addEventListener("mouseleave", hideShareDirMenuSoon);
+    shareFloatMenu?.addEventListener("click", (event) => {
+      const id = shareDirId;
+      if (!id) return;
+      if (event.target.closest("[data-share-learners]")) {
+        const node = findShareNode(id);
+        shareFloatMenu.hidden = true;
+        shareDirId = "";
+        openPackLearners(node?.name || "");
+        return;
+      }
+      if (event.target.closest("[data-share-add-dir]")) {
+        if (shareNodeKind === "pack") {
+          const node = findShareNode(id);
+          if (node) node.open = true;
+          shareComposer = { parentId: id, draft: "", error: false };
+        } else {
+          shareComposer = { afterId: id, draft: "", error: false };
+        }
+        shareFloatMenu.hidden = true;
+        shareDirId = "";
+        renderShareTree();
+        return;
+      }
+      if (event.target.closest("[data-share-edit-dir]")) {
+        const node = findShareNode(id);
+        shareComposer = { editId: id, draft: node?.name || "", error: false };
+        shareFloatMenu.hidden = true;
+        shareDirId = "";
+        renderShareTree();
+        return;
+      }
+      if (!event.target.closest("[data-share-del-dir]")) return;
+      const node = findShareNode(id);
+      const kind = shareNodeKind;
+      shareFloatMenu.hidden = true;
+      shareDirId = "";
+      const needsConfirm = kind === "pack" ? (node?.children || []).length > 0 : shareDirHasResources(node);
+      if (needsConfirm) {
+        shareDeleteId = id;
+        openShareDeleteConfirm(kind);
+        return;
+      }
+      removeShareDir(id);
+    });
+
+    function closeShareDeleteConfirm() {
+      shareDeleteId = "";
+      const confirm = $("#res-share-confirm");
+      if (confirm) confirm.hidden = true;
+    }
+
+    $$("[data-share-confirm-cancel]").forEach((el) => {
+      el.addEventListener("click", closeShareDeleteConfirm);
+    });
+    $("#res-share-confirm-ok")?.addEventListener("click", () => {
+      const id = shareDeleteId;
+      closeShareDeleteConfirm();
+      if (id) removeShareDir(id);
+    });
+
+    $("#res-share-tree")?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && event.target.classList.contains("res-share-compose__input")) {
+        event.preventDefault();
+        confirmShareCompose();
+      }
+    });
+
+    $$("[data-close-share]").forEach((el) => {
+      el.addEventListener("click", () => closeResShare());
+    });
+
+    $$("[data-action='back-pc-home']").forEach((el) => {
+      el.addEventListener("click", () => showPcHome());
     });
 
     $("#pc-back")?.addEventListener("click", showPcHome);
@@ -3826,7 +5525,7 @@
       videoName: "一次函数的图像",
       resourceType: "courseware",
       groupName: "函数",
-      maker: "zfy",
+      maker: "蒋雯",
       homeworks: [],
       coursewares: [
         { key: "seed-cw-1", name: "一次函数的图像", cwIndex: 2 },
@@ -3845,7 +5544,7 @@
       videoName: "一次函数的性质",
       resourceType: "paper",
       groupName: "函数",
-      maker: "zfy",
+      maker: "蒋雯",
       homeworks: [
         { key: "seed-hw-1", name: "一次函数的性质", paperIndex: 3 },
       ],
@@ -3858,7 +5557,7 @@
       auditRecords: [
         {
           time: "2026-10-10 09:19:05",
-          reviewer: "zfy",
+          reviewer: "蒋雯",
           opinion: "无",
           result: "pass",
         },
@@ -3871,7 +5570,7 @@
       videoName: "一次函数在实际生活中的应用",
       resourceType: "video",
       groupName: "函数",
-      maker: "zfy",
+      maker: "蒋雯",
       homeworks: [
         {
           key: "seed-hw-2",
@@ -3890,7 +5589,7 @@
       auditRecords: [
         {
           time: "2026-10-10 09:17:50",
-          reviewer: "zfy",
+          reviewer: "蒋雯",
           opinion: "视频不达标",
           result: "reject",
         },
@@ -3987,8 +5686,15 @@
     return `<span class="jw-status jw-status--draft">待发布</span>`;
   }
 
+  function isTeacherNamedPack(row) {
+    const first = manageCourseList[0];
+    return !!(row && first && row.id === first.id);
+  }
+
   function buildManageOpHtml(row) {
-    if (row.status === "draft") {
+    const lockShelf = manageScope === "tc" && isTeacherNamedPack(row);
+    const status = lockShelf ? "on" : row.status;
+    if (status === "draft") {
       return `<div class="jw-manage-ops">
         <button type="button" class="jw-link" data-manage-op="继续编辑">继续编辑</button>
         <button type="button" class="jw-link" data-manage-op="删除">删除</button>
@@ -3998,7 +5704,10 @@
         <button type="button" class="jw-manage-more__btn" data-manage-more aria-label="更多操作">⋯</button>
         <div class="jw-manage-more__menu" hidden>
           ${
-            row.status === "off"
+            lockShelf
+              ? `<button type="button" data-manage-op="学习数据">学习数据</button>
+                 <button type="button" data-manage-op="修改">修改</button>`
+              : status === "off"
               ? `<button type="button" data-manage-op="学习数据">学习数据</button>
                  <button type="button" data-manage-op="修改">修改</button>`
               : `<button type="button" data-manage-op="学习数据">学习数据</button>
@@ -4008,49 +5717,79 @@
           }
         </div>
       </div>`;
-    if (row.status === "off") {
+    if (status === "off") {
       return `<div class="jw-manage-ops">
-        <button type="button" class="jw-link" data-manage-op="排课">排课</button>
+        <button type="button" class="jw-link" data-manage-op="排课">添加资源</button>
         <button type="button" class="jw-link" data-manage-op="学习名单">学习名单</button>
         <button type="button" class="jw-link" data-manage-op="上架">上架</button>
         ${moreBtn}
       </div>`;
     }
     return `<div class="jw-manage-ops">
-      <button type="button" class="jw-link" data-manage-op="排课">排课</button>
+      <button type="button" class="jw-link" data-manage-op="排课">添加资源</button>
       <button type="button" class="jw-link" data-manage-op="学习名单">学习名单</button>
       ${moreBtn}
     </div>`;
   }
 
+  function currentTeacherName() {
+    const spans = document.querySelectorAll("#pc-teacher-lib .xb-user span");
+    for (const span of spans) {
+      const text = span.textContent || "";
+      if (text.includes("|")) return text.split("|")[0].trim();
+    }
+    return "蒋雯";
+  }
+
+  function manageCourseTitle(row) {
+    if (!row) return "";
+    const first = manageCourseList[0];
+    if (manageScope === "tc" && first && row.id === first.id) return currentTeacherName();
+    return row.title || "";
+  }
+
   function renderManageTable() {
-    const tbody = $("#jw-manage-tbody");
-    const countEl = $("#jw-manage-record-count");
-    if (!tbody) return;
-    tbody.innerHTML = manageCourseList
-      .map(
-        (row) => `<tr data-manage-id="${row.id}">
+    const countText = `共${manageCourseList.length}条记录`;
+    const prevScope = manageScope;
+    [
+      ["jw", "#jw-manage-tbody", "#jw-manage-record-count"],
+      ["tc", "#tc-manage-tbody", "#tc-manage-record-count"],
+    ].forEach(([scope, tbodySel, countSel]) => {
+      manageScope = scope;
+      const tbody = document.querySelector(tbodySel);
+      const countEl = document.querySelector(countSel);
+      if (tbody) {
+        tbody.innerHTML = manageCourseList
+          .map((row) => {
+            const title = manageCourseTitle(row);
+            const gradeText = scope === "tc" ? "初中" : row.grade;
+            return `<tr data-manage-id="${row.id}">
           <td class="col-check"><input class="xb-check" type="checkbox" aria-label="选择行" /></td>
           <td class="col-minfo">
             <div class="jw-course-cell">
               <span class="jw-course-thumb jw-course-thumb--placeholder" aria-hidden="true"></span>
               <div class="jw-course-meta">
-                <div class="jw-course-title" title="${escapeAttr(row.title)}">${escapeAttr(row.title)}</div>
+                <div class="jw-course-title" title="${escapeAttr(title)}">${escapeAttr(title)}</div>
               </div>
             </div>
           </td>
-          <td class="col-grade">${escapeAttr(row.grade)}</td>
+          <td class="col-grade">${escapeAttr(gradeText)}</td>
           <td class="col-subject">${escapeAttr(row.subject)}</td>
-          <td class="col-lessons">${manageEmptyText(row.lessons)}</td>
+          <td class="col-lessons">${manageEmptyText(
+            scope === "tc" && isTeacherNamedPack(row) ? teacherPackLessonCount(row) : row.lessons
+          )}</td>
           <td class="col-learners">${manageEmptyText(row.learners)}</td>
           <td class="col-publish">${manageEmptyText(row.publishedAt)}</td>
-          <td class="col-mstatus">${manageStatusHtml(row.status)}</td>
+          <td class="col-mstatus">${manageStatusHtml(scope === "tc" && isTeacherNamedPack(row) ? "on" : row.status)}</td>
           <td class="col-maction">${buildManageOpHtml(row)}</td>
-        </tr>`
-      )
-      .join("");
-    if (countEl) countEl.textContent = `共${manageCourseList.length}条记录`;
-    syncManageChecks();
+        </tr>`;
+          })
+          .join("");
+      }
+      if (countEl) countEl.textContent = countText;
+      syncManageChecks();
+    });
+    manageScope = prevScope;
     schedulePersist();
   }
 
@@ -4457,7 +6196,7 @@
     const demoRemoved = {
       id: 63174,
       lehao: "63174",
-      name: "杨莉莉",
+      name: "钟白",
       gender: "保密",
       klass: "一年级(2)班",
       addedAt: "2026-10-10 09:30:00",
@@ -4589,7 +6328,7 @@
     const row = manageCourseList.find((item) => item.id === courseId);
     const courseEl = $("#jw-import-restore-course");
     if (courseEl) {
-      const title = row?.title || "未命名课程";
+      const title = manageCourseTitle(row) || "未命名课程";
       const subject = row?.subject || "语文";
       courseEl.textContent = `${title}（${subject}）`;
     }
@@ -4693,20 +6432,20 @@
     if (thead) {
       thead.innerHTML = allRoster
         ? `<tr>
-            <th>乐号</th>
+            <th>班级</th>
             <th>姓名</th>
             <th>性别</th>
-            <th>班级</th>
+            <th>乐号</th>
             <th>添加时间</th>
           </tr>`
         : `<tr>
             <th class="col-check">
               <input class="xb-check" type="checkbox" id="jw-learners-check-all" aria-label="全选" />
             </th>
-            <th>乐号</th>
+            <th>班级</th>
             <th>姓名</th>
             <th>性别</th>
-            <th>班级</th>
+            <th>乐号</th>
             <th>添加时间</th>
             <th class="col-maction">操作</th>
           </tr>`;
@@ -4719,10 +6458,10 @@
       tbody.innerHTML = list
         .map(
           (row) => `<tr data-learner-id="${escapeAttr(String(row.id))}">
-            <td>${escapeAttr(row.lehao || "--")}</td>
+            <td>${escapeAttr(row.klass || "--")}</td>
             <td>${escapeAttr(row.name || "--")}</td>
             <td>${escapeAttr(row.gender || "--")}</td>
-            <td>${escapeAttr(row.klass || "--")}</td>
+            <td>${escapeAttr(row.lehao || "--")}</td>
             <td>${escapeAttr(row.addedAt || "--")}</td>
           </tr>`
         )
@@ -4732,10 +6471,10 @@
         .map(
           (row) => `<tr data-learner-id="${escapeAttr(String(row.id))}">
             <td class="col-check"><input class="xb-check" type="checkbox" aria-label="选择学生" /></td>
-            <td>${escapeAttr(row.lehao || "--")}</td>
+            <td>${escapeAttr(row.klass || "--")}</td>
             <td>${escapeAttr(row.name || "--")}</td>
             <td>${escapeAttr(row.gender || "--")}</td>
-            <td>${escapeAttr(row.klass || "--")}</td>
+            <td>${escapeAttr(row.lehao || "--")}</td>
             <td>${escapeAttr(row.addedAt || "--")}</td>
             <td class="col-maction">
               <button type="button" class="jw-link--remove" data-learner-remove="${escapeAttr(String(row.id))}">移除</button>
@@ -4784,7 +6523,7 @@
     const learnPin = $("#pc-diff-learn-pin");
     if (learnPin) learnPin.dataset.diffPin = isLearnDataMulti() ? "pc-jw-learn-multi" : "pc-jw-learn-data";
     if (isLearnDataMulti()) {
-      const names = courses.map((item) => item.title || "未命名课程").join("、");
+      const names = courses.map((item) => manageCourseTitle(item) || "未命名课程").join("、");
       titleEl.textContent = `多课程统计 - ${names || "未命名课程"}`;
       metaEl.hidden = true;
       metaEl.innerHTML = "";
@@ -4792,13 +6531,14 @@
     }
     metaEl.hidden = false;
     const course = courses[0];
-    const name = course?.title || "未命名课程";
+    const name = manageCourseTitle(course) || "未命名课程";
     titleEl.textContent = `${name}-学习数据`;
     const grade = formatLearnDataMetaValue(course?.grade);
     const lessons = formatLearnDataMetaValue(course?.lessons, "课时");
     const learners = formatLearnDataMetaValue(course?.learners);
+    const gradeLabel = manageScope === "tc" ? "学段" : "年级";
     metaEl.innerHTML = `
-      <span>年级：${escapeAttr(grade)}</span>
+      <span>${gradeLabel}：${escapeAttr(grade)}</span>
       <span>总课时：${escapeAttr(lessons)}</span>
       <span>学习人数：${escapeAttr(learners)}</span>
     `;
@@ -4970,7 +6710,7 @@
       const learnerCount =
         getLearnersForCourse(course.id).length || Number(course.learners) || 0;
       return {
-        title: course.title || "未命名课程",
+        title: manageCourseTitle(course) || "未命名课程",
         subject: course.subject || "--",
         detailSubject: course.subject || "",
         students: learnerCount,
@@ -5169,7 +6909,7 @@
         },
         {
           lehao: "63174",
-          name: "杨莉莉",
+          name: "钟白",
           klass: "一年级(2)班",
           subject: fallbackSubject,
           totalLessons: metrics.totalLessons,
@@ -5366,8 +7106,8 @@
     const courses = getLearnDataCourses();
     const course = courses[0];
     const courseName = isLearnDataMulti()
-      ? courses.map((item) => item.title || "未命名课程").join("、")
-      : course?.title || "自适应测试";
+      ? courses.map((item) => manageCourseTitle(item) || "未命名课程").join("、")
+      : manageCourseTitle(course) || "自适应测试";
     const subject = course?.subject || "语文";
     return {
       subject,
@@ -5377,7 +7117,7 @@
           title: "默认单元",
           lessons: [
             {
-              name: "第 1 节 预习报告第3题",
+              name: "预习报告第3题",
               status: "done",
               meta: "已学习时长：0分4秒/0分4秒 | 点播",
               subs: [
@@ -5386,13 +7126,13 @@
               ],
             },
             {
-              name: "第 1 节 wmv：儿童歌曲 - 小龙人",
+              name: "wmv：儿童歌曲 - 小龙人",
               status: "todo",
               meta: "已学习时长：0分0秒/1分7秒 | 点播",
               subs: [],
             },
             {
-              name: studentName === "杨莉莉" ? "第 2 节 2" : "第 2 节 拓展练习",
+              name: studentName === "钟白" ? "2" : "拓展练习",
               status: "lock",
               meta: "已学习时长：0分1秒 | 点播",
               subs: [],
@@ -5653,10 +7393,10 @@
     const list = isDevice
       ? getDevicesForCourse(learnersCourseId)
       : getLearnersForCourse(learnersCourseId);
-    const title = sanitizeExportFileName(course?.title || "未命名课程");
+    const title = sanitizeExportFileName(manageCourseTitle(course) || "未命名课程");
     const subject = sanitizeExportFileName(course?.subject || "");
     const fileName = `${title}${subject}学习名单.xls`;
-    const headers = isDevice ? ["序列号", "添加时间"] : ["乐号", "姓名", "性别", "班级", "添加时间"];
+    const headers = isDevice ? ["序列号", "添加时间"] : ["班级", "姓名", "性别", "乐号", "添加时间"];
     const headerCells = headers
       .map((h) => `<Cell ss:StyleID="Header"><Data ss:Type="String">${escapeXml(h)}</Data></Cell>`)
       .join("");
@@ -5664,7 +7404,7 @@
       .map((row) => {
         const values = isDevice
           ? [row.serial, row.addedAt]
-          : [row.lehao, row.name, row.gender, row.klass, row.addedAt];
+          : [row.klass, row.name, row.gender, row.lehao, row.addedAt];
         const cells = values.map(
           (val) =>
             `<Cell><Data ss:Type="String">${escapeXml(val == null || val === "" ? "--" : val)}</Data></Cell>`
@@ -5778,7 +7518,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     const row = manageCourseList.find((item) => item.id === learnersCourseId);
     const nameEl = $("#jw-import-course-name");
     const subjectLabel = $("#jw-import-subject-label");
-    if (nameEl) nameEl.textContent = row?.title || "未命名课程";
+    if (nameEl) nameEl.textContent = manageCourseTitle(row) || "未命名课程";
     if (subjectLabel) subjectLabel.textContent = row?.subject || "语文";
     const subjectCheck = $("#jw-import-subject");
     if (subjectCheck) subjectCheck.checked = true;
@@ -5793,7 +7533,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   const ADD_LEARNER_MAX = 1000;
   const ADD_LEARNER_LEHAO_MAP = {
     "7277620": { name: "文祥云", gender: "保密", klass: "一年级(2)班" },
-    "63174": { name: "杨莉莉", gender: "保密", klass: "一年级(2)班" },
+    "63174": { name: "钟白", gender: "保密", klass: "一年级(2)班" },
     "62848": { name: "梁美娟", gender: "女", klass: "一年级(1)班" },
     "10001": { name: "梁美娟", gender: "女", klass: "一年级(1)班" },
   };
@@ -5855,7 +7595,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
               children: [
                 { id: "s6", name: "赵梓墨", lehao: "10006", gender: "男", klass: "一年级(2)班", checked: true },
                 { id: "s7", name: "文祥云", lehao: "7277620", gender: "保密", klass: "一年级(2)班", checked: true },
-                { id: "s8", name: "杨莉莉", lehao: "63174", gender: "保密", klass: "一年级(2)班", checked: true },
+                { id: "s8", name: "钟白", lehao: "63174", gender: "保密", klass: "一年级(2)班", checked: true },
                 { id: "s9", name: "李白", lehao: "10009", gender: "男", klass: "一年级(2)班", checked: true },
               ],
             },
@@ -5878,7 +7618,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       id: "l1",
       name: "选修1班",
       open: true,
-      children: [{ id: "ls1", name: "杨莉莉", lehao: "63174", gender: "保密", klass: "选修1班", checked: false }],
+      children: [{ id: "ls1", name: "钟白", lehao: "63174", gender: "保密", klass: "选修1班", checked: false }],
     },
     { id: "l2", name: "科学1班", open: false, children: [] },
     { id: "l3", name: "选修班物理1", open: false, children: [] },
@@ -6055,7 +7795,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     $$('input[name="jw-add-learner-mode"]').forEach((input) => {
       input.checked = input.value === addLearnerMode;
     });
-    $$("[data-add-learner-pane]").forEach((pane) => {
+    (manageHost() || document).querySelectorAll("[data-add-learner-pane]").forEach((pane) => {
       pane.hidden = pane.dataset.addLearnerPane !== addLearnerMode;
     });
   }
@@ -6157,7 +7897,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   function openAddLearnerPage() {
     const row = manageCourseList.find((item) => item.id === learnersCourseId);
     const nameEl = $("#jw-add-learner-course-name");
-    if (nameEl) nameEl.textContent = row?.title || "未命名课程";
+    if (nameEl) nameEl.textContent = manageCourseTitle(row) || "未命名课程";
     syncLearnersMaintainModeUI();
     ensureDemoRemovedForAdd(learnersCourseId);
     setAddLearnerMode("school");
@@ -6239,30 +7979,30 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   }
 
   function bindAddLearnerPage() {
-    $$('input[name="jw-add-learner-mode"]').forEach((input) => {
+    document.querySelectorAll('input[name="jw-add-learner-mode"], input[name="tc-add-learner-mode"]').forEach((input) => {
       input.addEventListener("change", () => {
         if (input.checked) setAddLearnerMode(input.value);
       });
     });
-    $("#jw-add-learner-school-search")?.addEventListener("input", (e) => {
+    bindManageControl("jw-add-learner-school-search", "input", (e) => {
       addLearnerSchoolKeyword = e.target.value || "";
       refreshAddLearnerSchoolUI();
     });
-    $("#jw-add-learner-school-clear")?.addEventListener("click", () => {
+    bindManageControl("jw-add-learner-school-clear", "click", () => {
       walkTree(schoolTreeData, (node) => {
         node.checked = false;
         node.indeterminate = false;
       });
       refreshAddLearnerSchoolUI();
     });
-    $("#jw-add-learner-layer-clear")?.addEventListener("click", () => {
+    bindManageControl("jw-add-learner-layer-clear", "click", () => {
       walkTree(layerTreeData, (node) => {
         node.checked = false;
         node.indeterminate = false;
       });
       refreshAddLearnerLayerUI();
     });
-    $("#jw-add-learner-school-tree")?.addEventListener("click", (e) => {
+    bindManageControl("jw-add-learner-school-tree", "click", (e) => {
       const toggle = e.target.closest("[data-tree-toggle]");
       if (!toggle) return;
       const id = toggle.dataset.treeToggle.split(":")[1];
@@ -6271,7 +8011,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       node.open = !node.open;
       refreshAddLearnerSchoolUI();
     });
-    $("#jw-add-learner-layer-tree")?.addEventListener("click", (e) => {
+    bindManageControl("jw-add-learner-layer-tree", "click", (e) => {
       const toggle = e.target.closest("[data-tree-toggle]");
       if (!toggle) return;
       const id = toggle.dataset.treeToggle.split(":")[1];
@@ -6280,7 +8020,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       node.open = !node.open;
       refreshAddLearnerLayerUI();
     });
-    $("#jw-add-learner-school-tree")?.addEventListener("change", (e) => {
+    bindManageControl("jw-add-learner-school-tree", "change", (e) => {
       const input = e.target.closest("[data-tree-check]");
       if (!input) return;
       const id = input.dataset.treeCheck.split(":")[1];
@@ -6289,7 +8029,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       setTreeChecked(node, input.checked);
       refreshAddLearnerSchoolUI();
     });
-    $("#jw-add-learner-layer-tree")?.addEventListener("change", (e) => {
+    bindManageControl("jw-add-learner-layer-tree", "change", (e) => {
       const input = e.target.closest("[data-tree-check]");
       if (!input) return;
       const id = input.dataset.treeCheck.split(":")[1];
@@ -6298,42 +8038,42 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       setTreeChecked(node, input.checked);
       refreshAddLearnerLayerUI();
     });
-    $("#jw-add-learner-school-chosen")?.addEventListener("click", (e) => {
+    bindManageControl("jw-add-learner-school-chosen", "click", (e) => {
       const btn = e.target.closest("[data-add-learner-remove]");
       if (!btn) return;
       const node = findTreeNode(schoolTreeData, btn.dataset.addLearnerRemove);
       if (node) setTreeChecked(node, false);
       refreshAddLearnerSchoolUI();
     });
-    $("#jw-add-learner-layer-chosen")?.addEventListener("click", (e) => {
+    bindManageControl("jw-add-learner-layer-chosen", "click", (e) => {
       const btn = e.target.closest("[data-add-learner-remove]");
       if (!btn) return;
       const node = findTreeNode(layerTreeData, btn.dataset.addLearnerRemove);
       if (node) setTreeChecked(node, false);
       refreshAddLearnerLayerUI();
     });
-    $("#jw-add-learner-lehao")?.addEventListener("input", syncAddLearnerLehaoName);
-    $("#jw-add-device-serial")?.addEventListener("input", () => {
+    bindManageControl("jw-add-learner-lehao", "input", syncAddLearnerLehaoName);
+    bindManageControl("jw-add-device-serial", "input", () => {
       addDeviceMatchedSerial = null;
       syncAddDeviceEcho();
     });
-    $("#jw-add-learner-back-manage")?.addEventListener("click", () => {
+    bindManageControl("jw-add-learner-back-manage", "click", () => {
       learnersCourseId = null;
       setJiaowuNav("manage");
     });
-    $("#jw-add-learner-back-list")?.addEventListener("click", () => {
+    bindManageControl("jw-add-learner-back-list", "click", () => {
       setJiaowuNav("learners");
       renderLearnersTable();
     });
-    $("#jw-add-learner-cancel")?.addEventListener("click", () => {
+    bindManageControl("jw-add-learner-cancel", "click", () => {
       setJiaowuNav("learners");
       renderLearnersTable();
     });
-    $("#jw-add-learner-ok")?.addEventListener("click", confirmAddLearners);
+    bindManageControl("jw-add-learner-ok", "click", confirmAddLearners);
   }
 
   function bindLearnersPage() {
-    $("#jw-learn-data-back")?.addEventListener("click", () => {
+    bindManageControl("jw-learn-data-back", "click", () => {
       learnDataCourseId = null;
       learnDataCourseIds = [];
       setJiaowuNav("manage");
@@ -6354,13 +8094,13 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
         renderLearnDataSummaryTable();
       });
     });
-    $("#jw-learn-data-export")?.addEventListener("click", () => {
+    bindManageControl("jw-learn-data-export", "click", () => {
       showToast("导出Excel（原型示意）");
     });
-    $("#jw-learn-data-detail-export")?.addEventListener("click", () => {
+    bindManageControl("jw-learn-data-detail-export", "click", () => {
       showToast("导出Excel（原型示意）");
     });
-    $("#jw-learn-data-tbody")?.addEventListener("click", (e) => {
+    bindManageControl("jw-learn-data-tbody", "click", (e) => {
       const detailBtn = e.target.closest("[data-learn-data-detail]");
       if (!detailBtn) return;
       const klass = detailBtn.dataset.learnDataKlass || "";
@@ -6368,7 +8108,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       const subject = detailBtn.dataset.learnDataSubject || "";
       openLearnDataDetailFromSummary(klass || null, grade || null, subject || null);
     });
-    $("#jw-learn-data-detail-tbody")?.addEventListener("click", (e) => {
+    bindManageControl("jw-learn-data-detail-tbody", "click", (e) => {
       const btn = e.target.closest("[data-learn-student-detail]");
       if (!btn) return;
       openStudentDetailModal({
@@ -6380,13 +8120,13 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     $$("[data-close-student-detail]").forEach((el) => {
       el.addEventListener("click", closeStudentDetailModal);
     });
-    $("#jw-learn-data-gc-trigger")?.addEventListener("click", (e) => {
+    bindManageControl("jw-learn-data-gc-trigger", "click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (learnDataGcOpen) closeLearnDataGcPanel();
       else openLearnDataGcPanel();
     });
-    $("#jw-learn-data-gc-panel")?.addEventListener("click", (e) => {
+    bindManageControl("jw-learn-data-gc-panel", "click", (e) => {
       e.stopPropagation();
       const gradeBtn = e.target.closest("[data-gc-grade]");
       if (gradeBtn) {
@@ -6409,10 +8149,10 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
         closeLearnDataGcPanel();
       }
     });
-    $("#jw-learn-data-keyword")?.addEventListener("input", () => {
+    bindManageControl("jw-learn-data-keyword", "input", () => {
       if (learnDataTab === "detail") renderLearnDataDetailTable();
     });
-    $("#jw-learn-data-subject")?.addEventListener("change", () => {
+    bindManageControl("jw-learn-data-subject", "change", () => {
       const select = $("#jw-learn-data-subject");
       learnDataDetailSubject = (select?.value || "").trim() || null;
       if (learnDataTab === "detail") renderLearnDataDetailTable();
@@ -6426,7 +8166,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       },
       true
     );
-    $("#jw-learners-back")?.addEventListener("click", () => {
+    bindManageControl("jw-learners-back", "click", () => {
       learnersCourseId = null;
       setJiaowuNav("manage");
     });
@@ -6435,19 +8175,19 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
         setLearnersMaintainFlag(input.dataset.learnersMode, input.checked);
       });
     });
-    $("#jw-person-scope")?.addEventListener("change", (e) => {
+    bindManageControl("jw-person-scope", "change", (e) => {
       setPersonScope(e.target.value);
     });
     $$("[data-close-learners-mode]").forEach((el) => {
       el.addEventListener("click", closeLearnersModeConfirmModal);
     });
-    $("#jw-learners-mode-ok")?.addEventListener("click", confirmLearnersMaintainModeSwitch);
-    $("#jw-learners-query")?.addEventListener("click", () => {
+    bindManageControl("jw-learners-mode-ok", "click", confirmLearnersMaintainModeSwitch);
+    bindManageControl("jw-learners-query", "click", () => {
       learnersListKeyword = ($("#jw-learners-keyword")?.value || "").trim();
       renderLearnersTable();
       showToast("查询完成");
     });
-    $("#jw-learners-keyword")?.addEventListener("keydown", (e) => {
+    bindManageControl("jw-learners-keyword", "keydown", (e) => {
       if (e.key !== "Enter") return;
       learnersListKeyword = ($("#jw-learners-keyword")?.value || "").trim();
       renderLearnersTable();
@@ -6482,13 +8222,13 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       });
     });
     bindAddLearnerPage();
-    $("#jw-learners-check-all")?.addEventListener("change", () => {
+    bindManageControl("jw-learners-check-all", "change", () => {
       const checked = !!$("#jw-learners-check-all")?.checked;
       $$("#jw-learners-tbody .xb-check").forEach((c) => {
         c.checked = checked;
       });
     });
-    $("#jw-learners-tbody")?.addEventListener("click", (e) => {
+    bindManageControl("jw-learners-tbody", "click", (e) => {
       const removeBtn = e.target.closest("[data-learner-remove]");
       if (!removeBtn || learnersCourseId == null) return;
       openLearnerRemoveModal(Number(removeBtn.dataset.learnerRemove));
@@ -6496,34 +8236,34 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     $$("[data-close-learner-remove]").forEach((el) => {
       el.addEventListener("click", closeLearnerRemoveModal);
     });
-    $("#jw-learner-remove-ok")?.addEventListener("click", confirmLearnerRemove);
+    bindManageControl("jw-learner-remove-ok", "click", confirmLearnerRemove);
 
-    $("#jw-import-back-manage")?.addEventListener("click", () => {
+    bindManageControl("jw-import-back-manage", "click", () => {
       learnersCourseId = null;
       setJiaowuNav("manage");
     });
-    $("#jw-import-back-learners")?.addEventListener("click", () => {
+    bindManageControl("jw-import-back-learners", "click", () => {
       setJiaowuNav("learners");
       renderLearnersTable();
     });
-    $("#jw-import-cancel")?.addEventListener("click", () => {
+    bindManageControl("jw-import-cancel", "click", () => {
       setJiaowuNav("learners");
       renderLearnersTable();
     });
-    $("#jw-import-download")?.addEventListener("click", () => {
+    bindManageControl("jw-import-download", "click", () => {
       downloadLearnersImportTemplate();
     });
-    $("#jw-import-upload")?.addEventListener("click", () => {
+    bindManageControl("jw-import-upload", "click", () => {
       if (importHasFile) return;
       importHasFile = true;
       syncImportUploadState();
       showToast("已上传文件");
     });
-    $("#jw-import-file-remove")?.addEventListener("click", () => {
+    bindManageControl("jw-import-file-remove", "click", () => {
       importHasFile = false;
       syncImportUploadState();
     });
-    $("#jw-import-start")?.addEventListener("click", () => {
+    bindManageControl("jw-import-start", "click", () => {
       if (!importHasFile) return;
       finishImportSuccess();
     });
@@ -6534,7 +8274,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
         closeImportRestoreModal();
       });
     });
-    $("#jw-import-restore-ok")?.addEventListener("click", confirmImportRestore);
+    bindManageControl("jw-import-restore-ok", "click", confirmImportRestore);
   }
 
   function nowText() {
@@ -6841,7 +8581,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
             ${hwHtml || emptyHw}
             ${cwHtml || emptyCw}
           </td>
-          <td class="col-maker">${escapeAttr(row.maker || "zfy")}</td>
+          <td class="col-maker">${escapeAttr(row.maker || "蒋雯")}</td>
           <td class="col-audit">${escapeAttr(row.audit)}</td>
           <td class="col-time">${row.createdAt}</td>
           <td class="col-time">${row.updatedAt}</td>
@@ -6871,7 +8611,8 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   }
 
   function setJiaowuNav(nav) {
-    state.jwNav = nav;
+    if (manageScope === "tc") state.tcNav = nav;
+    else state.jwNav = nav;
     const sideNav =
       nav === "publish" ||
       nav === "learners" ||
@@ -6880,10 +8621,12 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       nav === "learn-data"
         ? "manage"
         : nav;
-    $$("[data-jw-nav]").forEach((btn) => {
+    const root = manageHost();
+    if (!root) return;
+    root.querySelectorAll("[data-jw-nav]").forEach((btn) => {
       btn.classList.toggle("is-active", btn.dataset.jwNav === sideNav);
     });
-    $$("[data-jw-panel]").forEach((panel) => {
+    root.querySelectorAll("[data-jw-panel]").forEach((panel) => {
       panel.hidden = panel.dataset.jwPanel !== nav;
     });
     if (nav !== "publish") hidePublishTip();
@@ -6907,15 +8650,15 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     if (subject) subject.value = "数学";
     if (lessons) lessons.value = "";
     if (intro) intro.value = "";
-    const order = document.querySelector('input[name="jw-learn-mode"][value="order"]');
+    const order = $('input[name="jw-learn-mode"][value="order"]');
     if (order) order.checked = true;
-    const video = document.querySelector('input[name="jw-learn-sub"][value="video"]');
+    const video = $('input[name="jw-learn-sub"][value="video"]');
     if (video) video.checked = true;
     const sub = $("#jw-learn-sub");
     if (sub) sub.hidden = false;
-    const lock = document.querySelector('input[name="jw-progress"][value="lock"]');
+    const lock = $('input[name="jw-progress"][value="lock"]');
     if (lock) lock.checked = true;
-    const self = document.querySelector('input[name="jw-hw-check"][value="self"]');
+    const self = $('input[name="jw-hw-check"][value="self"]');
     if (self) self.checked = true;
   }
 
@@ -6923,7 +8666,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     editingPublishId = row.id;
     const nameInput = $("#jw-pub-name");
     if (nameInput) {
-      nameInput.value = row.title || "";
+      nameInput.value = manageCourseTitle(row) || "";
       syncPublishNameCount(nameInput);
     }
     const grade = $("#jw-pub-grade");
@@ -7016,6 +8759,39 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     if (subject) subject.disabled = !!locked;
   }
 
+  function countScheduleResources(units) {
+    return (Array.isArray(units) ? units : []).reduce(
+      (sum, unit) => sum + (Array.isArray(unit.lessons) ? unit.lessons.length : 0),
+      0
+    );
+  }
+
+  function teacherPackLessonCount(row) {
+    if (Array.isArray(row?.scheduleUnits)) return countScheduleResources(row.scheduleUnits);
+    return 10;
+  }
+
+  function editingTeacherSystemPack() {
+    if (manageScope !== "tc" || editingPublishId == null) return false;
+    const row = manageCourseList.find((item) => item.id === editingPublishId);
+    return isTeacherNamedPack(row);
+  }
+
+  function setSystemPackBasicsLocked(locked) {
+    const nameInput = $("#jw-pub-name");
+    const lessons = $("#jw-pub-lessons");
+    if (nameInput) nameInput.disabled = !!locked;
+    if (lessons) lessons.disabled = !!locked;
+    if (!locked) return;
+    const row = manageCourseList.find((item) => item.id === editingPublishId);
+    if (!row) return;
+    if (nameInput) {
+      nameInput.value = manageCourseTitle(row) || "";
+      syncPublishNameCount(nameInput);
+    }
+    if (lessons) lessons.value = String(teacherPackLessonCount(row));
+  }
+
   function cloneScheduleUnits(units) {
     return (Array.isArray(units) ? units : []).map((unit) => ({
       id: unit.id,
@@ -7028,6 +8804,9 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
             duration: lesson.duration || "0分0秒",
             homeworks: [...(lesson.homeworks || [])],
             coursewares: [...(lesson.coursewares || [])],
+            ...(lesson.resourceType === "paper" || lesson.resourceType === "courseware"
+              ? { resourceType: lesson.resourceType }
+              : {}),
           }))
         : [],
     }));
@@ -7058,7 +8837,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
         open: true,
         editing: false,
         lessons: [
-          mkLesson("预习报告第3题", ["预习报告第3题"]),
+          mkLesson("预习报告第3题", ["预习报告第3题"], ["课件示例"]),
           mkLesson("预习报告第4题"),
           mkLesson("预习报告第5题"),
           mkLesson("预习报告第6题"),
@@ -7108,14 +8887,15 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     const isModify = publishMode === "modify";
     const crumb = $("#jw-publish-crumb-current");
     if (crumb) {
-      if (isSchedEdit) crumb.textContent = "排课";
+      if (isSchedEdit) crumb.textContent = "添加资源";
       else if (isModify) crumb.textContent = "基本信息";
-      else crumb.textContent = "发布课程";
+      else crumb.textContent = "发布资源包";
     }
     const steps = $("#jw-publish-steps");
     if (steps) steps.hidden = isSchedEdit || isModify;
 
     setGradeSubjectLocked(isModify);
+    setSystemPackBasicsLocked(isModify && editingTeacherSystemPack());
 
     const pubCancel = $("#jw-pub-cancel");
     const pubModifySave = $("#jw-pub-modify-save");
@@ -7167,10 +8947,13 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     const row = manageCourseList.find((item) => item.id === editingPublishId);
     if (row) {
       const data = collectPublishForm();
-      row.title = data.title;
+      const systemPack = manageScope === "tc" && isTeacherNamedPack(row);
+      if (!systemPack) {
+        row.title = data.title;
+        row.lessons = data.lessons;
+      }
       row.grade = data.grade;
       row.subject = data.subject;
-      row.lessons = data.lessons;
     }
     renderManageTable();
     showToast("已保存");
@@ -7275,7 +9058,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
                 </svg>
                 删除
               </button>
-              <button type="button" class="xb-btn xb-btn--ghost jw-unit__add-course" data-unit-add-course="${unit.id}">+ 添加课时</button>
+              <button type="button" class="xb-btn xb-btn--ghost jw-unit__add-course" data-unit-add-course="${unit.id}">+ 添加资源</button>
             </div>
           </div>
           <div class="jw-unit__body">
@@ -7283,31 +9066,13 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
               unit.lessons && unit.lessons.length
                 ? `<ul class="jw-unit__lessons">${unit.lessons
                     .map((lesson, li) => {
-                      const isResourceOnly =
-                        lesson.resourceType === "paper" || lesson.resourceType === "courseware";
-                      const typeTag =
-                        lesson.resourceType === "paper"
-                          ? "试卷"
-                          : lesson.resourceType === "courseware"
-                            ? "课件"
-                            : "";
+                      const pinHtml =
+                        index === 0 && li === 0
+                          ? `<button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-lesson-row" title="查看此处改动说明">改</button>`
+                          : "";
                       return `<li class="jw-unit__lesson" data-unit-id="${unit.id}" data-lesson-index="${li}" draggable="true">
                         <div class="jw-unit__lesson-main">
-                          <div class="jw-unit__lesson-title">第${li + 1}节 ${escapeAttr(lesson.name)}${
-                            typeTag
-                              ? `<span class="jw-unit__attach-tag">${typeTag}</span>`
-                              : ""
-                          }${
-                            index === 0 && li === 0
-                              ? `<button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-lesson-row" title="查看此处改动说明">改</button>`
-                              : ""
-                          }</div>
-                          ${
-                            isResourceOnly
-                              ? ""
-                              : `<div class="jw-unit__lesson-meta">${escapeAttr(lesson.duration || "0分0秒")}</div>
-                          ${renderLessonAttachHtml(lesson)}`
-                          }
+                          ${renderScheduleLessonHtml(lesson, pinHtml)}
                         </div>
                         <div class="jw-unit__lesson-ops">
                           <button type="button" class="jw-unit__lesson-icon" data-lesson-del="${unit.id}:${li}" aria-label="删除课时" title="删除">
@@ -7321,7 +9086,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
                     })
                     .join("")}</ul>`
                 : `<div class="jw-unit__body-art" aria-hidden="true"></div>
-                   <p class="jw-unit__body-text">添加课时内容</p>`
+                   <p class="jw-unit__body-text">添加资源内容</p>`
             }
           </div>
         </article>`;
@@ -7416,26 +9181,60 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       .filter(Boolean);
   }
 
-  function renderLessonAttachHtml(lesson) {
-    const rows = [];
-    (lesson.homeworks || []).forEach((name) => {
-      rows.push(
-        `<div class="jw-unit__attach">
-          <span class="jw-unit__attach-name" title="${escapeAttr(name)}">${escapeAttr(name)}</span>
-          <span class="jw-unit__attach-tag">试卷</span>
+  function scheduleResourceType(lesson) {
+    if (lesson?.resourceType === "paper" || lesson?.resourceType === "courseware") return lesson.resourceType;
+    return "video";
+  }
+
+  function scheduleTypeLabel(type) {
+    if (type === "paper") return "试卷";
+    if (type === "courseware") return "课件";
+    return "微课";
+  }
+
+  function schedulePreviewHref(type, name) {
+    if (type === "paper") return PREVIEW.paper;
+    if (type === "courseware") return getCwPreviewUrl({ name });
+    return PREVIEW.video;
+  }
+
+  function renderScheduleTypeTag(type) {
+    return `<span class="jw-res-type jw-res-type--${type}">${scheduleTypeLabel(type)}</span>`;
+  }
+
+  function renderSchedulePreviewAnchor(type, name, extraClass) {
+    const href = escapeHref(schedulePreviewHref(type, name));
+    const cls = extraClass ? `xb-preview-link ${extraClass}` : "xb-preview-link";
+    return `<a class="${cls}" href="${href}" target="_blank" rel="noopener noreferrer" title="点击预览">${escapeAttr(name)}</a>`;
+  }
+
+  function renderScheduleAttachLines(label, type, names) {
+    return (names || [])
+      .map(
+        (name, idx) => `<div class="xb-course-info__meta">
+          <span class="xb-list-attach xb-list-attach--readonly">
+            <span class="xb-list-attach__label${idx === 0 ? "" : " xb-list-attach__label--spacer"}"${
+              idx === 0 ? "" : ` aria-hidden="true"`
+            }>${label}</span>
+            ${renderSchedulePreviewAnchor(type, name, "xb-list-attach__link")}
+          </span>
         </div>`
-      );
-    });
-    (lesson.coursewares || []).forEach((name) => {
-      rows.push(
-        `<div class="jw-unit__attach">
-          <span class="jw-unit__attach-name" title="${escapeAttr(name)}">${escapeAttr(name)}</span>
-          <span class="jw-unit__attach-tag">课件</span>
-        </div>`
-      );
-    });
-    if (!rows.length) return "";
-    return `<div class="jw-unit__attach-list">${rows.join("")}</div>`;
+      )
+      .join("");
+  }
+
+  function renderScheduleLessonHtml(lesson, pinHtml) {
+    const type = scheduleResourceType(lesson);
+    const title = `<div class="xb-course-info__title">
+      ${renderScheduleTypeTag(type)}
+      ${renderSchedulePreviewAnchor(type, lesson.name || "")}
+      ${pinHtml || ""}
+    </div>`;
+    if (type !== "video") return title;
+    const papers = renderScheduleAttachLines("试卷:", "paper", lesson.homeworks || []);
+    const wares = renderScheduleAttachLines("课件:", "courseware", lesson.coursewares || []);
+    const pack = papers || wares ? `<div class="jw-pack">${papers}${wares}</div>` : "";
+    return `${title}${pack}`;
   }
 
   function selectAddCourseVideo(index) {
@@ -7694,13 +9493,13 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     $$("[data-close-add-course]").forEach((el) => {
       el.addEventListener("click", closeAddCourseModal);
     });
-    $("#jw-add-course-ok")?.addEventListener("click", confirmAddCourse);
-    $("#jw-add-course-resource-type")?.addEventListener("change", (e) => {
+    bindManageControl("jw-add-course-ok", "click", confirmAddCourse);
+    bindManageControl("jw-add-course-resource-type", "change", (e) => {
       setJwAddCourseResourceType(e.target.value);
     });
-    $("#jw-add-course-search")?.addEventListener("input", renderAddCoursePicker);
-    $("#jw-add-course-search-btn")?.addEventListener("click", renderAddCoursePicker);
-    $("#jw-add-course-open-pick")?.addEventListener("click", () => {
+    bindManageControl("jw-add-course-search", "input", renderAddCoursePicker);
+    bindManageControl("jw-add-course-search-btn", "click", renderAddCoursePicker);
+    bindManageControl("jw-add-course-open-pick", "click", () => {
       // 试卷：直接进入试卷列表；课件/视频：先进入资源库/本地上传中间页
       if (jwAddCourseResourceType === "paper") {
         openHwModalForJwPick();
@@ -7708,14 +9507,14 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       }
       openAddModal("jwAddCourse");
     });
-    $("#jw-add-course-group-toggle")?.addEventListener("click", () => {
+    bindManageControl("jw-add-course-group-toggle", "click", () => {
       const group = $(".jw-add-course__group");
       const toggle = $("#jw-add-course-group-toggle");
       if (!group || !toggle) return;
       const collapsed = group.classList.toggle("is-collapsed");
       toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
     });
-    $("#jw-add-course-list")?.addEventListener("change", (e) => {
+    bindManageControl("jw-add-course-list", "change", (e) => {
       const input = e.target.closest("[data-add-course-id]");
       if (!input) return;
       const id = Number(input.dataset.addCourseId);
@@ -7731,7 +9530,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       }
       renderAddCoursePicker();
     });
-    $("#jw-add-course-chosen")?.addEventListener("click", (e) => {
+    bindManageControl("jw-add-course-chosen", "click", (e) => {
       const btn = e.target.closest("[data-add-course-remove]");
       if (!btn) return;
       addCourseSelected.delete(Number(btn.dataset.addCourseRemove));
@@ -7740,8 +9539,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   }
 
   function bindScheduleUnits() {
-    const list = $("#jw-unit-list");
-    if (!list) return;
+    document.querySelectorAll("#jw-unit-list, #tc-unit-list").forEach((list) => {
 
     list.addEventListener("click", (e) => {
       const toggle = e.target.closest("[data-unit-toggle]");
@@ -7857,6 +9655,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
         renderScheduleUnits();
       }
     });
+    });
   }
 
   function openPublishPage(row) {
@@ -7881,7 +9680,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   const PUBLISH_TIPS = {
     learn: `<ol>
       <li>「按视频进度解锁」模式下，需按课时顺序完成视频学习后才能解锁下一课时。</li>
-      <li>「按作业正确率解锁」模式下，需按课时顺序完成配套作业并正确率达标才能解锁下一课时。在此模式下，配套作业仅支持客观题且系统自动批改。每份试卷正确率可在排课页面设置。</li>
+      <li>「按作业正确率解锁」模式下，需按课时顺序完成配套作业并正确率达标才能解锁下一课时。在此模式下，配套作业仅支持客观题且系统自动批改。每份试卷正确率可在添加资源页面设置。</li>
       <li>「自由选择课时学习」模式下，全部课时为解锁状态，可以随意选择课时进行学习。</li>
     </ol>`,
     progress:
@@ -7931,8 +9730,8 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   }
 
   function bindPublishPage() {
-    $("#jw-publish-btn")?.addEventListener("click", () => openPublishPage());
-    $("#jw-publish-back")?.addEventListener("click", () => {
+    bindManageControl("jw-publish-btn", "click", () => openPublishPage());
+    bindManageControl("jw-publish-back", "click", () => {
       if (scheduleMode === "edit") {
         exitScheduleEdit();
         return;
@@ -7949,45 +9748,45 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       applyScheduleModeUI();
       setJiaowuNav("manage");
     });
-    $("#jw-pub-cancel")?.addEventListener("click", exitModifyBasic);
-    $("#jw-pub-modify-save")?.addEventListener("click", saveModifyBasic);
-    $("#jw-pub-save")?.addEventListener("click", savePublishDraft);
-    $("#jw-pub-now")?.addEventListener("click", openPublishNowModal);
-    $("#jw-pub-schedule")?.addEventListener("click", () => {
+    bindManageControl("jw-pub-cancel", "click", exitModifyBasic);
+    bindManageControl("jw-pub-modify-save", "click", saveModifyBasic);
+    bindManageControl("jw-pub-save", "click", savePublishDraft);
+    bindManageControl("jw-pub-now", "click", openPublishNowModal);
+    bindManageControl("jw-pub-schedule", "click", () => {
       if (publishMode === "modify") return;
       setPublishStep(2);
     });
-    $("#jw-sched-prev")?.addEventListener("click", () => {
+    bindManageControl("jw-sched-prev", "click", () => {
       if (scheduleMode === "edit" || publishMode === "modify") return;
       setPublishStep(1);
     });
-    $("#jw-sched-save")?.addEventListener("click", savePublishDraft);
-    $("#jw-sched-cancel")?.addEventListener("click", exitScheduleEdit);
-    $("#jw-sched-publish")?.addEventListener("click", () => {
+    bindManageControl("jw-sched-save", "click", savePublishDraft);
+    bindManageControl("jw-sched-cancel", "click", exitScheduleEdit);
+    bindManageControl("jw-sched-publish", "click", () => {
       if (scheduleMode === "edit" && !scheduleDirty) return;
       openPublishNowModal();
     });
-    $("#jw-add-unit-btn")?.addEventListener("click", addScheduleUnit);
+    bindManageControl("jw-add-unit-btn", "click", addScheduleUnit);
     bindScheduleUnits();
-    $("#jw-pub-cover")?.addEventListener("click", () => {
+    bindManageControl("jw-pub-cover", "click", () => {
       showToast("上传封面（原型示意）");
     });
 
-    $("#jw-pub-name")?.addEventListener("input", (e) => {
+    bindManageControl("jw-pub-name", "input", (e) => {
       syncPublishNameCount(e.target);
       schedulePersist();
     });
 
-    $("#jw-pub-lessons")?.addEventListener("input", (e) => {
+    bindManageControl("jw-pub-lessons", "input", (e) => {
       const el = e.target;
       el.value = el.value.replace(/[^\d]/g, "").replace(/^0+/, "");
       schedulePersist();
     });
 
-    $("#jw-publish-form")?.addEventListener("change", schedulePersist);
-    $("#jw-pub-intro")?.addEventListener("input", schedulePersist);
+    bindManageControl("jw-publish-form", "change", schedulePersist);
+    bindManageControl("jw-pub-intro", "input", schedulePersist);
 
-    $$('input[name="jw-learn-mode"]').forEach((radio) => {
+    document.querySelectorAll('input[name="jw-learn-mode"], input[name="tc-learn-mode"]').forEach((radio) => {
       radio.addEventListener("change", () => {
         const sub = $("#jw-learn-sub");
         const mode = $$('input[name="jw-learn-mode"]:checked')[0]?.value;
@@ -7996,19 +9795,21 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       });
     });
 
-    $("#pc-jiaowu-lib")?.addEventListener("mouseover", (e) => {
-      const tipBtn = e.target.closest(".jw-tip-btn");
-      if (!tipBtn) return;
-      const from = e.relatedTarget;
-      if (from && tipBtn.contains(from)) return;
-      showPublishTip(tipBtn);
-    });
-    $("#pc-jiaowu-lib")?.addEventListener("mouseout", (e) => {
-      const tipBtn = e.target.closest(".jw-tip-btn");
-      if (!tipBtn) return;
-      const to = e.relatedTarget;
-      if (to && tipBtn.contains(to)) return;
-      hidePublishTip();
+    document.querySelectorAll("#pc-jiaowu-lib, #pc-teacher-lib").forEach((page) => {
+      page.addEventListener("mouseover", (e) => {
+        const tipBtn = e.target.closest(".jw-tip-btn");
+        if (!tipBtn) return;
+        const from = e.relatedTarget;
+        if (from && tipBtn.contains(from)) return;
+        showPublishTip(tipBtn);
+      });
+      page.addEventListener("mouseout", (e) => {
+        const tipBtn = e.target.closest(".jw-tip-btn");
+        if (!tipBtn) return;
+        const to = e.relatedTarget;
+        if (to && tipBtn.contains(to)) return;
+        hidePublishTip();
+      });
     });
     window.addEventListener("scroll", hidePublishTip, true);
   }
@@ -8420,7 +10221,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       CW_ITEMS.push({
         subject: subject || "小学语文",
         name: lessonName,
-        author: "排课人",
+        author: "添加资源人",
         docType: "文档",
         cite: 0,
       });
@@ -8542,7 +10343,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       videoName: "",
       resourceType: "courseware",
       groupName,
-      maker: "zfy",
+      maker: "蒋雯",
       homeworks: [],
       coursewares: [
         {
@@ -8595,7 +10396,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
         cwIndex: cwId,
         name: CW_ITEMS[cwId]?.name || "未命名课件",
       })),
-      maker: "zfy",
+      maker: "蒋雯",
       audit: "无",
       createdAt: stamp,
       updatedAt: stamp,
@@ -8639,7 +10440,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
         videoName: PICK_COURSES[videoId],
         resourceType: "video",
         groupName: "",
-        maker: "zfy",
+        maker: "蒋雯",
         homeworks: hwIds.map((hwId) => ({
           key: `hw-${videoId}-${hwId}-${Date.now()}`,
           paperIndex: hwId,
@@ -8702,7 +10503,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       videoName: displayName,
       resourceType: isPaper ? "paper" : "courseware",
       groupName: useLocalMeta && localGroupName !== "默认分组" ? localGroupName : "",
-      maker: "zfy",
+      maker: "蒋雯",
       homeworks,
       coursewares,
       audit: "无",
@@ -9250,15 +11051,15 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   }
 
   const HW_PAPERS = [
-    { subject: "数学", name: "第1课时：函数的概念与表示方法——基础巩固练习", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
-    { subject: "数学", name: "第2课时：一次函数与正比例函数——基础达标测试", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
-    { subject: "数学", name: "第3课时：一次函数的图象——专项巩固练习", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "有", cite: 0 },
-    { subject: "数学", name: "第4课时：一次函数的性质——知识应用测试", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
-    { subject: "数学", name: "第5课时：一次函数图象与系数的关系——专项提升练习", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "有", cite: 0 },
-    { subject: "数学", name: "第6课时：待定系数法求一次函数解析式——方法巩固练习", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
-    { subject: "数学", name: "第7课时：一次函数解析式的综合应用——能力提升测试", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "有", cite: 0 },
-    { subject: "数学", name: "第8课时：一次函数与实际问题——应用专项练习", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
-    { subject: "数学", name: "第9课时：一次函数综合应用与拓展——单元综合测试", author: "zfy", type: "普通试卷", subjective: "有", handwriting: "有", cite: 0 },
+    { subject: "数学", name: "第1课时：函数的概念与表示方法——基础巩固练习", author: "蒋雯", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
+    { subject: "数学", name: "第2课时：一次函数与正比例函数——基础达标测试", author: "蒋雯", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
+    { subject: "数学", name: "第3课时：一次函数的图象——专项巩固练习", author: "蒋雯", type: "普通试卷", subjective: "有", handwriting: "有", cite: 0 },
+    { subject: "数学", name: "第4课时：一次函数的性质——知识应用测试", author: "蒋雯", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
+    { subject: "数学", name: "第5课时：一次函数图象与系数的关系——专项提升练习", author: "蒋雯", type: "普通试卷", subjective: "有", handwriting: "有", cite: 0 },
+    { subject: "数学", name: "第6课时：待定系数法求一次函数解析式——方法巩固练习", author: "蒋雯", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
+    { subject: "数学", name: "第7课时：一次函数解析式的综合应用——能力提升测试", author: "蒋雯", type: "普通试卷", subjective: "有", handwriting: "有", cite: 0 },
+    { subject: "数学", name: "第8课时：一次函数与实际问题——应用专项练习", author: "蒋雯", type: "普通试卷", subjective: "有", handwriting: "无", cite: 0 },
+    { subject: "数学", name: "第9课时：一次函数综合应用与拓展——单元综合测试", author: "蒋雯", type: "普通试卷", subjective: "有", handwriting: "有", cite: 0 },
   ];
 
   const hwState = {
@@ -9444,20 +11245,20 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     {
       subject: "初中数学",
       name: "第1课时：函数的概念与表示方法",
-      author: "zfy",
+      author: "蒋雯",
       docType: "文档",
       cite: 0,
       previewUrl: "./assets/courseware/yi-ci-hanshu-ke1.pdf",
       fileUrl: "./assets/courseware/yi-ci-hanshu-ke1.ppt",
     },
-    { subject: "初中数学", name: "第2课时：一次函数与正比例函数", author: "zfy", docType: "文档", cite: 0 },
-    { subject: "初中数学", name: "第3课时：一次函数的图象", author: "zfy", docType: "文档", cite: 0 },
-    { subject: "初中数学", name: "第4课时：一次函数的性质", author: "zfy", docType: "文档", cite: 0 },
-    { subject: "初中数学", name: "第5课时：一次函数图象与系数的关系", author: "zfy", docType: "文档", cite: 0 },
-    { subject: "初中数学", name: "第6课时：用待定系数法求一次函数解析式", author: "zfy", docType: "文档", cite: 0 },
-    { subject: "初中数学", name: "第7课时：一次函数解析式的综合应用", author: "zfy", docType: "文档", cite: 0 },
-    { subject: "初中数学", name: "第8课时：一次函数与实际问题", author: "zfy", docType: "文档", cite: 0 },
-    { subject: "初中数学", name: "第9课时：一次函数综合应用与拓展", author: "zfy", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第2课时：一次函数与正比例函数", author: "蒋雯", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第3课时：一次函数的图象", author: "蒋雯", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第4课时：一次函数的性质", author: "蒋雯", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第5课时：一次函数图象与系数的关系", author: "蒋雯", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第6课时：用待定系数法求一次函数解析式", author: "蒋雯", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第7课时：一次函数解析式的综合应用", author: "蒋雯", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第8课时：一次函数与实际问题", author: "蒋雯", docType: "文档", cite: 0 },
+    { subject: "初中数学", name: "第9课时：一次函数综合应用与拓展", author: "蒋雯", docType: "文档", cite: 0 },
   ];
 
   const cwState = {
@@ -9672,7 +11473,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     $$("[data-close-manage-del]").forEach((el) => {
       el.addEventListener("click", closeManageDelModal);
     });
-    $("#jw-manage-del-ok")?.addEventListener("click", confirmManageDelete);
+    bindManageControl("jw-manage-del-ok", "click", confirmManageDelete);
   }
 
   const MANAGE_OFF_SKIP_KEY = "xb-proto-v085-off-skip";
@@ -9742,7 +11543,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     $$("[data-close-manage-off]").forEach((el) => {
       el.addEventListener("click", closeManageOffModal);
     });
-    $("#jw-manage-off-ok")?.addEventListener("click", confirmManageOff);
+    bindManageControl("jw-manage-off-ok", "click", confirmManageOff);
   }
 
   function openPublishNowModal() {
@@ -9827,7 +11628,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     $$("[data-close-publish-now]").forEach((el) => {
       el.addEventListener("click", closePublishNowModal);
     });
-    $("#jw-publish-now-ok")?.addEventListener("click", confirmPublishNow);
+    bindManageControl("jw-publish-now-ok", "click", confirmPublishNow);
   }
 
   let pendingSubmitRowId = null;
@@ -9994,7 +11795,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       if (!row.auditRecords) row.auditRecords = [];
       row.auditRecords.unshift({
         time: row.updatedAt,
-        reviewer: "zfy",
+        reviewer: "蒋雯",
         opinion: row.audit,
         result: passed ? "pass" : "reject",
       });
@@ -10008,8 +11809,8 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     $$("[data-close-review]").forEach((el) => {
       el.addEventListener("click", closeReviewModal);
     });
-    $("#jw-review-ok")?.addEventListener("click", confirmReviewRow);
-    $("#jw-review-opinion")?.addEventListener("input", (e) => {
+    bindManageControl("jw-review-ok", "click", confirmReviewRow);
+    bindManageControl("jw-review-opinion", "input", (e) => {
       const count = $("#jw-review-count");
       if (count) count.textContent = `${e.target.value.length} / 200`;
     });
@@ -10019,45 +11820,45 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
     $$("[data-jw-nav]").forEach((btn) => {
       btn.addEventListener("click", () => setJiaowuNav(btn.dataset.jwNav));
     });
-    $("#jw-add-btn")?.addEventListener("click", openAddModal);
-    $("#jw-add-group-btn")?.addEventListener("click", () => {
+    bindManageControl("jw-add-btn", "click", openAddModal);
+    bindManageControl("jw-add-group-btn", "click", () => {
       $("#xb-add-group-btn")?.click();
     });
-    $("#jw-check-all")?.addEventListener("change", () => {
+    bindManageControl("jw-check-all", "change", () => {
       const checked = $("#jw-check-all").checked;
       $$("#jw-course-tbody .xb-check").forEach((c) => {
         c.checked = checked;
       });
       syncJiaowuChecks();
     });
-    $("#jw-move-btn")?.addEventListener("click", () => {
+    bindManageControl("jw-move-btn", "click", () => {
       const ids = $$("#jw-course-tbody tr")
         .filter((tr) => tr.querySelector(".xb-check")?.checked)
         .map((tr) => Number(tr.dataset.rowId));
       if (ids.length) openMoveModal(ids);
     });
-    $("#jw-group-tags")?.addEventListener("click", (e) => {
+    bindManageControl("jw-group-tags", "click", (e) => {
       const btn = e.target.closest("[data-jw-group-filter]");
       if (!btn) return;
       activeGroupFilter = btn.dataset.jwGroupFilter;
       renderGroupTags();
     });
 
-    $("#jw-view-data-btn")?.addEventListener("click", () => {
+    bindManageControl("jw-view-data-btn", "click", () => {
       if ($("#jw-view-data-btn")?.disabled) return;
       const ids = getSelectedManageCourseIds();
       if (ids.length < 2) return;
       openMultiLearnDataPage(ids);
     });
-    $("#jw-manage-check-all")?.addEventListener("change", () => {
+    bindManageControl("jw-manage-check-all", "change", () => {
       const checked = $("#jw-manage-check-all").checked;
       $$("#jw-manage-tbody .xb-check").forEach((c) => {
         c.checked = checked;
       });
       syncManageChecks();
     });
-    const manageTbody = $("#jw-manage-tbody");
-    manageTbody?.addEventListener("change", (e) => {
+    document.querySelectorAll("#jw-manage-tbody, #tc-manage-tbody").forEach((manageTbody) => {
+    manageTbody.addEventListener("change", (e) => {
       if (e.target.matches(".xb-check")) syncManageChecks();
     });
     manageTbody?.addEventListener("click", (e) => {
@@ -10102,15 +11903,18 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
           return;
         }
         if (action === "删除" && row) {
+          if (manageScope === "tc" && isTeacherNamedPack(row)) return;
           openManageDelModal(rowId);
           return;
         }
         if (action === "下架" && row) {
+          if (manageScope === "tc" && isTeacherNamedPack(row)) return;
           openManageOffModal(rowId);
           return;
         }
         showToast(`${action}（原型示意）`);
       }
+    });
     });
     document.addEventListener("click", (e) => {
       if (!e.target.closest(".jw-manage-more")) {
@@ -10534,6 +12338,7 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
       padXbHwStatus = saved.padXbHwStatus;
     }
     state.jwNav = saved.jwNav || state.jwNav;
+    if (saved.tcNav) state.tcNav = saved.tcNav;
     state.publishStep = saved.publishStep || state.publishStep;
     if (Array.isArray(saved.manageCourseList) && saved.manageCourseList.length) {
       manageCourseList.length = 0;
@@ -10607,6 +12412,9 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
         learnersMaintainModeByCourse[key] = normalizeLearnersMaintainFlags(mode);
       });
     }
+    // 单条资源的分享结果只在当次停留里保留，刷新后回到未分享，方便重复查看分享页
+    resShareMarks = { school: false, leke: false, xiaoben: false };
+    renderResShareTags();
     return saved;
   }
 
@@ -10621,15 +12429,19 @@ td { font-family: SimSun, "Microsoft YaHei", sans-serif; font-size: 12pt; mso-nu
   });
   updateDiffNotes();
   if (state.pcPage === "module") openPcModule();
+  else if (state.pcPage === "add-resource") openAddResource();
+  else if (state.pcPage === "my-resources") openMyResources();
   else showPcHome();
   restorePadView();
+  manageScope = state.role === "teacher" ? "tc" : "jw";
   if (saved?.publishForm) applyPublishSnapshot(saved.publishForm);
   applyScheduleModeUI();
   refreshCourseViews();
-  if (state.jwNav === "learners" || state.jwNav === "learners-import") {
+  const activeManageNav = manageScope === "tc" ? state.tcNav : state.jwNav;
+  if (activeManageNav === "learners" || activeManageNav === "learners-import") {
     renderLearnersTable();
   }
-  if (state.jwNav === "learn-data") {
+  if (activeManageNav === "learn-data") {
     renderLearnDataPage();
   }
   // 默认进 PC 教师端首页；刷新保留上次页；主动点「流程」才看业务流程图；?proto=1 强制回教师首页入口

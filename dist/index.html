@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>校本课 · 原型框架 V0.8.5</title>
-    <link rel="stylesheet" href="./css/style.css?v=085-home-chip-pos" />
-    <link rel="stylesheet" href="./css/teacher-lib.css?v=085-add2-learners-mode" />
+    <link rel="stylesheet" href="./css/style.css?v=085-pack-dots" />
+    <link rel="stylesheet" href="./css/teacher-lib.css?v=085-sys-pack-lock" />
   </head>
   <body data-terminal="pc" data-mode="proto">
     <!-- 业务流程：角落「流程」可回看；默认直接进产品方案 -->
@@ -146,6 +146,351 @@
               <span class="module-chip__icon" aria-hidden="true">▶</span>
               <span class="module-chip__name">校本课</span>
             </button>
+            <button
+              type="button"
+              class="pc-home-hotspot pc-home-hotspot--my-resources"
+              data-action="open-my-resources"
+              title="我的资源"
+              aria-label="我的资源"
+            ></button>
+          </div>
+
+          <!-- 老师：我的资源原图 -->
+          <div class="pc-home pc-shot pc-shot--resources" id="pc-teacher-my-resources" hidden>
+            <img
+              class="pc-home__img"
+              src="./assets/pc-teacher-my-resources.png?v=res1"
+              alt="我的资源"
+            />
+            <button
+              type="button"
+              class="pc-home-hotspot pc-home-hotspot--back-home"
+              data-action="back-pc-home"
+              title="返回首页"
+              aria-label="返回首页"
+            ></button>
+            <button
+              type="button"
+              class="pc-home-hotspot pc-home-hotspot--add-resource"
+              data-action="open-add-resource"
+              title="添加资源"
+              aria-label="添加资源"
+            ></button>
+            <img
+              class="res-usage-shot"
+              src="./assets/pc-teacher-resource-usage.png?v=usage1"
+              alt="资源使用"
+            />
+            <div class="res-usage-hotspot" title="资料袋" aria-label="资料袋"></div>
+            <div class="res-usage-panel">
+              <button type="button" class="res-usage-use" data-action="open-res-use" aria-label="使用"></button>
+            </div>
+            <div class="res-share-tags" id="res-share-tags" hidden>
+              <span class="res-share-tag" data-share-tag="school" hidden>校本资源库已分享</span>
+              <span class="res-share-tag" data-share-tag="leke" hidden>乐课已分享</span>
+              <span class="res-share-tag" data-share-tag="xiaoben" hidden>校本课已分享</span>
+            </div>
+            <div class="res-more">
+              <button type="button" class="res-more__btn" aria-haspopup="menu" aria-expanded="false">
+                <span>更多操作</span>
+                <i class="res-more__chevron" aria-hidden="true"></i>
+              </button>
+              <div class="res-more__menu" role="menu">
+                <button type="button" class="res-more__item" role="menuitem">设置属性</button>
+                <button type="button" class="res-more__item" role="menuitem">删除</button>
+                <button type="button" class="res-more__item" role="menuitem" data-action="open-res-share">分享</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="xb-modal res-share-modal" id="res-share-modal" hidden>
+            <div class="xb-modal__mask" data-close-share></div>
+            <div class="xb-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="res-share-title">
+              <div class="xb-modal__head">
+                <h2 id="res-share-title">课件分享</h2>
+                <div class="res-share-head-side">
+                  <div class="res-share-schemes" id="res-share-schemes" role="group" aria-label="分享方案">
+                    <button type="button" class="res-share-schemes__btn is-active" data-file-scheme="a">方案A</button>
+                    <button type="button" class="res-share-schemes__btn" data-file-scheme="b">方案B</button>
+                    <button type="button" class="res-share-schemes__btn" data-file-scheme="c">方案C</button>
+                  </div>
+                  <button type="button" class="xb-modal__close" data-close-share aria-label="关闭">×</button>
+                </div>
+              </div>
+              <div class="xb-modal__body">
+                <form class="res-share-form" id="res-share-form">
+                  <div class="res-share-row" id="res-share-app-row">
+                    <span class="res-share-label"><i class="xb-required">*</i>分享应用：</span>
+                    <select class="xb-select res-share-control" id="res-share-app" aria-label="分享应用">
+                      <option value="library" selected>资源库</option>
+                      <option value="xiaoben">校本课</option>
+                    </select>
+                  </div>
+                  <div id="res-share-library">
+                    <div class="res-share-row">
+                      <span class="res-share-label"><i class="xb-required">*</i>分享至：</span>
+                      <div class="res-share-checks">
+                        <label><input type="checkbox" name="share-to" value="school" /> 校本资源库</label>
+                        <label><input type="checkbox" name="share-to" value="leke" /> 乐课资源库</label>
+                        <label class="res-share-check--xiaoben"><input type="checkbox" name="share-to" value="xiaoben" /> 校本课</label>
+                      </div>
+                    </div>
+                    <div id="res-share-library-fields" hidden>
+                    <div class="res-share-row">
+                      <span class="res-share-label"><i class="xb-required">*</i>学段学科：</span>
+                      <input class="xb-input res-share-control" type="text" value="初中数学" readonly aria-label="学段学科" />
+                    </div>
+                    <div class="res-share-row" id="res-share-group-row" hidden>
+                      <span class="res-share-label">校本资源库分组：</span>
+                      <div class="res-share-drop" id="res-share-group">
+                        <button type="button" class="res-share-drop__btn is-placeholder" aria-haspopup="listbox" aria-expanded="false">
+                          <span>请选择校本资源库分组</span>
+                        </button>
+                        <div class="res-share-drop__panel" hidden role="listbox">
+                          <p class="res-share-drop__empty">暂无校本资源库分组</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="res-share-row">
+                      <span class="res-share-label"><i class="xb-required">*</i>用途：</span>
+                      <select class="xb-select res-share-control is-placeholder" aria-label="用途">
+                        <option selected>请选择用途</option>
+                      </select>
+                    </div>
+                    <div class="res-share-row">
+                      <span class="res-share-label"><i class="xb-required">*</i>教材章节：</span>
+                      <select class="xb-select res-share-control is-placeholder" aria-label="教材章节">
+                        <option selected>请选择</option>
+                      </select>
+                    </div>
+                    <div class="res-share-row">
+                      <span class="res-share-label"><i class="xb-required">*</i>年份：</span>
+                      <select class="xb-select res-share-control" aria-label="年份">
+                        <option>2024</option>
+                        <option>2025</option>
+                        <option selected>2026</option>
+                      </select>
+                    </div>
+                    <div class="res-share-row">
+                      <span class="res-share-label"><i class="xb-required">*</i>地区：</span>
+                      <select class="xb-select res-share-control is-placeholder" aria-label="地区">
+                        <option selected>请选择地区</option>
+                      </select>
+                    </div>
+                    </div>
+                  </div>
+                  <div id="res-share-xiaoben" hidden>
+                    <div class="res-share-pack-bar" data-share-pack-bar hidden></div>
+                    <div class="res-share-row" data-share-to-row>
+                      <span class="res-share-label"><i class="xb-required">*</i>分享至：</span>
+                      <div class="res-share-radios">
+                        <label><input type="radio" name="xb-share-to" value="default" checked /> 默认课包</label>
+                        <span class="res-share-help">
+                          <button type="button" class="res-share-help__btn" aria-label="默认课包说明">?</button>
+                          <span class="res-share-help__tip" role="tooltip">以教师个人名字命名的课包为默认课包，不可删除和编辑，学生可通过教师名称选择课包资源进行学习</span>
+                        </span>
+                        <label><input type="radio" name="xb-share-to" value="pick" /> 指定课包</label>
+                        <span class="res-share-new-pack-group" id="res-share-new-pack-group" hidden>
+                          <button type="button" class="res-share-new-pack" id="res-share-new-pack">新建课包</button>
+                          <span class="res-share-help res-share-help--pack">
+                            <button type="button" class="res-share-help__btn" aria-label="新建课包说明">?</button>
+                            <span class="res-share-help__tip" role="tooltip">您所教班级中已开通校本课的学生，可学习新建课包里面的资源（若需要调整可学习资源的学生名单，可前往【校本课】修改）</span>
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="res-share-row res-share-row--tree" id="res-share-tree-wrap" hidden>
+                      <span class="res-share-label" id="res-share-tree-label"><i class="xb-required">*</i><span data-share-tree-label>存放位置</span>：</span>
+                      <div class="res-share-tree" id="res-share-tree" role="tree" aria-label="课包目录"></div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div class="xb-modal__foot xb-modal__foot--center">
+                <button type="button" class="xb-btn xb-btn--cancel" data-close-share>取消</button>
+                <button type="button" class="xb-btn xb-btn--primary" id="res-share-ok">确定</button>
+              </div>
+              <div class="res-share-float-menu" id="res-share-float-menu" hidden>
+                <button type="button" data-share-add-dir>添加目录</button>
+                <button type="button" data-share-edit-dir>编辑目录</button>
+                <button type="button" data-share-del-dir>删除目录</button>
+                <button type="button" data-share-learners hidden>学习名单</button>
+              </div>
+              <div class="res-share-confirm" id="res-share-confirm" hidden>
+                <div class="res-share-confirm__mask" data-share-confirm-cancel></div>
+                <div class="res-share-confirm__box" role="alertdialog" aria-modal="true" aria-labelledby="res-share-confirm-title">
+                  <p class="res-share-confirm__title" id="res-share-confirm-title">确认删除目录吗？</p>
+                  <p class="res-share-confirm__desc">删除目录，将同步删除目录下的资源，学生将不可查看</p>
+                  <div class="res-share-confirm__actions">
+                    <button type="button" class="xb-btn xb-btn--cancel" data-share-confirm-cancel>取消</button>
+                    <button type="button" class="xb-btn xb-btn--primary" id="res-share-confirm-ok">确认</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="xb-modal res-use-modal" id="res-use-modal" hidden>
+            <div class="xb-modal__mask" data-close-use></div>
+            <div class="xb-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="res-use-title">
+              <div class="xb-modal__head">
+                <h2 id="res-use-title">资源使用</h2>
+                <button type="button" class="xb-modal__close" data-close-use aria-label="关闭">×</button>
+              </div>
+              <div class="xb-modal__body">
+                <div class="res-use-grid">
+                  <button type="button" class="res-use-card res-use-card--prep">
+                    <span class="res-use-card__icon" aria-hidden="true">
+                      <svg viewBox="0 0 64 64">
+                        <rect x="8" y="16" width="34" height="28" rx="4" fill="#5eb0ff" />
+                        <path d="M14 16v-4a3 3 0 0 1 3-3h8l3 4" fill="#3d97f5" />
+                        <circle cx="42" cy="40" r="10" fill="#fff" />
+                        <circle cx="42" cy="40" r="6" fill="none" stroke="#3d97f5" stroke-width="2.4" />
+                        <path d="M46.5 44.5 52 50" stroke="#3d97f5" stroke-width="2.4" stroke-linecap="round" />
+                      </svg>
+                    </span>
+                    <span class="res-use-card__name">备课</span>
+                  </button>
+                  <button type="button" class="res-use-card res-use-card--work">
+                    <span class="res-use-card__icon" aria-hidden="true">
+                      <svg viewBox="0 0 64 64">
+                        <rect x="12" y="10" width="30" height="40" rx="4" fill="#7de0b0" />
+                        <path d="M20 22h14M20 30h14M20 38h8" stroke="#fff" stroke-width="2.4" stroke-linecap="round" />
+                        <path d="M36 34l12 4-8 2-2 8z" fill="#49c98a" />
+                      </svg>
+                    </span>
+                    <span class="res-use-card__name">布置作业</span>
+                  </button>
+                  <div class="res-use-slot">
+                    <button type="button" class="res-use-card res-use-card--xb" data-action="open-xb-share">
+                      <span class="res-use-card__icon" aria-hidden="true">
+                        <svg viewBox="0 0 64 64">
+                          <path d="M8 22h16l5 6h27a4 4 0 0 1 4 4v18a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V22z" fill="#7edcd4" />
+                          <path d="M8 28h48v22a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V28z" fill="#3ec4b8" />
+                        </svg>
+                      </span>
+                      <span class="res-use-card__name">分享至校本课</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="xb-modal res-share-modal" id="res-xb-modal" hidden>
+            <div class="xb-modal__mask" data-close-xb-share></div>
+            <div class="xb-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="res-xb-title">
+              <div class="xb-modal__head">
+                <h2 id="res-xb-title">课件分享</h2>
+                <div class="res-share-head-side">
+                  <div class="res-share-schemes" role="group" aria-label="分享方案">
+                    <button type="button" class="res-share-schemes__btn is-active" data-xb-scheme="a">方案A</button>
+                    <button type="button" class="res-share-schemes__btn" data-xb-scheme="b">方案B</button>
+                  </div>
+                  <button type="button" class="xb-modal__close" data-close-xb-share aria-label="关闭">×</button>
+                </div>
+              </div>
+              <div class="xb-modal__body">
+                <form class="res-share-form" data-xb-form>
+                  <div class="res-share-pack-bar" data-share-pack-bar hidden></div>
+                  <div class="res-share-row" data-share-to-row>
+                    <span class="res-share-label"><i class="xb-required">*</i>分享至：</span>
+                    <div class="res-share-radios">
+                      <label><input type="radio" name="xb-pack-to" value="default" checked /> 默认课包</label>
+                      <span class="res-share-help">
+                        <button type="button" class="res-share-help__btn" aria-label="默认课包说明">?</button>
+                          <span class="res-share-help__tip" role="tooltip">以教师个人名字命名的课包为默认课包，不可删除和编辑，学生可通过教师名称选择课包资源进行学习</span>
+                      </span>
+                      <label><input type="radio" name="xb-pack-to" value="pick" /> 指定课包</label>
+                      <span class="res-share-new-pack-group" data-xb-new-pack-group hidden>
+                        <button type="button" class="res-share-new-pack" data-xb-new-pack>新建课包</button>
+                        <span class="res-share-help res-share-help--pack">
+                          <button type="button" class="res-share-help__btn" aria-label="新建课包说明">?</button>
+                          <span class="res-share-help__tip" role="tooltip">您所教班级中已开通校本课的学生，可学习新建课包里面的资源（若需要调整可学习资源的学生名单，可前往【校本课】修改）</span>
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="res-share-row res-share-row--tree" data-xb-tree-wrap hidden>
+                    <span class="res-share-label"><i class="xb-required">*</i>存放位置：</span>
+                    <div class="res-share-tree" data-xb-tree role="tree" aria-label="课包目录"></div>
+                  </div>
+                </form>
+              </div>
+              <div class="xb-modal__foot xb-modal__foot--center">
+                <button type="button" class="xb-btn xb-btn--cancel" data-close-xb-share>取消</button>
+                <button type="button" class="xb-btn xb-btn--primary" data-xb-ok>确定</button>
+              </div>
+              <div class="res-share-float-menu" data-xb-menu hidden>
+                <button type="button" data-share-add-dir>添加目录</button>
+                <button type="button" data-share-edit-dir>编辑目录</button>
+                <button type="button" data-share-del-dir>删除目录</button>
+                <button type="button" data-share-learners hidden>学习名单</button>
+              </div>
+              <div class="res-share-confirm" data-xb-confirm hidden>
+                <div class="res-share-confirm__mask" data-xb-confirm-cancel></div>
+                <div class="res-share-confirm__box" role="alertdialog" aria-modal="true" aria-labelledby="res-xb-confirm-title">
+                  <p class="res-share-confirm__title" id="res-xb-confirm-title">确认删除目录吗？</p>
+                  <p class="res-share-confirm__desc">删除目录，将同步删除目录下的资源，学生将不可查看</p>
+                  <div class="res-share-confirm__actions">
+                    <button type="button" class="xb-btn xb-btn--cancel" data-xb-confirm-cancel>取消</button>
+                    <button type="button" class="xb-btn xb-btn--primary" data-xb-confirm-ok>确认</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="xb-modal res-pack-learners" id="res-pack-learners" hidden>
+            <div class="xb-modal__mask" data-close-pack-learners></div>
+            <div class="xb-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="res-pack-learners-title">
+              <div class="xb-modal__head">
+                <h2 id="res-pack-learners-title">学习名单</h2>
+                <button type="button" class="xb-modal__close" data-close-pack-learners aria-label="关闭">×</button>
+              </div>
+              <div class="xb-modal__body">
+                <p class="res-pack-learners__pack">课包：<strong id="res-pack-learners-name">—</strong></p>
+                <p class="res-pack-learners__hint">以下学生可学习该课包中的资源。若需要调整名单，可前往【校本课】修改。</p>
+                <div class="res-pack-learners__table-wrap">
+                  <table class="res-pack-learners__table">
+                    <thead>
+                      <tr>
+                        <th>班级</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>乐号</th>
+                        <th>添加时间</th>
+                      </tr>
+                    </thead>
+                    <tbody id="res-pack-learners-body"></tbody>
+                  </table>
+                </div>
+                <p class="res-pack-learners__count" id="res-pack-learners-count"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 老师：添加资源原图（弹窗） -->
+          <div class="pc-home pc-shot" id="pc-teacher-add-resource" hidden>
+            <img
+              class="pc-home__img"
+              src="./assets/pc-teacher-add-resource.png"
+              alt="添加资源"
+            />
+            <button
+              type="button"
+              class="pc-home-hotspot pc-home-hotspot--back-home"
+              data-action="back-pc-home"
+              title="返回首页"
+              aria-label="返回首页"
+            ></button>
+            <button
+              type="button"
+              class="pc-home-hotspot pc-home-hotspot--close-add-resource"
+              data-action="close-add-resource"
+              title="关闭"
+              aria-label="关闭添加资源"
+            ></button>
           </div>
 
           <!-- 教务首页 -->
@@ -211,14 +556,586 @@
               <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-teacher-lib" title="查看此处改动说明">改</button>
               </div>
               <button type="button" class="xb-user" data-role-switch title="点击切换身份" aria-label="切换身份">
-                <span class="xb-user__avatar">zfy</span>
-                <span>zfy | 老师</span>
+                <span class="xb-user__avatar">蒋</span>
+                <span>蒋雯 | 老师</span>
                 <span class="xb-user__chevron" aria-hidden="true"></span>
               </button>
             </header>
 
-            <div class="xb-main">
-              <div class="xb-card">
+            <div class="xb-body">
+              <aside class="xb-side">
+                <div class="xb-side__group">教学</div>
+                <button type="button" class="xb-side__item" data-jw-nav="manage">资源包管理</button>
+                <button type="button" class="xb-side__item is-active" data-jw-nav="lib">资源库</button>
+              </aside>
+              <div class="xb-main xb-main--with-side">
+                <!-- 教师端资源包管理：复制自教务，后续可单独调整 -->
+<div class="xb-card xb-card--auto xb-card--manage" data-jw-panel="manage" hidden>
+                  <div class="jw-manage-head">
+                    <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-manage" title="查看此处改动说明">改</button>
+                    <button type="button" class="xb-btn xb-btn--primary" id="tc-publish-btn">发布资源包</button>
+                  </div>
+
+                  <div class="xb-filters jw-manage-filters">
+                    <div class="xb-filter-row">
+                      <label class="xb-field">
+                        <span class="xb-field__label">资源包名称:</span>
+                        <input class="xb-input" type="text" placeholder="请输入资源包名称" aria-label="资源包名称" />
+                      </label>
+                      <label class="xb-field">
+                        <span class="xb-field__label">学段:</span>
+                        <select class="xb-select" aria-label="学段">
+                          <option selected>全部</option>
+                          <option>一年级</option>
+                          <option>二年级</option>
+                          <option>三年级</option>
+                          <option>四年级</option>
+                          <option>五年级</option>
+                          <option>六年级</option>
+                        </select>
+                      </label>
+                      <label class="xb-field">
+                        <span class="xb-field__label">学科:</span>
+                        <select class="xb-select" aria-label="学科">
+                          <option selected>全部</option>
+                          <option>语文</option>
+                          <option>数学</option>
+                          <option>英语</option>
+                          <option>科学</option>
+                          <option>综合</option>
+                        </select>
+                      </label>
+                      <label class="xb-field">
+                        <span class="xb-field__label">状态:</span>
+                        <select class="xb-select" aria-label="状态">
+                          <option selected>全部</option>
+                          <option>已上架</option>
+                          <option>已下架</option>
+                          <option>待发布</option>
+                        </select>
+                      </label>
+                    </div>
+                    <div class="xb-filter-row">
+                      <label class="xb-field">
+                        <span class="xb-field__label">发布日期：</span>
+                        <span class="xb-date-range" role="group" aria-label="发布日期范围">
+                          <input
+                            class="xb-date-range__input"
+                            type="text"
+                            placeholder="开始日期"
+                            aria-label="开始日期"
+                            readonly
+                          />
+                          <span class="xb-date-range__sep" aria-hidden="true">→</span>
+                          <input
+                            class="xb-date-range__input"
+                            type="text"
+                            placeholder="结束日期"
+                            aria-label="结束日期"
+                            readonly
+                          />
+                          <span class="xb-date-range__icon" aria-hidden="true">
+                            <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                              <rect x="2" y="3.5" width="12" height="10.5" rx="1.2" stroke="currentColor" stroke-width="1.2" />
+                              <path d="M5 2v3M11 2v3M2 7h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                            </svg>
+                          </span>
+                        </span>
+                      </label>
+                      <button type="button" class="xb-btn xb-btn--ghost">查询</button>
+                    </div>
+                  </div>
+
+                  <div class="jw-manage-toolbar">
+                    <button type="button" class="xb-btn xb-btn--ghost xb-btn--muted" id="tc-view-data-btn" disabled>
+                      查看数据
+                    </button>
+                  </div>
+
+                  <div class="xb-table-wrap">
+                    <table class="xb-table xb-table--manage">
+                      <thead>
+                        <tr>
+                          <th class="col-check">
+                            <input class="xb-check" type="checkbox" id="tc-manage-check-all" aria-label="全选" />
+                          </th>
+                          <th class="col-minfo">资源包信息</th>
+                          <th class="col-grade">学段</th>
+                          <th class="col-subject">学科</th>
+                          <th class="col-lessons">总课时数</th>
+                          <th class="col-learners">学习人数</th>
+                          <th class="col-publish">发布日期</th>
+                          <th class="col-mstatus">状态</th>
+                          <th class="col-maction">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tc-manage-tbody"></tbody>
+                    </table>
+                  </div>
+
+                  <div class="xb-pager">
+                    <span id="tc-manage-record-count">共0条记录</span>
+                    <div class="xb-pager__pages">
+                      <button type="button" class="xb-pager__btn" disabled aria-label="上一页">‹</button>
+                      <button type="button" class="xb-pager__btn is-active">1</button>
+                      <button type="button" class="xb-pager__btn" disabled aria-label="下一页">›</button>
+                    </div>
+                    <select class="xb-pager__size" aria-label="每页条数">
+                      <option selected>10 条/页</option>
+                      <option>20 条/页</option>
+                      <option>50 条/页</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- 教务 · 学习数据 -->
+                <div class="xb-card xb-card--auto xb-card--learn-data" data-jw-panel="learn-data" hidden>
+                  <nav class="jw-publish-crumb" aria-label="面包屑">
+                    <button type="button" class="jw-publish-crumb__link" id="tc-learn-data-back">资源包管理</button>
+                    <span class="jw-publish-crumb__sep">›</span>
+                    <span class="jw-publish-crumb__current">学习数据</span>
+                  </nav>
+                  <div class="jw-learn-data__title-row">
+                    <h1 class="jw-learn-data__title" id="tc-learn-data-title">课程-学习数据</h1>
+                    <button type="button" class="proto-diff-pin proto-diff-pin--inline" id="tc-diff-learn-pin" data-diff-pin="pc-jw-learn-data" title="查看此处改动说明">改</button>
+                  </div>
+                  <div class="jw-learn-data__meta" id="tc-learn-data-meta" aria-label="课程辅助信息"></div>
+
+                  <div class="jw-learn-data-tabs" role="tablist" aria-label="学习数据视图">
+                    <button type="button" class="jw-learn-data-tab is-active" data-learn-data-tab="summary" role="tab" aria-selected="true">
+                      汇总统计
+                    </button>
+                    <button type="button" class="jw-learn-data-tab" data-learn-data-tab="detail" role="tab" aria-selected="false">
+                      学生明细
+                    </button>
+                  </div>
+
+                  <div class="jw-learn-data-panel" data-learn-data-panel="summary">
+                    <div class="jw-learn-data-range">
+                      <span class="jw-learn-data-range__label">
+                        时间范围
+                        <span class="jw-learn-data-help" title="统计所选时间范围内的学习数据" aria-label="说明">?</span>
+                      </span>
+                      <span class="jw-learn-data-range__picker" id="tc-learn-data-range">2026-08-15 — 2026-10-14</span>
+                      <span class="jw-learn-data-range__hint">下方数据均为截至此刻的实时统计结果</span>
+                    </div>
+
+                    <div class="jw-learn-data-dim-bar">
+                      <div class="jw-learn-data-dims" role="group" aria-label="查看维度">
+                        <button type="button" class="jw-learn-data-dim is-active" data-learn-data-dim="course">学校</button>
+                        <button type="button" class="jw-learn-data-dim" data-learn-data-dim="grade" hidden>年级</button>
+                        <button type="button" class="jw-learn-data-dim" data-learn-data-dim="class">班级</button>
+                        <button type="button" class="jw-learn-data-dim" data-learn-data-dim="lesson" hidden>课程</button>
+                      </div>
+                      <button type="button" class="xb-btn xb-btn--ghost jw-learn-data-export" id="tc-learn-data-export">
+                        <span class="jw-learn-data-export__icon" aria-hidden="true">⇩</span>
+                        导出Excel
+                      </button>
+                    </div>
+
+                    <div class="xb-table-wrap">
+                      <table class="xb-table xb-table--learn-data">
+                        <thead id="tc-learn-data-thead"></thead>
+                        <tbody id="tc-learn-data-tbody"></tbody>
+                      </table>
+                    </div>
+
+                    <div class="xb-pager">
+                      <span id="tc-learn-data-record-count">共0条记录</span>
+                      <div class="xb-pager__pages">
+                        <button type="button" class="xb-pager__btn" disabled aria-label="上一页">‹</button>
+                        <button type="button" class="xb-pager__btn is-active">1</button>
+                        <button type="button" class="xb-pager__btn" disabled aria-label="下一页">›</button>
+                      </div>
+                      <select class="xb-pager__size" aria-label="每页条数">
+                        <option selected>10 条/页</option>
+                        <option>20 条/页</option>
+                        <option>50 条/页</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="jw-learn-data-panel" data-learn-data-panel="detail" hidden>
+                    <div class="jw-learn-data-detail-filters">
+                      <div class="jw-learn-data-range">
+                        <span class="jw-learn-data-range__label">
+                          时间范围
+                          <span class="jw-learn-data-help" title="统计所选时间范围内的学习数据" aria-label="说明">?</span>
+                        </span>
+                        <span class="jw-learn-data-range__picker">2026-08-15 — 2026-10-14</span>
+                      </div>
+                      <div class="xb-field jw-learn-data-gc-field">
+                        <span class="xb-field__label">年级/班级:</span>
+                        <div class="jw-gc-cascade" id="tc-learn-data-gc">
+                          <button type="button" class="jw-gc-cascade__trigger" id="tc-learn-data-gc-trigger" aria-expanded="false" aria-haspopup="listbox">
+                            <span id="tc-learn-data-gc-label">全部</span>
+                            <span class="jw-gc-cascade__caret" aria-hidden="true">▾</span>
+                          </button>
+                          <div class="jw-gc-cascade__panel" id="tc-learn-data-gc-panel" hidden>
+                            <div class="jw-gc-cascade__col" id="tc-learn-data-gc-grades" role="listbox" aria-label="年级"></div>
+                            <div class="jw-gc-cascade__col" id="tc-learn-data-gc-classes" role="listbox" aria-label="班级"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <label class="xb-field">
+                        <span class="xb-field__label">学科:</span>
+                        <select class="xb-select" id="tc-learn-data-subject" aria-label="学科">
+                          <option value="">全部</option>
+                        </select>
+                      </label>
+                      <label class="xb-field">
+                        <span class="xb-field__label">姓名/乐号:</span>
+                        <input class="xb-input" id="tc-learn-data-keyword" type="text" placeholder="请输入" aria-label="姓名或乐号" />
+                      </label>
+                      <button type="button" class="xb-btn xb-btn--ghost jw-learn-data-export" id="tc-learn-data-detail-export">
+                        <span class="jw-learn-data-export__icon" aria-hidden="true">⇩</span>
+                        导出Excel
+                      </button>
+                    </div>
+
+                    <div class="xb-table-wrap xb-table-wrap--hscroll">
+                      <table class="xb-table xb-table--learn-data xb-table--learn-detail">
+                        <thead>
+                          <tr>
+                            <th>乐号</th>
+                            <th>姓名</th>
+                            <th>班级</th>
+                            <th>学科</th>
+                            <th>总课时数</th>
+                            <th>已上架课时数</th>
+                            <th>
+                              <span class="jw-th-with-tip">
+                                总课程时长（分钟）
+                                <button type="button" class="jw-tip-btn" data-tip="total-duration" aria-label="总课程时长说明">?</button>
+                              </span>
+                            </th>
+                            <th>
+                              <span class="jw-th-with-tip">
+                                累计学习时长（分钟）
+                                <button type="button" class="jw-tip-btn" data-tip="study-duration" aria-label="累计学习时长说明">?</button>
+                              </span>
+                            </th>
+                            <th>
+                              <span class="jw-th-with-tip">
+                                学习进度
+                                <button type="button" class="jw-tip-btn" data-tip="study-progress" aria-label="学习进度说明">?</button>
+                              </span>
+                            </th>
+                            <th>
+                              <span class="jw-th-with-tip">
+                                作业完成情况
+                                <button type="button" class="jw-tip-btn" data-tip="hw-status" aria-label="作业完成情况说明">?</button>
+                              </span>
+                            </th>
+                            <th class="col-maction">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody id="tc-learn-data-detail-tbody"></tbody>
+                      </table>
+                    </div>
+
+                    <div class="xb-pager">
+                      <span id="tc-learn-data-detail-count">共0条记录</span>
+                      <div class="xb-pager__pages">
+                        <button type="button" class="xb-pager__btn" disabled aria-label="上一页">‹</button>
+                        <button type="button" class="xb-pager__btn is-active">1</button>
+                        <button type="button" class="xb-pager__btn" disabled aria-label="下一页">›</button>
+                      </div>
+                      <select class="xb-pager__size" aria-label="每页条数">
+                        <option selected>10 条/页</option>
+                        <option>20 条/页</option>
+                        <option>50 条/页</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 教务 · 学习名单 -->
+                <div class="xb-card xb-card--auto xb-card--learners" data-jw-panel="learners" hidden>
+                  <div class="jw-learners-head">
+                    <nav class="jw-publish-crumb" aria-label="面包屑">
+                      <button type="button" class="jw-publish-crumb__link" id="tc-learners-back">资源包管理</button>
+                      <span class="jw-publish-crumb__sep">›</span>
+                      <span class="jw-publish-crumb__current">学习名单</span>
+                      <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-learners" title="查看此处改动说明">改</button>
+                    </nav>
+
+                    <div class="jw-learners-mode-switch-wrap">
+                      <div class="jw-learners-mode-checks" role="group" aria-label="学习开放方式">
+                        <div class="jw-learners-mode-check-block">
+                          <label class="jw-learners-mode-check">
+                            <input type="checkbox" data-learners-mode="person" checked />
+                            <span>名单学生可学习</span>
+                          </label>
+                          <select
+                            class="xb-select jw-learners-person-scope-select"
+                            id="tc-person-scope"
+                            data-person-scope-wrap
+                            aria-label="名单范围"
+                          >
+                            <option value="all" selected>全部名单</option>
+                            <option value="custom">自定义名单</option>
+                          </select>
+                        </div>
+                        <label class="jw-learners-mode-check">
+                          <input type="checkbox" data-learners-mode="device" checked />
+                          <span>开通设备可学习</span>
+                          <span
+                            class="jw-learners-mode-tip"
+                            tabindex="0"
+                            role="img"
+                            aria-label="学生登录本校已开通【校本课】的设备后，即可学习资源"
+                            data-tip="学生登录本校已开通【校本课】的设备后，即可学习资源"
+                          >?</span>
+                        </label>
+                        <span
+                          class="jw-learners-warn"
+                          tabindex="0"
+                          role="img"
+                          aria-label="建议教师端可以没有这个设置项"
+                          data-tip="建议教师端可以没有这个设置项"
+                        >
+                          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+                            <path d="M8 1.4 15 14.2H1L8 1.4z" fill="#fa8c16" />
+                            <path d="M8 6.1v3.6" stroke="#fff" stroke-width="1.4" stroke-linecap="round" />
+                            <circle cx="8" cy="11.6" r="0.8" fill="#fff" />
+                          </svg>
+                        </span>
+                      </div>
+                      <span class="proto-add-pin proto-add-pin--inline" data-add-pin="add-2" title="查看新增说明">新增2</span>
+                    </div>
+                  </div>
+
+                  <div class="jw-learners-person-panel" data-learners-person-panel>
+                    <div class="jw-learners-bar">
+                      <div class="jw-learners-filters">
+                        <label class="xb-field" id="tc-learners-class-field">
+                          <span class="xb-field__label">班级:</span>
+                          <select class="xb-select" id="tc-learners-class" aria-label="班级">
+                            <option selected>全部</option>
+                            <option>一年级1班</option>
+                            <option>一年级2班</option>
+                            <option>三年级1班</option>
+                          </select>
+                        </label>
+                        <label class="xb-field">
+                          <span class="xb-field__label">学生:</span>
+                          <input
+                            class="xb-input"
+                            id="tc-learners-keyword"
+                            type="text"
+                            placeholder="乐号/姓名"
+                            aria-label="学生"
+                          />
+                        </label>
+                        <button type="button" class="xb-btn xb-btn--ghost" id="tc-learners-query">查询</button>
+                      </div>
+                      <div class="jw-learners-actions">
+                        <button type="button" class="xb-btn xb-btn--ghost" data-learners-act="批量导入">批量导入</button>
+                        <button type="button" class="xb-btn xb-btn--ghost" id="tc-learners-add-btn" data-learners-act="添加学生">添加学生</button>
+                        <button type="button" class="xb-btn xb-btn--ghost jw-learners-remove" data-learners-act="批量移除">
+                          批量移除
+                        </button>
+                        <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-export" title="查看此处改动说明">改</button>
+                        <button type="button" class="xb-btn xb-btn--primary" data-learners-act="导出">导出</button>
+                      </div>
+                    </div>
+
+                    <div class="xb-table-wrap">
+                      <table class="xb-table xb-table--learners">
+                        <thead id="tc-learners-thead">
+                          <tr>
+                            <th class="col-check">
+                              <input class="xb-check" type="checkbox" id="tc-learners-check-all" aria-label="全选" />
+                            </th>
+                            <th>班级</th>
+                            <th>姓名</th>
+                            <th>性别</th>
+                            <th>乐号</th>
+                            <th>添加时间</th>
+                            <th class="col-maction">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody id="tc-learners-tbody"></tbody>
+                      </table>
+                    </div>
+
+                    <div class="xb-pager">
+                      <span id="tc-learners-record-count">共0条记录</span>
+                    </div>
+                  </div>
+
+                  <div class="jw-learners-device-tip" data-learners-device-panel hidden>
+                    <p class="jw-learners-device-tip__text">
+                      学生登录本校已开通【校本课】的设备后，即可学习资源
+                    </p>
+                  </div>
+                </div>
+
+                <!-- 教务 · 学习名单 · 批量导入 -->
+                <div class="xb-card xb-card--auto xb-card--import" data-jw-panel="learners-import" hidden>
+                  <nav class="jw-publish-crumb" aria-label="面包屑">
+                    <button type="button" class="jw-publish-crumb__link" id="tc-import-back-manage">资源包管理</button>
+                    <span class="jw-publish-crumb__sep">›</span>
+                    <button type="button" class="jw-publish-crumb__link" id="tc-import-back-learners">学习名单</button>
+                    <span class="jw-publish-crumb__sep">›</span>
+                    <span class="jw-publish-crumb__current">批量导入</span>
+                    <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-import" title="查看此处改动说明">改</button>
+                  </nav>
+
+                  <div class="jw-import-course">
+                    <span class="jw-import-course__bar" aria-hidden="true"></span>
+                    <span>资源包名称：<strong id="tc-import-course-name">—</strong></span>
+                  </div>
+
+                  <ol class="jw-import-steps">
+                    <li class="jw-import-step">
+                      <div class="jw-import-step__head">
+                        <span class="jw-import-step__num">1</span>
+                        <span class="jw-import-step__title">选择学科</span>
+                      </div>
+                      <div class="jw-import-step__body">
+                        <label class="jw-import-subject">
+                          <span class="req">*</span>选择学科：
+                          <label class="jw-check">
+                            <input type="checkbox" id="tc-import-subject" checked />
+                            <span id="tc-import-subject-label">语文</span>
+                          </label>
+                        </label>
+                      </div>
+                    </li>
+                    <li class="jw-import-step">
+                      <div class="jw-import-step__head">
+                        <span class="jw-import-step__num">2</span>
+                        <span class="jw-import-step__title">下载模板</span>
+                      </div>
+                      <div class="jw-import-step__body jw-import-dl-row">
+                        <button type="button" class="xb-btn xb-btn--ghost jw-import-dl" id="tc-import-download" data-ref-shot="learners-import-tpl" data-ref-shot-hover="1" title="悬停可预览原模板图；点击下载">
+                          <span class="jw-import-dl__icon" aria-hidden="true">⬇</span>
+                          下载模板
+                        </button>
+                        <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-ref-shot="learners-import-tpl" title="查看原下载模板截图">原</button>
+                      </div>
+                    </li>
+                    <li class="jw-import-step">
+                      <div class="jw-import-step__head">
+                        <span class="jw-import-step__num">3</span>
+                        <span class="jw-import-step__title" id="tc-import-step3-title">上传学生名单</span>
+                      </div>
+                      <div class="jw-import-step__body">
+                        <p class="jw-import-hint">支持扩展名：.xls .xlsx</p>
+                        <button type="button" class="xb-btn xb-btn--primary" id="tc-import-upload" disabled>
+                          <span class="jw-import-up__icon" aria-hidden="true">⬆</span>
+                          上传文件
+                        </button>
+                        <div class="jw-import-file" id="tc-import-file">
+                          <span class="jw-import-file__icon" aria-hidden="true">📎</span>
+                          <span class="jw-import-file__name" id="tc-import-file-name">student_append_tpl.xls</span>
+                          <button type="button" class="jw-import-file__x" id="tc-import-file-remove" aria-label="移除文件">
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  </ol>
+
+                  <div class="jw-publish-foot">
+                    <button type="button" class="xb-btn xb-btn--ghost" id="tc-import-cancel">取消</button>
+                    <button type="button" class="xb-btn xb-btn--primary" id="tc-import-start">开始导入</button>
+                  </div>
+                </div>
+
+                <!-- 教务 · 学习名单 · 添加学生 -->
+                <div class="xb-card xb-card--auto xb-card--add-learner" data-jw-panel="learners-add" hidden>
+                  <nav class="jw-publish-crumb" aria-label="面包屑">
+                    <button type="button" class="jw-publish-crumb__link" id="tc-add-learner-back-manage">资源包管理</button>
+                    <span class="jw-publish-crumb__sep">›</span>
+                    <button type="button" class="jw-publish-crumb__link" id="tc-add-learner-back-list">学习名单</button>
+                    <span class="jw-publish-crumb__sep">›</span>
+                    <span class="jw-publish-crumb__current" id="tc-add-learner-crumb">添加学生</span>
+                    <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-add-learner" title="查看此处改动说明">改</button>
+                  </nav>
+
+                  <div class="jw-import-course">
+                    <span class="jw-import-course__bar" aria-hidden="true"></span>
+                    <span>资源包名称：<strong id="tc-add-learner-course-name">—</strong></span>
+                  </div>
+
+                  <div class="jw-add-learner-form">
+                    <div class="jw-add-learner-row" id="tc-add-learner-mode-row" data-learners-person-only>
+                      <label class="jw-add-learner-label"><span class="req">*</span>添加方式：</label>
+                      <div class="jw-add-learner-modes">
+                        <label class="jw-radio">
+                          <input type="radio" name="tc-add-learner-mode" value="school" checked />
+                          <span>选择本校学生添加</span>
+                        </label>
+                        <label class="jw-radio">
+                          <input type="radio" name="tc-add-learner-mode" value="lehao" />
+                          <span>输入乐号添加</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="jw-add-learner-pane" data-add-learner-pane="school">
+                      <div class="jw-add-learner-row jw-add-learner-row--top">
+                        <label class="jw-add-learner-label"><span class="req">*</span>选择学员：</label>
+                        <div class="jw-add-learner-picker" id="tc-add-learner-school-picker">
+                          <div class="jw-add-learner-picker__left">
+                            <div class="jw-add-learner-search">
+                              <input type="text" id="tc-add-learner-school-search" placeholder="输入关键词搜索" />
+                              <span class="jw-add-learner-search__icon" aria-hidden="true">🔍</span>
+                            </div>
+                            <div class="jw-add-learner-tree" id="tc-add-learner-school-tree"></div>
+                          </div>
+                          <div class="jw-add-learner-picker__right">
+                            <div class="jw-add-learner-chosen-head">
+                              <span id="tc-add-learner-school-count">已选择 (0 / 1000)</span>
+                              <button type="button" class="jw-link" id="tc-add-learner-school-clear">清空</button>
+                            </div>
+                            <ul class="jw-add-learner-chosen" id="tc-add-learner-school-chosen"></ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="jw-add-learner-pane" data-add-learner-pane="layer" hidden>
+                      <div class="jw-add-learner-row jw-add-learner-row--top">
+                        <label class="jw-add-learner-label"><span class="req">*</span>选择学员：</label>
+                        <div class="jw-add-learner-picker" id="tc-add-learner-layer-picker">
+                          <div class="jw-add-learner-picker__left">
+                            <div class="jw-add-learner-tree" id="tc-add-learner-layer-tree"></div>
+                          </div>
+                          <div class="jw-add-learner-picker__right">
+                            <div class="jw-add-learner-chosen-head">
+                              <span id="tc-add-learner-layer-count">已选择 (0 / 1000)</span>
+                              <button type="button" class="jw-link" id="tc-add-learner-layer-clear">清空</button>
+                            </div>
+                            <ul class="jw-add-learner-chosen" id="tc-add-learner-layer-chosen"></ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="jw-add-learner-pane" data-add-learner-pane="lehao" hidden>
+                      <div class="jw-add-learner-row">
+                        <label class="jw-add-learner-label" for="tc-add-learner-lehao"><span class="req">*</span>学员乐号：</label>
+                        <input class="jw-publish-input jw-add-learner-lehao-input" id="tc-add-learner-lehao" type="text" placeholder="乐号" />
+                      </div>
+                      <div class="jw-add-learner-row">
+                        <label class="jw-add-learner-label">姓名：</label>
+                        <span class="jw-add-learner-lehao-hint" id="tc-add-learner-lehao-name">请输入正确的乐号</span>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="jw-add-learner-foot">
+                    <button type="button" class="xb-btn xb-btn--primary" id="tc-add-learner-ok">添加</button>
+                    <button type="button" class="xb-btn xb-btn--ghost" id="tc-add-learner-cancel">取消</button>
+                  </div>
+                </div>
+
+                              <div class="xb-card" data-jw-panel="lib">
                 <!-- 无「点播库」标题；筛选与列表按点播库还原 -->
                 <div class="xb-filters">
                   <div class="xb-filter-row">
@@ -311,7 +1228,371 @@
                   </select>
                 </div>
               </div>
+<div class="xb-card xb-card--auto xb-card--publish" data-jw-panel="publish" hidden>
+                  <nav class="jw-publish-crumb" aria-label="面包屑">
+                    <button type="button" class="jw-publish-crumb__link" id="tc-publish-back">资源包管理</button>
+                    <span class="jw-publish-crumb__sep">›</span>
+                    <span class="jw-publish-crumb__current" id="tc-publish-crumb-current">发布资源包</span>
+                    <button type="button" class="proto-diff-pin proto-diff-pin--inline" id="tc-diff-publish-pin" data-diff-pin="pc-jw-publish" title="查看此处改动说明">改</button>
+                  </nav>
+
+                  <div class="jw-publish-steps" id="tc-publish-steps" aria-label="发布步骤">
+                    <div class="jw-publish-step is-active" data-pub-step="1">
+                      <span class="jw-publish-step__num">1</span>
+                      <span>基本信息</span>
+                    </div>
+                    <div class="jw-publish-step__line"></div>
+                    <div class="jw-publish-step" data-pub-step="2">
+                      <span class="jw-publish-step__num">2</span>
+                      <span>添加资源</span>
+                    </div>
+                  </div>
+
+                  <form class="jw-publish-form" id="tc-publish-form" data-pub-pane="1" onsubmit="return false;">
+                    <section class="jw-publish-block">
+                      <h3 class="jw-publish-block__title">资源包信息</h3>
+                      <div class="jw-publish-row">
+                        <label class="jw-publish-label"><span class="req">*</span>资源包名称：</label>
+                        <div class="jw-publish-control jw-publish-control--name">
+                          <input
+                            class="jw-publish-input"
+                            type="text"
+                            id="tc-pub-name"
+                            maxlength="100"
+                            value="自适应-校本课"
+                            aria-label="资源包名称"
+                          />
+                          <span class="jw-publish-count" id="tc-pub-name-count">7 / 100</span>
+                        </div>
+                      </div>
+                      <div class="jw-publish-row">
+                        <label class="jw-publish-label"><span class="req">*</span>学段学科：</label>
+                        <div class="jw-publish-control jw-publish-control--pair">
+                          <select class="jw-publish-select" id="tc-pub-grade" aria-label="学段">
+                            <option selected>初一</option>
+                            <option>初二</option>
+                            <option>初三</option>
+                          </select>
+                          <select class="jw-publish-select" id="tc-pub-subject" aria-label="学科">
+                            <option>语文</option>
+                            <option selected>数学</option>
+                            <option>英语</option>
+                            <option>物理</option>
+                            <option>化学</option>
+                            <option>生物</option>
+                            <option>历史</option>
+                            <option>地理</option>
+                            <option>道德与法治</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="jw-publish-row">
+                        <label class="jw-publish-label" for="tc-pub-lessons"><span class="req">*</span>总课时数：</label>
+                        <div class="jw-publish-control">
+                          <input
+                            class="jw-publish-input jw-publish-input--num"
+                            type="text"
+                            id="tc-pub-lessons"
+                            inputmode="numeric"
+                            pattern="[1-9][0-9]*"
+                            placeholder="请输入正整数"
+                            aria-label="总课时数"
+                          />
+                        </div>
+                      </div>
+                    </section>
+
+                    <section class="jw-publish-block">
+                      <h3 class="jw-publish-block__title">其他</h3>
+                      <div class="jw-publish-row jw-publish-row--top">
+                        <label class="jw-publish-label">
+                          学习方式
+                          <button type="button" class="jw-tip-btn" data-tip="learn" aria-label="学习方式说明">?</button>
+                          ：
+                        </label>
+                        <div class="jw-publish-control">
+                          <div class="jw-radio-line">
+                            <label class="jw-radio">
+                              <input type="radio" name="tc-learn-mode" value="order" checked />
+                              <span>按课时顺序解锁</span>
+                            </label>
+                            <label class="jw-radio">
+                              <input type="radio" name="tc-learn-mode" value="free" />
+                              <span>自由选择课时学习</span>
+                            </label>
+                          </div>
+                          <div class="jw-radio-sub" id="tc-learn-sub">
+                            <label class="jw-radio">
+                              <input type="radio" name="tc-learn-sub" value="video" checked />
+                              <span>按视频进度解锁</span>
+                            </label>
+                            <label class="jw-radio">
+                              <input type="radio" name="tc-learn-sub" value="hw" />
+                              <span>按作业正确率解锁</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="jw-publish-row">
+                        <label class="jw-publish-label">
+                          视频进度条
+                          <button type="button" class="jw-tip-btn" data-tip="progress" aria-label="视频进度条说明">?</button>
+                          ：
+                        </label>
+                        <div class="jw-publish-control">
+                          <div class="jw-radio-line">
+                            <label class="jw-radio">
+                              <input type="radio" name="tc-progress" value="lock" checked />
+                              <span>锁定</span>
+                            </label>
+                            <label class="jw-radio">
+                              <input type="radio" name="tc-progress" value="unlock" />
+                              <span>不锁定</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="jw-publish-row">
+                        <label class="jw-publish-label">作业批改：</label>
+                        <div class="jw-publish-control">
+                          <div class="jw-radio-line">
+                            <label class="jw-radio">
+                              <input type="radio" name="tc-hw-check" value="self" checked />
+                              <span>学生自批</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="jw-publish-row jw-publish-row--top">
+                        <label class="jw-publish-label">资源包封面：</label>
+                        <div class="jw-publish-control">
+                          <button type="button" class="jw-cover-upload" id="tc-pub-cover">
+                            <span class="jw-cover-upload__plus">+</span>
+                            <span>上传封面</span>
+                          </button>
+                          <p class="jw-cover-hint">
+                            为保证美观，建议尺寸为540*320px，大小不超过10M的JPG、JPEG、PNG格式图片
+                          </p>
+                        </div>
+                      </div>
+                      <div class="jw-publish-row jw-publish-row--top">
+                        <label class="jw-publish-label">资源包简介：</label>
+                        <div class="jw-publish-control jw-publish-control--editor">
+                          <div class="jw-editor-toolbar" aria-hidden="true">
+                            <span>B</span><span>I</span><span>U</span><span>≡</span><span>🔗</span>
+                          </div>
+                          <textarea
+                            class="jw-editor-body"
+                            id="tc-pub-intro"
+                            rows="6"
+                            placeholder="请输入资源包简介"
+                            aria-label="资源包简介"
+                          ></textarea>
+                        </div>
+                      </div>
+                    </section>
+
+                    <div class="jw-publish-foot">
+                      <button type="button" class="xb-btn xb-btn--ghost" id="tc-pub-cancel" hidden>取消</button>
+                      <button type="button" class="xb-btn xb-btn--primary" id="tc-pub-modify-save" hidden>保存</button>
+                      <button type="button" class="xb-btn xb-btn--ghost" id="tc-pub-save">保存并退出</button>
+                      <span class="jw-pub-now-wrap" id="tc-pub-now-wrap">
+                        <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-publish-confirm" title="查看此处改动说明">改</button>
+                        <button type="button" class="xb-btn xb-btn--ghost" id="tc-pub-now">立即发布</button>
+                      </span>
+                      <button type="button" class="xb-btn xb-btn--primary" id="tc-pub-schedule">去添加资源</button>
+                    </div>
+                  </form>
+
+                  <div class="jw-schedule" id="tc-publish-schedule" data-pub-pane="2" hidden>
+                    <div class="jw-schedule-toolbar">
+                      <button type="button" class="xb-btn xb-btn--primary" id="tc-add-unit-btn">添加目录</button>
+                    </div>
+                    <div class="jw-schedule-empty" id="tc-schedule-empty">
+                      <div class="jw-schedule-empty__art" aria-hidden="true">
+                        <svg viewBox="0 0 120 96" width="120" height="96">
+                          <rect x="18" y="28" width="84" height="56" rx="6" fill="#e8f8f6" stroke="#9ad9d0" stroke-width="2" />
+                          <path d="M30 28v-6a8 8 0 0 1 8-8h16l6 8h22a8 8 0 0 1 8 8v6" fill="#c8ebe6" stroke="#9ad9d0" stroke-width="2" />
+                          <rect x="38" y="44" width="44" height="6" rx="2" fill="#1eb8a8" opacity="0.35" />
+                          <rect x="38" y="56" width="32" height="6" rx="2" fill="#1eb8a8" opacity="0.22" />
+                        </svg>
+                      </div>
+                      <p class="jw-schedule-empty__text">点击 “添加目录” 开始添加资源～</p>
+                    </div>
+                    <div class="jw-unit-list" id="tc-unit-list" hidden></div>
+                    <div class="jw-publish-foot">
+                      <button type="button" class="xb-btn xb-btn--ghost" id="tc-sched-prev">上一步</button>
+                      <button type="button" class="xb-btn xb-btn--ghost" id="tc-sched-save">保存并退出</button>
+                      <button type="button" class="xb-btn xb-btn--ghost" id="tc-sched-cancel" hidden>取消</button>
+                      <button type="button" class="xb-btn xb-btn--primary" id="tc-sched-publish">发布</button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
             </div>
+<div class="xb-modal xb-modal--confirm" id="tc-manage-del-modal" hidden>
+              <div class="xb-modal__mask" data-close-manage-del></div>
+              <div class="xb-confirm xb-confirm--simple" role="dialog" aria-modal="true" aria-labelledby="tc-manage-del-title">
+                <p class="xb-confirm__title" id="tc-manage-del-title">确定删除该课程吗？</p>
+                <div class="xb-confirm__actions">
+                  <button type="button" class="xb-btn xb-btn--cancel" data-close-manage-del>取消</button>
+                  <button type="button" class="xb-btn xb-btn--danger" id="tc-manage-del-ok">删除</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="xb-modal xb-modal--confirm" id="tc-learner-remove-modal" hidden>
+              <div class="xb-modal__mask" data-close-learner-remove></div>
+              <div class="xb-confirm xb-confirm--simple" role="dialog" aria-modal="true" aria-labelledby="tc-learner-remove-title">
+                <p class="xb-confirm__title" id="tc-learner-remove-title">确定将 该学生 从此课程中移除吗？</p>
+                <p class="xb-confirm__desc">移除后该学生将无法学习此学科课程</p>
+                <div class="xb-confirm__actions">
+                  <button type="button" class="xb-btn xb-btn--cancel" data-close-learner-remove>取消</button>
+                  <button type="button" class="xb-btn xb-btn--danger" id="tc-learner-remove-ok">移除</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="xb-modal xb-modal--confirm" id="tc-learners-mode-modal" hidden>
+              <div class="xb-modal__mask" data-close-learners-mode></div>
+              <div class="xb-confirm xb-confirm--simple" role="dialog" aria-modal="true" aria-labelledby="tc-learners-mode-title">
+                <p class="xb-confirm__title" id="tc-learners-mode-title">确认更换名单维护方式吗？</p>
+                <p class="xb-confirm__desc" id="tc-learners-mode-desc">更换后，已维护的数据将清空，需重新添加才能恢复</p>
+                <div class="xb-confirm__actions">
+                  <button type="button" class="xb-btn xb-btn--cancel" data-close-learners-mode>取消</button>
+                  <button type="button" class="xb-btn xb-btn--primary" id="tc-learners-mode-ok">确定</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="xb-modal xb-modal--student-detail" id="tc-student-detail-modal" hidden>
+              <div class="xb-modal__mask" data-close-student-detail></div>
+              <div class="jw-student-detail" role="dialog" aria-modal="true" aria-labelledby="tc-student-detail-title">
+                <div class="jw-student-detail__head">
+                  <h2 class="jw-student-detail__title" id="tc-student-detail-title">学生详情</h2>
+                  <button type="button" class="jw-student-detail__close" data-close-student-detail aria-label="关闭">×</button>
+                </div>
+                <div class="jw-student-detail__tabs" id="tc-student-detail-tabs"></div>
+                <div class="jw-student-detail__body" id="tc-student-detail-body"></div>
+              </div>
+            </div>
+
+            <div class="xb-modal xb-modal--confirm" id="tc-publish-now-modal" hidden>
+              <div class="xb-modal__mask" data-close-publish-now></div>
+              <div class="xb-confirm xb-confirm--simple" role="dialog" aria-modal="true" aria-labelledby="tc-publish-now-title">
+                <p class="xb-confirm__title" id="tc-publish-now-title">确定发布此课程吗？</p>
+                <div class="xb-confirm__actions">
+                  <button type="button" class="xb-btn xb-btn--cancel" data-close-publish-now>取消</button>
+                  <button type="button" class="xb-btn xb-btn--primary" id="tc-publish-now-ok">确定</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="xb-modal xb-modal--confirm" id="tc-manage-off-modal" hidden>
+              <div class="xb-modal__mask" data-close-manage-off></div>
+              <div class="xb-confirm xb-confirm--off" role="dialog" aria-modal="true" aria-labelledby="tc-manage-off-title">
+                <p class="xb-confirm__title" id="tc-manage-off-title">确认将课程下架吗？</p>
+                <p class="jw-off-tip">
+                  下架后，学生将不可查看
+                  <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-off" title="查看此处改动说明">改</button>
+                </p>
+                <label class="jw-off-skip">
+                  <input type="checkbox" id="tc-manage-off-skip" />
+                  <span>以后不再弹窗提醒，直接下架</span>
+                </label>
+                <div class="xb-confirm__actions">
+                  <button type="button" class="xb-btn xb-btn--cancel" data-close-manage-off>取消</button>
+                  <button type="button" class="xb-btn xb-btn--primary" id="tc-manage-off-ok">下架</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="xb-modal xb-modal--confirm" id="tc-import-restore-modal" hidden>
+              <div class="xb-modal__mask" data-close-import-restore></div>
+              <div class="jw-restore-dialog" role="dialog" aria-modal="true" aria-labelledby="tc-import-restore-title">
+                <div class="jw-restore-dialog__head">
+                  <h2 id="tc-import-restore-title">学习名单是否恢复</h2>
+                  <button type="button" class="jw-restore-dialog__x" data-close-import-restore aria-label="关闭">
+                    ×
+                  </button>
+                </div>
+                <div class="jw-restore-dialog__body">
+                  <p class="jw-restore-dialog__desc">
+                    有用户已在学习名单中，并被移除，是否恢复？你可以恢复移除用户名单后继续导入
+                  </p>
+                  <div class="jw-restore-dialog__course">
+                    <span id="tc-import-restore-course">自适应测试（语文）</span>
+                    <span class="jw-restore-dialog__count" id="tc-import-restore-count">1人被移除</span>
+                  </div>
+                  <ul class="jw-restore-dialog__list" id="tc-import-restore-list"></ul>
+                </div>
+                <div class="jw-restore-dialog__foot">
+                  <button type="button" class="xb-btn xb-btn--cancel" data-close-import-restore>取消</button>
+                  <button type="button" class="xb-btn xb-btn--primary" id="tc-import-restore-ok">恢复并继续</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="xb-modal xb-modal--add-course" id="tc-add-course-modal" hidden>
+              <div class="xb-modal__mask" data-close-add-course></div>
+              <div class="jw-add-course-dialog" role="dialog" aria-modal="true" aria-labelledby="tc-add-course-title">
+                <div class="jw-add-course__head">
+                  <h2 id="tc-add-course-title">
+                    添加资源
+                    <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-add-course" title="查看此处改动说明">改</button>
+                  </h2>
+                  <button type="button" class="jw-add-course__close" data-close-add-course aria-label="关闭">×</button>
+                </div>
+                <div class="jw-add-course__body">
+                  <div class="jw-add-course__label-row jw-add-course__type-row">
+                    <span class="jw-add-course__label">资源类型：</span>
+                    <select class="xb-select" id="tc-add-course-resource-type" aria-label="资源类型">
+                      <option value="video">视频</option>
+                      <option value="paper">试卷</option>
+                      <option value="courseware" selected>课件</option>
+                    </select>
+                    <span class="proto-add-pin proto-add-pin--inline" data-add-pin="add-1" title="查看新增说明">新增1</span>
+                  </div>
+                  <div class="jw-add-course__label-row">
+                    <span class="jw-add-course__label" id="tc-add-course-pick-label"><span class="req">*</span>选择课程视频：</span>
+                    <button type="button" class="jw-add-course__add-link" id="tc-add-course-open-pick">
+                      <span class="jw-add-course__add-plus">+</span>添加
+                    </button>
+                  </div>
+                  <div class="jw-add-course__picker" id="tc-add-course-picker">
+                    <div class="jw-add-course__left">
+                      <div class="jw-add-course__search">
+                        <input id="tc-add-course-search" type="text" placeholder="请输入关键词" />
+                        <button type="button" class="jw-add-course__search-btn" id="tc-add-course-search-btn" aria-label="搜索">
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <circle cx="6" cy="6" r="4.5" stroke="#999" stroke-width="1.4"/>
+                            <path d="M9.4 9.4L12.2 12.2" stroke="#999" stroke-width="1.4" stroke-linecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div class="jw-add-course__group">
+                        <button type="button" class="jw-add-course__group-toggle" id="tc-add-course-group-toggle" aria-expanded="true">
+                          <span class="jw-add-course__group-caret">∨</span>尚未分组
+                        </button>
+                        <ul class="jw-add-course__list" id="tc-add-course-list"></ul>
+                      </div>
+                    </div>
+                    <div class="jw-add-course__right">
+                      <div class="jw-add-course__right-head">
+                        <span id="tc-add-course-count">已选择(0/20)</span>
+                      </div>
+                      <ul class="jw-add-course__chosen" id="tc-add-course-chosen"></ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="jw-add-course__foot">
+                  <button type="button" class="xb-btn xb-btn--cancel" data-close-add-course>取消</button>
+                  <button type="button" class="xb-btn xb-btn--primary" id="tc-add-course-ok">确定</button>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           <!-- 教务端：自习室/校本课 · 课程库（改自点播库） -->
@@ -339,8 +1620,8 @@
               <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-lib" title="查看此处改动说明">改</button>
               </div>
               <button type="button" class="xb-user" data-role-switch title="点击切换身份" aria-label="切换身份">
-                <span class="xb-user__avatar">zfy</span>
-                <span>zfy | 教务</span>
+                <span class="xb-user__avatar">蒋</span>
+                <span>蒋雯 | 教务</span>
                 <span class="xb-user__chevron" aria-hidden="true"></span>
               </button>
             </header>
@@ -348,22 +1629,22 @@
             <div class="xb-body">
               <aside class="xb-side">
                 <div class="xb-side__group">教务教学</div>
-                <button type="button" class="xb-side__item" data-jw-nav="manage">课程管理</button>
-                <button type="button" class="xb-side__item is-active" data-jw-nav="lib">课程库</button>
+                <button type="button" class="xb-side__item" data-jw-nav="manage">资源包管理</button>
+                <button type="button" class="xb-side__item is-active" data-jw-nav="lib">资源库</button>
               </aside>
 
               <div class="xb-main xb-main--with-side">
                 <div class="xb-card xb-card--auto xb-card--manage" data-jw-panel="manage" hidden>
                   <div class="jw-manage-head">
                     <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-manage" title="查看此处改动说明">改</button>
-                    <button type="button" class="xb-btn xb-btn--primary" id="jw-publish-btn">发布课程</button>
+                    <button type="button" class="xb-btn xb-btn--primary" id="jw-publish-btn">发布资源包</button>
                   </div>
 
                   <div class="xb-filters jw-manage-filters">
                     <div class="xb-filter-row">
                       <label class="xb-field">
-                        <span class="xb-field__label">课程名称:</span>
-                        <input class="xb-input" type="text" placeholder="请输入课程名称" aria-label="课程名称" />
+                        <span class="xb-field__label">资源包名称:</span>
+                        <input class="xb-input" type="text" placeholder="请输入资源包名称" aria-label="资源包名称" />
                       </label>
                       <label class="xb-field">
                         <span class="xb-field__label">年级:</span>
@@ -442,7 +1723,7 @@
                           <th class="col-check">
                             <input class="xb-check" type="checkbox" id="jw-manage-check-all" aria-label="全选" />
                           </th>
-                          <th class="col-minfo">课程信息</th>
+                          <th class="col-minfo">资源包信息</th>
                           <th class="col-grade">年级</th>
                           <th class="col-subject">学科</th>
                           <th class="col-lessons">总课时数</th>
@@ -474,7 +1755,7 @@
                 <!-- 教务 · 学习数据 -->
                 <div class="xb-card xb-card--auto xb-card--learn-data" data-jw-panel="learn-data" hidden>
                   <nav class="jw-publish-crumb" aria-label="面包屑">
-                    <button type="button" class="jw-publish-crumb__link" id="jw-learn-data-back">课程管理</button>
+                    <button type="button" class="jw-publish-crumb__link" id="jw-learn-data-back">资源包管理</button>
                     <span class="jw-publish-crumb__sep">›</span>
                     <span class="jw-publish-crumb__current">学习数据</span>
                   </nav>
@@ -637,7 +1918,7 @@
                 <div class="xb-card xb-card--auto xb-card--learners" data-jw-panel="learners" hidden>
                   <div class="jw-learners-head">
                     <nav class="jw-publish-crumb" aria-label="面包屑">
-                      <button type="button" class="jw-publish-crumb__link" id="jw-learners-back">课程管理</button>
+                      <button type="button" class="jw-publish-crumb__link" id="jw-learners-back">资源包管理</button>
                       <span class="jw-publish-crumb__sep">›</span>
                       <span class="jw-publish-crumb__current">学习名单</span>
                       <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-learners" title="查看此处改动说明">改</button>
@@ -718,10 +1999,10 @@
                             <th class="col-check">
                               <input class="xb-check" type="checkbox" id="jw-learners-check-all" aria-label="全选" />
                             </th>
-                            <th>乐号</th>
+                            <th>班级</th>
                             <th>姓名</th>
                             <th>性别</th>
-                            <th>班级</th>
+                            <th>乐号</th>
                             <th>添加时间</th>
                             <th class="col-maction">操作</th>
                           </tr>
@@ -745,7 +2026,7 @@
                 <!-- 教务 · 学习名单 · 批量导入 -->
                 <div class="xb-card xb-card--auto xb-card--import" data-jw-panel="learners-import" hidden>
                   <nav class="jw-publish-crumb" aria-label="面包屑">
-                    <button type="button" class="jw-publish-crumb__link" id="jw-import-back-manage">课程管理</button>
+                    <button type="button" class="jw-publish-crumb__link" id="jw-import-back-manage">资源包管理</button>
                     <span class="jw-publish-crumb__sep">›</span>
                     <button type="button" class="jw-publish-crumb__link" id="jw-import-back-learners">学习名单</button>
                     <span class="jw-publish-crumb__sep">›</span>
@@ -818,7 +2099,7 @@
                 <!-- 教务 · 学习名单 · 添加学生 -->
                 <div class="xb-card xb-card--auto xb-card--add-learner" data-jw-panel="learners-add" hidden>
                   <nav class="jw-publish-crumb" aria-label="面包屑">
-                    <button type="button" class="jw-publish-crumb__link" id="jw-add-learner-back-manage">课程管理</button>
+                    <button type="button" class="jw-publish-crumb__link" id="jw-add-learner-back-manage">资源包管理</button>
                     <span class="jw-publish-crumb__sep">›</span>
                     <button type="button" class="jw-publish-crumb__link" id="jw-add-learner-back-list">学习名单</button>
                     <span class="jw-publish-crumb__sep">›</span>
@@ -943,7 +2224,7 @@
                         <span class="xb-field__label">制作人:</span>
                         <select class="xb-select" aria-label="制作人">
                           <option selected>全部</option>
-                          <option>zfy</option>
+                          <option>蒋雯</option>
                         </select>
                       </label>
                       <label class="xb-field">
@@ -976,7 +2257,7 @@
                             <input class="xb-check" type="checkbox" id="jw-check-all" aria-label="全选" />
                           </th>
                           <th class="col-subject">学科</th>
-                          <th class="col-info">课程信息</th>
+                          <th class="col-info">资源信息</th>
                           <th class="col-maker">制作人</th>
                           <th class="col-audit">审核意见</th>
                           <th class="col-time">创建时间</th>
@@ -1007,9 +2288,9 @@
                 <!-- 教务 · 发布课程 -->
                 <div class="xb-card xb-card--auto xb-card--publish" data-jw-panel="publish" hidden>
                   <nav class="jw-publish-crumb" aria-label="面包屑">
-                    <button type="button" class="jw-publish-crumb__link" id="jw-publish-back">课程管理</button>
+                    <button type="button" class="jw-publish-crumb__link" id="jw-publish-back">资源包管理</button>
                     <span class="jw-publish-crumb__sep">›</span>
-                    <span class="jw-publish-crumb__current" id="jw-publish-crumb-current">发布课程</span>
+                    <span class="jw-publish-crumb__current" id="jw-publish-crumb-current">发布资源包</span>
                     <button type="button" class="proto-diff-pin proto-diff-pin--inline" id="pc-diff-publish-pin" data-diff-pin="pc-jw-publish" title="查看此处改动说明">改</button>
                   </nav>
 
@@ -1021,15 +2302,15 @@
                     <div class="jw-publish-step__line"></div>
                     <div class="jw-publish-step" data-pub-step="2">
                       <span class="jw-publish-step__num">2</span>
-                      <span>排课</span>
+                      <span>添加资源</span>
                     </div>
                   </div>
 
                   <form class="jw-publish-form" id="jw-publish-form" data-pub-pane="1" onsubmit="return false;">
                     <section class="jw-publish-block">
-                      <h3 class="jw-publish-block__title">课程信息</h3>
+                      <h3 class="jw-publish-block__title">资源包信息</h3>
                       <div class="jw-publish-row">
-                        <label class="jw-publish-label"><span class="req">*</span>课程名称：</label>
+                        <label class="jw-publish-label"><span class="req">*</span>资源包名称：</label>
                         <div class="jw-publish-control jw-publish-control--name">
                           <input
                             class="jw-publish-input"
@@ -1037,7 +2318,7 @@
                             id="jw-pub-name"
                             maxlength="100"
                             value="自适应-校本课"
-                            aria-label="课程名称"
+                            aria-label="资源包名称"
                           />
                           <span class="jw-publish-count" id="jw-pub-name-count">7 / 100</span>
                         </div>
@@ -1141,7 +2422,7 @@
                         </div>
                       </div>
                       <div class="jw-publish-row jw-publish-row--top">
-                        <label class="jw-publish-label">课程封面：</label>
+                        <label class="jw-publish-label">资源包封面：</label>
                         <div class="jw-publish-control">
                           <button type="button" class="jw-cover-upload" id="jw-pub-cover">
                             <span class="jw-cover-upload__plus">+</span>
@@ -1153,7 +2434,7 @@
                         </div>
                       </div>
                       <div class="jw-publish-row jw-publish-row--top">
-                        <label class="jw-publish-label">课程简介：</label>
+                        <label class="jw-publish-label">资源包简介：</label>
                         <div class="jw-publish-control jw-publish-control--editor">
                           <div class="jw-editor-toolbar" aria-hidden="true">
                             <span>B</span><span>I</span><span>U</span><span>≡</span><span>🔗</span>
@@ -1162,8 +2443,8 @@
                             class="jw-editor-body"
                             id="jw-pub-intro"
                             rows="6"
-                            placeholder="请输入课程简介"
-                            aria-label="课程简介"
+                            placeholder="请输入资源包简介"
+                            aria-label="资源包简介"
                           ></textarea>
                         </div>
                       </div>
@@ -1177,13 +2458,13 @@
                         <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-publish-confirm" title="查看此处改动说明">改</button>
                         <button type="button" class="xb-btn xb-btn--ghost" id="jw-pub-now">立即发布</button>
                       </span>
-                      <button type="button" class="xb-btn xb-btn--primary" id="jw-pub-schedule">去排课</button>
+                      <button type="button" class="xb-btn xb-btn--primary" id="jw-pub-schedule">去添加资源</button>
                     </div>
                   </form>
 
                   <div class="jw-schedule" id="jw-publish-schedule" data-pub-pane="2" hidden>
                     <div class="jw-schedule-toolbar">
-                      <button type="button" class="xb-btn xb-btn--primary" id="jw-add-unit-btn">添加单元</button>
+                      <button type="button" class="xb-btn xb-btn--primary" id="jw-add-unit-btn">添加目录</button>
                     </div>
                     <div class="jw-schedule-empty" id="jw-schedule-empty">
                       <div class="jw-schedule-empty__art" aria-hidden="true">
@@ -1194,7 +2475,7 @@
                           <rect x="38" y="56" width="32" height="6" rx="2" fill="#1eb8a8" opacity="0.22" />
                         </svg>
                       </div>
-                      <p class="jw-schedule-empty__text">点击 “添加单元” 开始排课～</p>
+                      <p class="jw-schedule-empty__text">点击 “添加目录” 开始添加资源～</p>
                     </div>
                     <div class="jw-unit-list" id="jw-unit-list" hidden></div>
                     <div class="jw-publish-foot">
@@ -1638,7 +2919,7 @@
               <div class="jw-add-course-dialog" role="dialog" aria-modal="true" aria-labelledby="jw-add-course-title">
                 <div class="jw-add-course__head">
                   <h2 id="jw-add-course-title">
-                    添加课时
+                    添加资源
                     <button type="button" class="proto-diff-pin proto-diff-pin--inline" data-diff-pin="pc-jw-add-course" title="查看此处改动说明">改</button>
                   </h2>
                   <button type="button" class="jw-add-course__close" data-close-add-course aria-label="关闭">×</button>
@@ -1791,7 +3072,7 @@
               <div class="xb-modal__mask" data-close-review></div>
               <div class="xb-modal__dialog xb-review-dialog" role="dialog" aria-modal="true" aria-labelledby="jw-review-title">
                 <div class="xb-modal__head">
-                  <h2 id="jw-review-title">审核点播资源</h2>
+                  <h2 id="jw-review-title">审核资源</h2>
                   <button type="button" class="xb-modal__close" data-close-review aria-label="关闭">×</button>
                 </div>
                 <div class="xb-review-body">
@@ -1834,7 +3115,7 @@
               <div class="pad-home" id="pad-home">
                 <img
                   class="pad-home__img"
-                  src="./assets/pad-student-home.png?v=085-pad-hires"
+                  src="./assets/pad-student-home.png?v=085-pad-names"
                   alt="学生 PAD 首页"
                 />
                 <!-- 「更多」右侧新增【校本课】入口（风格对齐宫格图标） -->
@@ -1942,6 +3223,12 @@
                       <label class="xb-pad-home__grade">
                         <span class="xb-pad-home__grade-label">年级</span>
                         <select class="xb-pad-home__grade-select" id="pad-xb-grade" aria-label="年级筛选">
+                          <option value="一年级">一年级</option>
+                          <option value="二年级">二年级</option>
+                          <option value="三年级">三年级</option>
+                          <option value="四年级">四年级</option>
+                          <option value="五年级">五年级</option>
+                          <option value="六年级">六年级</option>
                           <option value="七年级" selected>七年级</option>
                           <option value="八年级">八年级</option>
                           <option value="九年级">九年级</option>
@@ -2228,7 +3515,7 @@
                   ></iframe>
                   <img
                     class="xb-pad-ware-page__img"
-                    src="./assets/pad/ref-courseware-view.png"
+                    src="./assets/pad/ref-courseware-view.jpg"
                     alt="课件预览"
                     draggable="false"
                   />
@@ -2329,6 +3616,6 @@
     </main>
 
     <script src="./js/vendor/mermaid.min.js"></script>
-    <script src="./js/app.js?v=085-home-chip-pos"></script>
+    <script src="./js/app.js?v=085-sys-pack-lock"></script>
   </body>
 </html>
